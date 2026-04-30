@@ -264,7 +264,7 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1fr auto auto;
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -347,6 +347,39 @@
     .meta strong {
       color: var(--ink);
       font-weight: 700;
+    }
+
+    .history {
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .history summary {
+      cursor: pointer;
+      color: #19324f;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .history-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .history-item {
+      padding: 9px 10px;
+      border-radius: 7px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .history-item strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 3px;
     }
 
     .empty {
@@ -456,6 +489,7 @@
             <form class="toolbar" id="search-form">
               <input id="query" name="q" value="" autocomplete="off" aria-label="Hledany text">
               <button type="submit">Hledat</button>
+              <button class="secondary" type="button" id="show-all">Zobrazit vse</button>
             </form>
             <div class="summary">
               <div class="metric">
@@ -495,6 +529,7 @@
     const ico = document.getElementById('ico');
     const toast = document.getElementById('toast');
     const demoList = document.getElementById('demo-list');
+    const showAll = document.getElementById('show-all');
 
     demoList.innerHTML = demoCompanies.map(item => `
       <div class="demo-item">
@@ -529,7 +564,14 @@
 
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      showToast(query.value.trim() ? `Hledam: ${query.value.trim()}` : 'Zobrazuji vsechny firmy.');
       await search(query.value);
+    });
+
+    showAll.addEventListener('click', async () => {
+      query.value = '';
+      showToast('Zobrazuji vsechny firmy.');
+      await search('');
     });
 
     async function importAres(value, refresh = true) {
@@ -547,9 +589,9 @@
       }
       const company = await response.json();
       showToast(`Nahrano: ${company.name}`);
-      query.value = company.registrationNumber;
       if (refresh) {
-        await search(company.registrationNumber);
+        query.value = '';
+        await search('');
       }
     }
 
@@ -587,8 +629,39 @@
             <span><strong>Pravni forma:</strong> ${escapeHtml(company.legalForm || '-')}</span>
             <span><strong>Historie:</strong> ${(company.changes || []).length} udalosti</span>
           </div>
+          <details class="history">
+            <summary>Zobrazit historii zmen</summary>
+            <div class="history-list">
+              ${renderHistory(company.changes || [])}
+            </div>
+          </details>
         </article>
       `).join('');
+    }
+
+    function renderHistory(changes) {
+      if (!changes.length) {
+        return '<div class="history-item">Historie zatim neobsahuje zadne udalosti.</div>';
+      }
+
+      return changes.map(change => `
+        <div class="history-item">
+          <strong>${escapeHtml(change.type || 'Zmena')}</strong>
+          <span>${escapeHtml(change.description || '')}</span>
+          <span>${formatDate(change.createdAt)}</span>
+        </div>
+      `).join('');
+    }
+
+    function formatDate(value) {
+      if (!value) {
+        return '';
+      }
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return escapeHtml(value);
+      }
+      return date.toLocaleString('cs-CZ');
     }
 
     function showToast(message) {
