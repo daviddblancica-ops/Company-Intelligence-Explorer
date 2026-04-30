@@ -16,6 +16,7 @@
       --accent-strong: #0d4fb3;
       --success: #178a55;
       --warning: #b7791f;
+      --watch: #7c3aed;
       --shadow: 0 18px 50px rgba(24, 39, 75, .12);
     }
 
@@ -164,6 +165,35 @@
       align-items: start;
     }
 
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .flow-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 30px rgba(24, 39, 75, .06);
+    }
+
+    .flow-card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .flow-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -233,6 +263,16 @@
       background: #d9e4f3;
     }
 
+    button.watch {
+      background: #f0e9ff;
+      color: var(--watch);
+    }
+
+    button.watch.active {
+      background: var(--watch);
+      color: #fff;
+    }
+
     .demo-list {
       display: grid;
       gap: 8px;
@@ -271,7 +311,7 @@
 
     .summary {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
       margin-bottom: 14px;
     }
@@ -333,6 +373,18 @@
       font-size: 12px;
       font-weight: 700;
       white-space: nowrap;
+    }
+
+    .badge.watchlisted {
+      background: #f0e9ff;
+      color: var(--watch);
+    }
+
+    .company-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
     }
 
     .meta {
@@ -419,6 +471,7 @@
       }
 
       .workspace,
+      .flow,
       .summary,
       .meta {
         grid-template-columns: 1fr;
@@ -463,6 +516,33 @@
         </div>
       </div>
 
+      <section class="flow" aria-label="Tok dat">
+        <div class="flow-card">
+          <h2>Vstup</h2>
+          <ul>
+            <li>CSV nebo JSON soubory s daty o firmach</li>
+            <li>informace o lidech</li>
+            <li>role lidi ve firmach</li>
+          </ul>
+        </div>
+        <div class="flow-card">
+          <h2>Uvnitř</h2>
+          <ul>
+            <li>kontrola a sjednoceni dat</li>
+            <li>ulozeni vazeb mezi lidmi a firmami</li>
+            <li>historie zmen a priprava pro hledani</li>
+          </ul>
+        </div>
+        <div class="flow-card">
+          <h2>Výstup</h2>
+          <ul>
+            <li>vyhledavani a detail firmy</li>
+            <li>prehled napojenych lidi</li>
+            <li>historie zmen a watchlist</li>
+          </ul>
+        </div>
+      </section>
+
       <div class="workspace">
         <section class="panel" id="import">
           <div class="panel-header">
@@ -490,6 +570,7 @@
               <input id="query" name="q" value="" autocomplete="off" aria-label="Hledany text">
               <button type="submit">Hledat</button>
               <button class="secondary" type="button" id="show-all">Zobrazit vse</button>
+              <button class="watch" type="button" id="show-watchlist">Watchlist</button>
             </form>
             <div class="summary">
               <div class="metric">
@@ -503,6 +584,10 @@
               <div class="metric">
                 <strong id="change-count">0</strong>
                 <span>udalosti historie</span>
+              </div>
+              <div class="metric">
+                <strong id="watch-count">0</strong>
+                <span>na watchlistu</span>
               </div>
             </div>
             <div id="results" class="results">
@@ -530,6 +615,9 @@
     const toast = document.getElementById('toast');
     const demoList = document.getElementById('demo-list');
     const showAll = document.getElementById('show-all');
+    const showWatchlist = document.getElementById('show-watchlist');
+    let currentCompanies = [];
+    let watchlistOnly = false;
 
     demoList.innerHTML = demoCompanies.map(item => `
       <div class="demo-item">
@@ -570,8 +658,17 @@
 
     showAll.addEventListener('click', async () => {
       query.value = '';
+      watchlistOnly = false;
+      showWatchlist.classList.remove('active');
       showToast('Zobrazuji vsechny firmy.');
       await search('');
+    });
+
+    showWatchlist.addEventListener('click', () => {
+      watchlistOnly = !watchlistOnly;
+      showWatchlist.classList.toggle('active', watchlistOnly);
+      showToast(watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji vsechny vysledky.');
+      renderCompanies(currentCompanies);
     });
 
     async function importAres(value, refresh = true) {
@@ -591,6 +688,8 @@
       showToast(`Nahrano: ${company.name}`);
       if (refresh) {
         query.value = '';
+        watchlistOnly = false;
+        showWatchlist.classList.remove('active');
         await search('');
       }
     }
@@ -601,34 +700,52 @@
         showToast('Vyhledavani selhalo.');
         return;
       }
-      renderCompanies(await response.json());
+      currentCompanies = await response.json();
+      renderCompanies(currentCompanies);
     }
 
     function renderCompanies(companies) {
-      document.getElementById('count').textContent = companies.length;
-      document.getElementById('ares-count').textContent = companies.filter(c => c.dataSource === 'ARES').length;
-      document.getElementById('change-count').textContent = companies.reduce((sum, c) => sum + ((c.changes || []).length), 0);
+      const visibleCompanies = watchlistOnly ? companies.filter(c => c.watchlisted) : companies;
+      document.getElementById('count').textContent = visibleCompanies.length;
+      document.getElementById('ares-count').textContent = visibleCompanies.filter(c => c.dataSource === 'ARES').length;
+      document.getElementById('change-count').textContent = visibleCompanies.reduce((sum, c) => sum + ((c.changes || []).length), 0);
+      document.getElementById('watch-count').textContent = companies.filter(c => c.watchlisted).length;
 
-      if (!companies.length) {
-        results.innerHTML = '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES nebo uprav vyhledavani.</div>';
+      if (!visibleCompanies.length) {
+        results.innerHTML = watchlistOnly
+          ? '<div class="empty">Watchlist je prazdny. Oznac firmu tlacitkem Sledovat.</div>'
+          : '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES nebo uprav vyhledavani.</div>';
         return;
       }
 
-      results.innerHTML = companies.map(company => `
+      results.innerHTML = visibleCompanies.map(company => `
         <article class="company">
           <div class="company-head">
             <div>
               <h3>${escapeHtml(company.name)}</h3>
               <p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p>
             </div>
-            <span class="badge">${escapeHtml(company.dataSource || 'LOCAL')}</span>
+            <div class="company-actions">
+              <button class="watch ${company.watchlisted ? 'active' : ''}" type="button" data-watch-id="${company.id}" data-watch-state="${company.watchlisted ? 'false' : 'true'}">
+                ${company.watchlisted ? 'Sledovano' : 'Sledovat'}
+              </button>
+              <span class="badge ${company.watchlisted ? 'watchlisted' : ''}">${company.watchlisted ? 'WATCHLIST' : escapeHtml(company.dataSource || 'LOCAL')}</span>
+            </div>
           </div>
           <div class="meta">
             <span><strong>ICO:</strong> ${escapeHtml(company.registrationNumber)}</span>
             <span><strong>Stat:</strong> ${escapeHtml(company.country || '-')}</span>
             <span><strong>Pravni forma:</strong> ${escapeHtml(company.legalForm || '-')}</span>
             <span><strong>Historie:</strong> ${(company.changes || []).length} udalosti</span>
+            <span><strong>Lide:</strong> ${(company.people || []).length}</span>
+            <span><strong>Watchlist:</strong> ${company.watchlisted ? 'ano' : 'ne'}</span>
           </div>
+          <details class="history">
+            <summary>Zobrazit napojene lidi</summary>
+            <div class="history-list">
+              ${renderPeople(company.people || [])}
+            </div>
+          </details>
           <details class="history">
             <summary>Zobrazit historii zmen</summary>
             <div class="history-list">
@@ -636,6 +753,41 @@
             </div>
           </details>
         </article>
+      `).join('');
+    }
+
+    results.addEventListener('click', async event => {
+      const button = event.target.closest('button[data-watch-id]');
+      if (!button) {
+        return;
+      }
+      const id = button.dataset.watchId;
+      const watchlisted = button.dataset.watchState === 'true';
+      const response = await fetch(`/api/companies/${id}/watchlist`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ watchlisted })
+      });
+      if (!response.ok) {
+        showToast('Watchlist se nepodarilo ulozit.');
+        return;
+      }
+      const updated = await response.json();
+      currentCompanies = currentCompanies.map(company => company.id === updated.id ? updated : company);
+      showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
+      renderCompanies(currentCompanies);
+    });
+
+    function renderPeople(people) {
+      if (!people.length) {
+        return '<div class="history-item">U teto firmy zatim nejsou ulozene vazby na osoby.</div>';
+      }
+
+      return people.map(person => `
+        <div class="history-item">
+          <strong>${escapeHtml(person.fullName || 'Osoba')}</strong>
+          <span>${escapeHtml(person.role || 'role neuvedena')}</span>
+        </div>
       `).join('');
     }
 

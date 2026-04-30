@@ -67,6 +67,16 @@ public class CompanyService {
         return companyRepository.search(normalizedQuery);
     }
 
+    @Transactional
+    public Company setWatchlisted(Long id, boolean watchlisted) {
+        Company company = getCompany(id);
+        company.setWatchlisted(watchlisted);
+        company.addChange(
+                watchlisted ? "WATCHLISTED" : "UNWATCHLISTED",
+                watchlisted ? "Company added to watchlist" : "Company removed from watchlist");
+        return companyRepository.save(company);
+    }
+
     private Person findOrCreatePerson(String fullName) {
         String normalizedName = normalizationService.normalizeName(fullName);
         return personRepository.findByNormalizedName(normalizedName)

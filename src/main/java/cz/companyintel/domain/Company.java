@@ -38,6 +38,9 @@ public class Company {
     private String dataSource;
 
     @Column(nullable = false)
+    private boolean watchlisted;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
@@ -89,6 +92,11 @@ public class Company {
         this.changes.add(new ChangeEvent(this, type, description));
     }
 
+    public void setWatchlisted(boolean watchlisted) {
+        this.watchlisted = watchlisted;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }
@@ -119,6 +127,10 @@ public class Company {
 
     public String getDataSource() {
         return dataSource;
+    }
+
+    public boolean isWatchlisted() {
+        return watchlisted;
     }
 
     public LocalDateTime getCreatedAt() {

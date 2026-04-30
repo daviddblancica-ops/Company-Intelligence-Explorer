@@ -48,4 +48,19 @@ class CompanyServiceTest {
 
         assertThat(companyService.searchCompanies("central trade")).hasSize(1);
     }
+
+    @Test
+    void togglesWatchlistAndWritesHistory() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Watch Test s.r.o.");
+        request.setRegistrationNumber("99911122");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+
+        Company saved = companyService.saveCompany(request);
+        Company watched = companyService.setWatchlisted(saved.getId(), true);
+
+        assertThat(watched.isWatchlisted()).isTrue();
+        assertThat(watched.getChanges()).extracting("type").contains("WATCHLISTED");
+    }
 }

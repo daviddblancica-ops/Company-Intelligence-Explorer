@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,5 +40,10 @@ public class CompanyController {
     public List<CompanyResponse> search(@RequestParam(defaultValue = "") String q) {
         List<Company> companies = companyService.searchCompanies(q);
         return companies.stream().map(CompanyResponse::from).collect(Collectors.toList());
+    }
+
+    @PatchMapping("/{id}/watchlist")
+    public CompanyResponse setWatchlisted(@PathVariable Long id, @RequestBody WatchlistRequest request) {
+        return CompanyResponse.from(companyService.setWatchlisted(id, request.isWatchlisted()));
     }
 }

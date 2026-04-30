@@ -14,6 +14,7 @@ public class CompanyResponse {
     private String legalForm;
     private String address;
     private String dataSource;
+    private boolean watchlisted;
     private List<PersonRoleResponse> people;
     private List<ChangeEventResponse> changes;
 
@@ -27,6 +28,7 @@ public class CompanyResponse {
         response.legalForm = company.getLegalForm();
         response.address = company.getAddress();
         response.dataSource = company.getDataSource();
+        response.watchlisted = company.isWatchlisted();
         response.people = company.getPeople().stream()
                 .map(PersonRoleResponse::from)
                 .collect(Collectors.toList());
@@ -66,6 +68,10 @@ public class CompanyResponse {
 
     public String getDataSource() {
         return dataSource;
+    }
+
+    public boolean isWatchlisted() {
+        return watchlisted;
     }
 
     public List<PersonRoleResponse> getPeople() {
