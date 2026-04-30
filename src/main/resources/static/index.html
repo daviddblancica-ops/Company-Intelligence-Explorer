@@ -44,7 +44,7 @@
       grid-template-columns: 280px 1fr;
     }
 
-    aside {
+    .shell > aside {
       position: sticky;
       top: 0;
       height: 100vh;
@@ -612,7 +612,7 @@
         grid-template-columns: 1fr;
       }
 
-      aside {
+      .shell > aside {
         position: static;
         height: auto;
       }
@@ -810,10 +810,10 @@
               <div id="results" class="results">
                 <div class="empty">Zatim nejsou nactena data. Pouzij vstup dat vlevo.</div>
               </div>
-              <aside class="detail" id="detail-panel">
+              <section class="detail" id="detail-panel" aria-label="Detail firmy">
                 <h3>Detail firmy</h3>
                 <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
-              </aside>
+              </section>
             </div>
           </div>
         </section>
