@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Nova Data Systems s.r.o.",
+    "registrationNumber": "12345678",
+    "country": "CZ",
+    "legalForm": "s.r.o.",
+    "people": [
+      {
+        "fullName": "Jan Novak",
+        "role": "jednatel"
+      },
+      {
+        "fullName": "Eva Svobodova",
+        "role": "spolecnik"
+      }
+    ]
+  },
+  {
+    "name": "Central Trade Group a.s.",
+    "registrationNumber": "87654321",
+    "country": "CZ",
+    "legalForm": "a.s.",
+    "people": [
+      {
+        "fullName": "Petra Dvorakova",
+        "role": "clen predstavenstva"
+      }
+    ]
+  }
+]
