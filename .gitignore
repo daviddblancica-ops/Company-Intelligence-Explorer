@@ -1,0 +1,8 @@
+.mvn-local/
+target/
+*.log
+*.iml
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
