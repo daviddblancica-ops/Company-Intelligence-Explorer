@@ -9,6 +9,8 @@ public class CompanyRequest {
     private String registrationNumber;
     private String country;
     private String legalForm;
+    private String address;
+    private String dataSource;
     private List<PersonRole> people = new ArrayList<PersonRole>();
 
     public String getName() {
@@ -41,6 +43,22 @@ public class CompanyRequest {
 
     public void setLegalForm(String legalForm) {
         this.legalForm = legalForm;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource;
     }
 
     public List<PersonRole> getPeople() {

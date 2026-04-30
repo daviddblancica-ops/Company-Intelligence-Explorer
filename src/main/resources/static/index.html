@@ -6,14 +6,17 @@
   <title>Company Intelligence Explorer</title>
   <style>
     :root {
-      color-scheme: light;
-      --bg: #f6f7f9;
+      --bg: #eef2f6;
+      --ink: #17202a;
+      --muted: #657181;
+      --line: #d5dde7;
       --panel: #ffffff;
-      --text: #17202a;
-      --muted: #65717f;
-      --line: #d8dee6;
-      --accent: #1f6feb;
-      --accent-dark: #185abc;
+      --panel-soft: #f8fafc;
+      --accent: #1769e0;
+      --accent-strong: #0d4fb3;
+      --success: #178a55;
+      --warning: #b7791f;
+      --shadow: 0 18px 50px rgba(24, 39, 75, .12);
     }
 
     * {
@@ -22,19 +25,105 @@
 
     body {
       margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      font-family: Arial, Helvetica, sans-serif;
+      background:
+        linear-gradient(180deg, #f7f9fc 0, var(--bg) 360px),
+        var(--bg);
+      color: var(--ink);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 22px;
+      background: #111827;
+      color: #f8fafc;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 34px;
+    }
+
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      background: #2f80ed;
+      font-weight: 800;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .brand span {
+      display: block;
+      color: #aeb8c6;
+      font-size: 12px;
+      margin-top: 3px;
+    }
+
+    nav {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 30px;
+    }
+
+    nav a {
+      color: #d7dde7;
+      text-decoration: none;
+      padding: 10px 11px;
+      border-radius: 7px;
+      font-size: 14px;
+    }
+
+    nav a.active,
+    nav a:hover {
+      background: rgba(255, 255, 255, .09);
+      color: #fff;
+    }
+
+    .side-note {
+      margin-top: auto;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 8px;
+      color: #bac4d3;
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     main {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 40px 24px;
+      padding: 30px;
+      max-width: 1240px;
+      width: 100%;
     }
 
-    header {
-      margin-bottom: 28px;
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 24px;
     }
 
     h1 {
@@ -50,63 +139,160 @@
       line-height: 1.55;
     }
 
-    .toolbar {
+    .status {
+      min-width: 210px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 13px;
+      box-shadow: 0 8px 30px rgba(24, 39, 75, .06);
+    }
+
+    .status strong {
+      display: block;
+      color: var(--ink);
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-header {
+      padding: 18px 18px 0;
+    }
+
+    .panel-header h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .form-row {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 12px;
-      margin: 24px 0;
+      gap: 10px;
+      margin-bottom: 12px;
     }
 
     input {
       width: 100%;
-      height: 44px;
+      height: 42px;
       border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 0 14px;
-      font-size: 15px;
+      border-radius: 7px;
+      padding: 0 12px;
       background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, .12);
     }
 
     button {
-      height: 44px;
+      height: 42px;
       border: 0;
-      border-radius: 6px;
-      padding: 0 18px;
+      border-radius: 7px;
+      padding: 0 14px;
       background: var(--accent);
       color: #fff;
-      font-size: 15px;
       cursor: pointer;
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     button:hover {
-      background: var(--accent-dark);
+      background: var(--accent-strong);
     }
 
-    .grid {
+    button.secondary {
+      background: #e8eef7;
+      color: #19324f;
+    }
+
+    button.secondary:hover {
+      background: #d9e4f3;
+    }
+
+    .demo-list {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
-      margin: 24px 0;
+      gap: 8px;
+      margin-top: 14px;
     }
 
-    .metric,
-    .result,
-    .endpoint {
-      background: var(--panel);
+    .demo-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 16px;
+      background: var(--panel-soft);
+    }
+
+    .demo-item strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .demo-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
     }
 
     .metric strong {
       display: block;
+      font-size: 22px;
+      line-height: 1;
       margin-bottom: 6px;
-      font-size: 18px;
     }
 
-    .section-title {
-      margin: 28px 0 12px;
-      font-size: 20px;
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .results {
@@ -114,121 +300,300 @@
       gap: 12px;
     }
 
-    .result h2 {
-      margin: 0 0 8px;
-      font-size: 18px;
-      letter-spacing: 0;
-    }
-
-    .meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    code {
-      display: block;
-      overflow-wrap: anywhere;
-      color: #0f5132;
-      font-family: Consolas, Monaco, monospace;
-      font-size: 14px;
-    }
-
-    .empty {
-      padding: 18px;
-      color: var(--muted);
-      border: 1px dashed var(--line);
+    .company {
+      padding: 16px;
+      border: 1px solid var(--line);
       border-radius: 8px;
       background: #fff;
     }
 
-    @media (max-width: 720px) {
-      main {
-        padding: 28px 16px;
-      }
+    .company-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
 
-      h1 {
-        font-size: 28px;
-      }
+    .company h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
 
-      .toolbar,
-      .grid {
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #eaf4ef;
+      color: var(--success);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 14px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .meta strong {
+      color: var(--ink);
+      font-weight: 700;
+    }
+
+    .empty {
+      padding: 22px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      color: var(--muted);
+    }
+
+    .toast {
+      margin-top: 12px;
+      padding: 11px 12px;
+      border-radius: 7px;
+      background: #fff8e8;
+      color: var(--warning);
+      font-size: 13px;
+      display: none;
+    }
+
+    .toast.visible {
+      display: block;
+    }
+
+    @media (max-width: 920px) {
+      .shell {
         grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+      }
+
+      main {
+        padding: 22px 16px;
+      }
+
+      .workspace,
+      .summary,
+      .meta {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar,
+      .company-head {
+        display: grid;
       }
     }
   </style>
 </head>
 <body>
-  <main>
-    <header>
-      <h1>Company Intelligence Explorer</h1>
-      <p>Backendova aplikace pro import, sjednoceni, historii zmen a rychle hledani firemnich dat.</p>
-    </header>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="brand-mark">CI</div>
+        <div>
+          <strong>Company Intelligence Explorer</strong>
+          <span>Java backend MVP</span>
+        </div>
+      </div>
+      <nav aria-label="Navigace">
+        <a class="active" href="#import">Import z ARES</a>
+        <a href="#search">Vyhledavani</a>
+        <a href="/h2-console">H2 konzole</a>
+      </nav>
+      <div class="side-note">
+        Data se ukladaji do lokalni H2 databaze v pameti. Po restartu aplikace zacinas s prazdnym stavem.
+      </div>
+    </aside>
 
-    <section class="grid" aria-label="Prehled funkci">
-      <div class="metric">
-        <strong>Import dat</strong>
-        <p>CSV a JSON vstupy pro zalozeni nebo aktualizaci firem.</p>
+    <main>
+      <div class="topbar">
+        <div>
+          <h1>Firemni data bez chaosu</h1>
+          <p>Naimportuj subjekt z ARES podle ICO, sjednot data a hledej v nich pres jednoduche rozhrani.</p>
+        </div>
+        <div class="status">
+          <strong id="status-title">Server bezi</strong>
+          <span id="status-text">API je dostupne na portu 8081.</span>
+        </div>
       </div>
-      <div class="metric">
-        <strong>Sjednoceni dat</strong>
-        <p>Normalizace nazvu pro spolehlive vyhledavani.</p>
-      </div>
-      <div class="metric">
-        <strong>Historie zmen</strong>
-        <p>U kazde firmy se ukladaji udalosti vytvoreni a uprav.</p>
-      </div>
-    </section>
 
-    <section aria-label="Vyhledavani firem">
-      <h2 class="section-title">Vyhledavani firem</h2>
-      <form class="toolbar" id="search-form">
-        <input id="query" name="q" value="nova" autocomplete="off" aria-label="Hledany text">
-        <button type="submit">Hledat</button>
-      </form>
-      <div id="results" class="results">
-        <div class="empty">Zadej nazev nebo identifikaci firmy a spust hledani.</div>
-      </div>
-    </section>
+      <div class="workspace">
+        <section class="panel" id="import">
+          <div class="panel-header">
+            <h2>Import z ARES</h2>
+            <p>Zadej ICO nebo pouzij ukazkove firmy.</p>
+          </div>
+          <div class="panel-body">
+            <form class="form-row" id="ares-form">
+              <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
+              <button type="submit">Importovat</button>
+            </form>
+            <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
+            <div id="toast" class="toast"></div>
+            <div class="demo-list" id="demo-list"></div>
+          </div>
+        </section>
 
-    <section aria-label="API endpointy">
-      <h2 class="section-title">API endpointy</h2>
-      <div class="results">
-        <div class="endpoint"><code>GET /api/companies/search?q=nova</code></div>
-        <div class="endpoint"><code>GET /api/companies/{id}</code></div>
-        <div class="endpoint"><code>POST /api/companies</code></div>
-        <div class="endpoint"><code>POST /api/import/json</code></div>
-        <div class="endpoint"><code>POST /api/import/csv</code></div>
+        <section class="panel" id="search">
+          <div class="panel-header">
+            <h2>Datovy rejstrik</h2>
+            <p>Vyhledej podle nazvu nebo ICO. Vysledky se nacitaji z backend API.</p>
+          </div>
+          <div class="panel-body">
+            <form class="toolbar" id="search-form">
+              <input id="query" name="q" value="" autocomplete="off" aria-label="Hledany text">
+              <button type="submit">Hledat</button>
+            </form>
+            <div class="summary">
+              <div class="metric">
+                <strong id="count">0</strong>
+                <span>nalezenych firem</span>
+              </div>
+              <div class="metric">
+                <strong id="ares-count">0</strong>
+                <span>zaznamu z ARES</span>
+              </div>
+              <div class="metric">
+                <strong id="change-count">0</strong>
+                <span>udalosti historie</span>
+              </div>
+            </div>
+            <div id="results" class="results">
+              <div class="empty">Zatim nejsou nactena data. Pouzij import z ARES vlevo.</div>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
-  </main>
+    </main>
+  </div>
 
   <script>
+    const demoCompanies = [
+      { ico: '00006947', name: 'Ministerstvo financi' },
+      { ico: '26168685', name: 'Seznam.cz' },
+      { ico: '27082440', name: 'Alza.cz' },
+      { ico: '45274649', name: 'CEZ' }
+    ];
+
     const form = document.getElementById('search-form');
     const query = document.getElementById('query');
     const results = document.getElementById('results');
+    const aresForm = document.getElementById('ares-form');
+    const ico = document.getElementById('ico');
+    const toast = document.getElementById('toast');
+    const demoList = document.getElementById('demo-list');
+
+    demoList.innerHTML = demoCompanies.map(item => `
+      <div class="demo-item">
+        <div>
+          <strong>${escapeHtml(item.name)}</strong>
+          <span>ICO ${item.ico}</span>
+        </div>
+        <button class="secondary" type="button" data-ico="${item.ico}">Nahrat</button>
+      </div>
+    `).join('');
+
+    demoList.addEventListener('click', event => {
+      const button = event.target.closest('button[data-ico]');
+      if (button) {
+        importAres(button.dataset.ico);
+      }
+    });
+
+    document.getElementById('seed-demo').addEventListener('click', async () => {
+      showToast('Nacitam demo data z ARES...');
+      for (const item of demoCompanies) {
+        await importAres(item.ico, false);
+      }
+      showToast('Demo data jsou nahrana.');
+      await search('');
+    });
+
+    aresForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await importAres(ico.value);
+    });
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      await search(query.value);
+    });
+
+    async function importAres(value, refresh = true) {
+      const normalized = String(value || '').replace(/\D/g, '');
+      if (!normalized) {
+        showToast('Zadej platne ICO.');
+        return;
+      }
+
+      showToast(`Importuji ICO ${normalized} z ARES...`);
+      const response = await fetch(`/api/import/ares/${encodeURIComponent(normalized)}`, { method: 'POST' });
+      if (!response.ok) {
+        showToast(`ARES import selhal pro ICO ${normalized}.`);
+        return;
+      }
+      const company = await response.json();
+      showToast(`Nahrano: ${company.name}`);
+      query.value = company.registrationNumber;
+      if (refresh) {
+        await search(company.registrationNumber);
+      }
+    }
+
+    async function search(value) {
+      const response = await fetch(`/api/companies/search?q=${encodeURIComponent(value || '')}`);
+      if (!response.ok) {
+        showToast('Vyhledavani selhalo.');
+        return;
+      }
+      renderCompanies(await response.json());
+    }
 
     function renderCompanies(companies) {
+      document.getElementById('count').textContent = companies.length;
+      document.getElementById('ares-count').textContent = companies.filter(c => c.dataSource === 'ARES').length;
+      document.getElementById('change-count').textContent = companies.reduce((sum, c) => sum + ((c.changes || []).length), 0);
+
       if (!companies.length) {
-        results.innerHTML = '<div class="empty">Zadne firmy nebyly nalezeny. Nejdriv data naimportuj nebo zaloz pres API.</div>';
+        results.innerHTML = '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES nebo uprav vyhledavani.</div>';
         return;
       }
 
       results.innerHTML = companies.map(company => `
-        <article class="result">
-          <h2>${escapeHtml(company.name)}</h2>
-          <p>${escapeHtml(company.legalForm || '')} ${escapeHtml(company.country || '')}</p>
+        <article class="company">
+          <div class="company-head">
+            <div>
+              <h3>${escapeHtml(company.name)}</h3>
+              <p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p>
+            </div>
+            <span class="badge">${escapeHtml(company.dataSource || 'LOCAL')}</span>
+          </div>
           <div class="meta">
-            <span>ID: ${company.id}</span>
-            <span>Registrace: ${escapeHtml(company.registrationNumber)}</span>
-            <span>Zmeny: ${(company.changes || []).length}</span>
-            <span>Osoby: ${(company.people || []).length}</span>
+            <span><strong>ICO:</strong> ${escapeHtml(company.registrationNumber)}</span>
+            <span><strong>Stat:</strong> ${escapeHtml(company.country || '-')}</span>
+            <span><strong>Pravni forma:</strong> ${escapeHtml(company.legalForm || '-')}</span>
+            <span><strong>Historie:</strong> ${(company.changes || []).length} udalosti</span>
           </div>
         </article>
       `).join('');
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('visible');
     }
 
     function escapeHtml(value) {
@@ -240,12 +605,7 @@
         .replaceAll("'", '&#039;');
     }
 
-    form.addEventListener('submit', async event => {
-      event.preventDefault();
-      results.innerHTML = '<div class="empty">Hledam...</div>';
-      const response = await fetch(`/api/companies/search?q=${encodeURIComponent(query.value)}`);
-      renderCompanies(await response.json());
-    });
+    search('');
   </script>
 </body>
 </html>

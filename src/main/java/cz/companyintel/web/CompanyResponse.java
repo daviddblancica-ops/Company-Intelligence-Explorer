@@ -12,6 +12,8 @@ public class CompanyResponse {
     private String registrationNumber;
     private String country;
     private String legalForm;
+    private String address;
+    private String dataSource;
     private List<PersonRoleResponse> people;
     private List<ChangeEventResponse> changes;
 
@@ -23,6 +25,8 @@ public class CompanyResponse {
         response.registrationNumber = company.getRegistrationNumber();
         response.country = company.getCountry();
         response.legalForm = company.getLegalForm();
+        response.address = company.getAddress();
+        response.dataSource = company.getDataSource();
         response.people = company.getPeople().stream()
                 .map(PersonRoleResponse::from)
                 .collect(Collectors.toList());
@@ -54,6 +58,14 @@ public class CompanyResponse {
 
     public String getLegalForm() {
         return legalForm;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public String getDataSource() {
+        return dataSource;
     }
 
     public List<PersonRoleResponse> getPeople() {

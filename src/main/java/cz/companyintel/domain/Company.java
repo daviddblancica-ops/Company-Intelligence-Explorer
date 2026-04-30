@@ -1,11 +1,12 @@
 package cz.companyintel.domain;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -31,17 +32,22 @@ public class Company {
 
     private String legalForm;
 
+    @Column(length = 600)
+    private String address;
+
+    private String dataSource;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CompanyPersonRole> people = new ArrayList<CompanyPersonRole>();
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<CompanyPersonRole> people = new LinkedHashSet<CompanyPersonRole>();
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ChangeEvent> changes = new ArrayList<ChangeEvent>();
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<ChangeEvent> changes = new LinkedHashSet<ChangeEvent>();
 
     protected Company() {
     }
@@ -63,6 +69,12 @@ public class Company {
         this.country = country;
         this.legalForm = legalForm;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateProfile(String name, String normalizedName, String country, String legalForm, String address, String dataSource) {
+        updateProfile(name, normalizedName, country, legalForm);
+        this.address = address;
+        this.dataSource = dataSource;
     }
 
     public void addRole(Person person, String role) {
@@ -101,6 +113,14 @@ public class Company {
         return legalForm;
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public String getDataSource() {
+        return dataSource;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -109,11 +129,11 @@ public class Company {
         return updatedAt;
     }
 
-    public List<CompanyPersonRole> getPeople() {
+    public Set<CompanyPersonRole> getPeople() {
         return people;
     }
 
-    public List<ChangeEvent> getChanges() {
+    public Set<ChangeEvent> getChanges() {
         return changes;
     }
 }

@@ -36,7 +36,7 @@ public class CompanyController {
     }
 
     @GetMapping("/search")
-    public List<CompanyResponse> search(@RequestParam String q) {
+    public List<CompanyResponse> search(@RequestParam(defaultValue = "") String q) {
         List<Company> companies = companyService.searchCompanies(q);
         return companies.stream().map(CompanyResponse::from).collect(Collectors.toList());
     }

@@ -37,7 +37,13 @@ public class CompanyService {
                         request.getLegalForm()));
 
         boolean existing = company.getId() != null;
-        company.updateProfile(request.getName(), normalizedCompanyName, request.getCountry(), request.getLegalForm());
+        company.updateProfile(
+                request.getName(),
+                normalizedCompanyName,
+                request.getCountry(),
+                request.getLegalForm(),
+                request.getAddress(),
+                request.getDataSource());
 
         if (request.getPeople() != null) {
             company.clearRoles();

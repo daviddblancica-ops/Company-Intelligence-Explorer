@@ -9,6 +9,7 @@ Firemni data byvaji casto roztristena, nejednotna a spatne dohledatelna. Tato ap
 ## Hlavni casti
 
 - import firemnich dat z JSON nebo CSV
+- import firemnich dat z ARES podle ICO
 - sjednoceni nazvu pro spolehlive vyhledavani
 - ulozeni firem, osob a jejich roli
 - historie vytvoreni a aktualizaci firmy
@@ -102,6 +103,12 @@ CSV format:
 ```csv
 name,registrationNumber,country,legalForm,people
 Nova Data Systems s.r.o.,12345678,CZ,s.r.o.,Jan Novak|jednatel;Eva Svobodova|spolecnik
+```
+
+Import z ARES podle ICO:
+
+```http
+POST /api/import/ares/00006947
 ```
 
 ## Jak projekt popsat u obhajoby
