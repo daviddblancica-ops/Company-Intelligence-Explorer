@@ -114,3 +114,30 @@ POST /api/import/ares/00006947
 ## Jak projekt popsat u obhajoby
 
 Jde o navrzene MVP backendoveho systemu pro praci s firemnimi daty. Smyslem je ukazat cisty navrh Java aplikace pro datove orientovany use-case: import dat, sjednoceni nazvu, vazby mezi firmami a osobami, historii zmen a API rozhrani pro rychle hledani.
+
+## Jednoducha analogie
+
+Kdybys mel velkou skrin plnou sanonu o firmach, tenhle projekt dela ctyri veci:
+
+1. vezme rozhazene papiry a spravne je zaradi
+2. nadepise je jednotne, aby se daly najit
+3. doplni karticku s historii zmen
+4. prida rychly rejstrik, kde jde vse hledat podle jmena nebo identifikace
+
+## Jak to vysvetlit bez technickeho zargonu
+
+Misto tohohle:
+
+- Elasticsearch
+- entity normalization
+- history events
+- REST API
+- monolithic backend
+
+Rikej radeji:
+
+- chytry vyhledavac
+- sjednoceni dat
+- historie zmen
+- rozhrani pro komunikaci se systemem
+- jedna cista aplikace misto rozdeleneho sloziteho reseni

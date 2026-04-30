@@ -194,6 +194,58 @@
       line-height: 1.65;
     }
 
+    .explain {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .explain-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 8px 30px rgba(24, 39, 75, .06);
+    }
+
+    .explain-card h2 {
+      margin: 0 0 10px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .explain-card ol,
+    .explain-card ul {
+      margin: 0;
+      padding-left: 19px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .terms {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .terms div {
+      padding: 10px;
+      border-radius: 7px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .terms strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -472,6 +524,8 @@
 
       .workspace,
       .flow,
+      .explain,
+      .terms,
       .summary,
       .meta {
         grid-template-columns: 1fr;
@@ -540,6 +594,44 @@
             <li>prehled napojenych lidi</li>
             <li>historie zmen a watchlist</li>
           </ul>
+        </div>
+      </section>
+
+      <section class="explain" aria-label="Jednoduche vysvetleni">
+        <div class="explain-card">
+          <h2>Jednoducha analogie</h2>
+          <p>Kdybys mel velkou skrin plnou sanonu o firmach, projekt dela ctyri veci:</p>
+          <ol>
+            <li>vezme rozhazene papiry a spravne je zaradi</li>
+            <li>nadepise je jednotne, aby se daly najit</li>
+            <li>doplni karticku s historii zmen</li>
+            <li>prida rychly rejstrik pro hledani podle jmena nebo identifikace</li>
+          </ol>
+        </div>
+        <div class="explain-card">
+          <h2>Bez technickeho zargonu</h2>
+          <div class="terms">
+            <div>
+              <strong>Misto tohohle</strong>
+              <ul>
+                <li>Elasticsearch</li>
+                <li>entity normalization</li>
+                <li>history events</li>
+                <li>REST API</li>
+                <li>monolithic backend</li>
+              </ul>
+            </div>
+            <div>
+              <strong>Rikej radeji</strong>
+              <ul>
+                <li>chytry vyhledavac</li>
+                <li>sjednoceni dat</li>
+                <li>historie zmen</li>
+                <li>rozhrani pro komunikaci se systemem</li>
+                <li>jedna cista aplikace misto rozdeleneho sloziteho reseni</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </section>
 
