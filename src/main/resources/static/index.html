@@ -160,7 +160,7 @@
 
     .workspace {
       display: grid;
-      grid-template-columns: minmax(320px, 410px) minmax(0, 1fr);
+      grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
       gap: 20px;
       align-items: start;
     }
@@ -274,18 +274,30 @@
       margin-bottom: 12px;
     }
 
-    input {
+    input,
+    textarea {
       width: 100%;
-      height: 42px;
       border: 1px solid var(--line);
       border-radius: 7px;
-      padding: 0 12px;
       background: #fff;
       color: var(--ink);
       outline: none;
     }
 
-    input:focus {
+    input {
+      height: 42px;
+      padding: 0 12px;
+    }
+
+    textarea {
+      min-height: 112px;
+      padding: 11px 12px;
+      resize: vertical;
+      font: 12px/1.45 Consolas, "Liberation Mono", monospace;
+    }
+
+    input:focus,
+    textarea:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(23, 105, 224, .12);
     }
@@ -323,6 +335,33 @@
     button.watch.active {
       background: var(--watch);
       color: #fff;
+    }
+
+    .import-block {
+      display: grid;
+      gap: 10px;
+      padding-top: 14px;
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .import-block h3 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
+    .import-block p {
+      margin: -4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .import-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .demo-list {
@@ -392,11 +431,23 @@
       gap: 12px;
     }
 
+    .registry-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
+      gap: 14px;
+      align-items: start;
+    }
+
     .company {
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #fff;
+    }
+
+    .company.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(23, 105, 224, .10);
     }
 
     .company-head {
@@ -486,6 +537,54 @@
       margin-bottom: 3px;
     }
 
+    .detail {
+      position: sticky;
+      top: 18px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .detail h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .detail p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .detail-section {
+      display: grid;
+      gap: 8px;
+      padding-top: 14px;
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .detail-section h4 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .detail-row {
+      display: grid;
+      grid-template-columns: 110px minmax(0, 1fr);
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .detail-row strong {
+      color: var(--ink);
+    }
+
     .empty {
       padding: 22px;
       border: 1px dashed var(--line);
@@ -523,6 +622,7 @@
       }
 
       .workspace,
+      .registry-grid,
       .flow,
       .explain,
       .terms,
@@ -549,7 +649,7 @@
         </div>
       </div>
       <nav aria-label="Navigace">
-        <a class="active" href="#import">Import z ARES</a>
+        <a class="active" href="#import">Vstup dat</a>
         <a href="#search">Vyhledavani</a>
         <a href="/h2-console">H2 konzole</a>
       </nav>
@@ -638,10 +738,14 @@
       <div class="workspace">
         <section class="panel" id="import">
           <div class="panel-header">
-            <h2>Import z ARES</h2>
-            <p>Zadej ICO nebo pouzij ukazkove firmy.</p>
+            <h2>Vstup dat</h2>
+            <p>Nahraj firmy z ARES, JSON nebo CSV. System je sjednoti, propoji s lidmi a zapise zmeny do historie.</p>
           </div>
           <div class="panel-body">
+            <div class="import-block" style="padding-top:0;margin-top:0;border-top:0">
+              <h3>ARES podle ICO</h3>
+              <p>Vhodne pro realna firemni data z ceskeho registru.</p>
+            </div>
             <form class="form-row" id="ares-form">
               <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
               <button type="submit">Importovat</button>
@@ -649,13 +753,33 @@
             <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
             <div id="toast" class="toast"></div>
             <div class="demo-list" id="demo-list"></div>
+
+            <div class="import-block">
+              <h3>JSON import s lidmi</h3>
+              <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
+              <textarea id="json-input" aria-label="JSON import"></textarea>
+              <div class="import-actions">
+                <button class="secondary" type="button" id="load-json-demo">Vlozit ukazku</button>
+                <button type="button" id="import-json">Importovat JSON</button>
+              </div>
+            </div>
+
+            <div class="import-block">
+              <h3>CSV import</h3>
+              <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
+              <textarea id="csv-input" aria-label="CSV import"></textarea>
+              <div class="import-actions">
+                <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
+                <button type="button" id="import-csv">Importovat CSV</button>
+              </div>
+            </div>
           </div>
         </section>
 
         <section class="panel" id="search">
           <div class="panel-header">
-            <h2>Datovy rejstrik</h2>
-            <p>Vyhledej podle nazvu nebo ICO. Vysledky se nacitaji z backend API.</p>
+            <h2>Vyhledavani a detail firmy</h2>
+            <p>Najdi firmu podle nazvu nebo ICO, otevri detail, osoby, historii a watchlist.</p>
           </div>
           <div class="panel-body">
             <form class="toolbar" id="search-form">
@@ -682,8 +806,14 @@
                 <span>na watchlistu</span>
               </div>
             </div>
-            <div id="results" class="results">
-              <div class="empty">Zatim nejsou nactena data. Pouzij import z ARES vlevo.</div>
+            <div class="registry-grid">
+              <div id="results" class="results">
+                <div class="empty">Zatim nejsou nactena data. Pouzij vstup dat vlevo.</div>
+              </div>
+              <aside class="detail" id="detail-panel">
+                <h3>Detail firmy</h3>
+                <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
+              </aside>
             </div>
           </div>
         </section>
@@ -699,17 +829,52 @@
       { ico: '45274649', name: 'CEZ' }
     ];
 
+    const sampleJson = JSON.stringify([
+      {
+        name: 'Atlas Data Lab s.r.o.',
+        registrationNumber: '70010001',
+        country: 'CZ',
+        legalForm: 's.r.o.',
+        address: 'Na Prikope 12, Praha',
+        people: [
+          { fullName: 'Jan Novak', role: 'jednatel' },
+          { fullName: 'Eva Svobodova', role: 'datova analyticka' }
+        ]
+      },
+      {
+        name: 'North Bridge Ventures a.s.',
+        registrationNumber: '70010002',
+        country: 'CZ',
+        legalForm: 'a.s.',
+        address: 'Jana Babaka 11, Brno',
+        people: [
+          { fullName: 'Petra Dvorakova', role: 'clen predstavenstva' },
+          { fullName: 'Tomas Marek', role: 'financni reditel' }
+        ]
+      }
+    ], null, 2);
+
+    const sampleCsv = [
+      'name,registrationNumber,country,legalForm,people',
+      'Data Bridge s.r.o.,70020001,CZ,s.r.o.,Michaela Cerna|jednatel;Karel Novak|analytik',
+      'Meridian Trade a.s.,70020002,CZ,a.s.,Lucie Hruba|clen predstavenstva;Pavel Urban|obchodni reditel'
+    ].join('\n');
+
     const form = document.getElementById('search-form');
     const query = document.getElementById('query');
     const results = document.getElementById('results');
+    const detailPanel = document.getElementById('detail-panel');
     const aresForm = document.getElementById('ares-form');
     const ico = document.getElementById('ico');
+    const jsonInput = document.getElementById('json-input');
+    const csvInput = document.getElementById('csv-input');
     const toast = document.getElementById('toast');
     const demoList = document.getElementById('demo-list');
     const showAll = document.getElementById('show-all');
     const showWatchlist = document.getElementById('show-watchlist');
     let currentCompanies = [];
     let watchlistOnly = false;
+    let selectedCompanyId = null;
 
     demoList.innerHTML = demoCompanies.map(item => `
       <div class="demo-item">
@@ -726,6 +891,27 @@
       if (button) {
         importAres(button.dataset.ico);
       }
+    });
+
+    jsonInput.value = sampleJson;
+    csvInput.value = sampleCsv;
+
+    document.getElementById('load-json-demo').addEventListener('click', () => {
+      jsonInput.value = sampleJson;
+      showToast('JSON ukazka je pripravena.');
+    });
+
+    document.getElementById('load-csv-demo').addEventListener('click', () => {
+      csvInput.value = sampleCsv;
+      showToast('CSV ukazka je pripravena.');
+    });
+
+    document.getElementById('import-json').addEventListener('click', async () => {
+      await importPayload('/api/import/json', jsonInput.value, 'application/json', 'JSON import dokoncen.');
+    });
+
+    document.getElementById('import-csv').addEventListener('click', async () => {
+      await importPayload('/api/import/csv', csvInput.value, 'text/csv', 'CSV import dokoncen.');
     });
 
     document.getElementById('seed-demo').addEventListener('click', async () => {
@@ -786,6 +972,29 @@
       }
     }
 
+    async function importPayload(url, body, contentType, successMessage) {
+      if (!String(body || '').trim()) {
+        showToast('Nejdrive vloz data pro import.');
+        return;
+      }
+
+      showToast('Importuji data...');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': contentType },
+        body
+      });
+      if (!response.ok) {
+        showToast('Import selhal. Zkontroluj format vstupu.');
+        return;
+      }
+      showToast(successMessage);
+      query.value = '';
+      watchlistOnly = false;
+      showWatchlist.classList.remove('active');
+      await search('');
+    }
+
     async function search(value) {
       const response = await fetch(`/api/companies/search?q=${encodeURIComponent(value || '')}`);
       if (!response.ok) {
@@ -793,6 +1002,10 @@
         return;
       }
       currentCompanies = await response.json();
+      if (selectedCompanyId && !currentCompanies.some(company => company.id === selectedCompanyId)) {
+        selectedCompanyId = null;
+        renderDetail(null);
+      }
       renderCompanies(currentCompanies);
     }
 
@@ -806,18 +1019,24 @@
       if (!visibleCompanies.length) {
         results.innerHTML = watchlistOnly
           ? '<div class="empty">Watchlist je prazdny. Oznac firmu tlacitkem Sledovat.</div>'
-          : '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES nebo uprav vyhledavani.</div>';
+          : '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>';
         return;
       }
 
+      if (!selectedCompanyId || !visibleCompanies.some(company => company.id === selectedCompanyId)) {
+        selectedCompanyId = visibleCompanies[0].id;
+        renderDetail(visibleCompanies[0]);
+      }
+
       results.innerHTML = visibleCompanies.map(company => `
-        <article class="company">
+        <article class="company ${company.id === selectedCompanyId ? 'selected' : ''}">
           <div class="company-head">
             <div>
               <h3>${escapeHtml(company.name)}</h3>
               <p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p>
             </div>
             <div class="company-actions">
+              <button class="secondary" type="button" data-detail-id="${company.id}">Detail</button>
               <button class="watch ${company.watchlisted ? 'active' : ''}" type="button" data-watch-id="${company.id}" data-watch-state="${company.watchlisted ? 'false' : 'true'}">
                 ${company.watchlisted ? 'Sledovano' : 'Sledovat'}
               </button>
@@ -849,12 +1068,20 @@
     }
 
     results.addEventListener('click', async event => {
-      const button = event.target.closest('button[data-watch-id]');
-      if (!button) {
+      const detailButton = event.target.closest('button[data-detail-id]');
+      if (detailButton) {
+        selectedCompanyId = Number(detailButton.dataset.detailId);
+        renderDetail(currentCompanies.find(company => company.id === selectedCompanyId));
+        renderCompanies(currentCompanies);
         return;
       }
-      const id = button.dataset.watchId;
-      const watchlisted = button.dataset.watchState === 'true';
+
+      const watchButton = event.target.closest('button[data-watch-id]');
+      if (!watchButton) {
+        return;
+      }
+      const id = watchButton.dataset.watchId;
+      const watchlisted = watchButton.dataset.watchState === 'true';
       const response = await fetch(`/api/companies/${id}/watchlist`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -866,9 +1093,52 @@
       }
       const updated = await response.json();
       currentCompanies = currentCompanies.map(company => company.id === updated.id ? updated : company);
+      if (selectedCompanyId === updated.id) {
+        renderDetail(updated);
+      }
       showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
       renderCompanies(currentCompanies);
     });
+
+    function renderDetail(company) {
+      if (!company) {
+        detailPanel.innerHTML = `
+          <h3>Detail firmy</h3>
+          <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
+        `;
+        return;
+      }
+
+      detailPanel.innerHTML = `
+        <h3>${escapeHtml(company.name)}</h3>
+        <p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p>
+        <div class="detail-section">
+          <h4>Sjednoceny zaznam</h4>
+          ${renderDetailRow('ICO', company.registrationNumber)}
+          ${renderDetailRow('Stat', company.country || '-')}
+          ${renderDetailRow('Pravni forma', company.legalForm || '-')}
+          ${renderDetailRow('Zdroj', company.dataSource || 'LOCAL')}
+          ${renderDetailRow('Watchlist', company.watchlisted ? 'ano' : 'ne')}
+        </div>
+        <div class="detail-section">
+          <h4>Napojene osoby</h4>
+          ${renderPeople(company.people || [])}
+        </div>
+        <div class="detail-section">
+          <h4>Historie zmen</h4>
+          ${renderHistory(company.changes || [])}
+        </div>
+      `;
+    }
+
+    function renderDetailRow(label, value) {
+      return `
+        <div class="detail-row">
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(value)}</span>
+        </div>
+      `;
+    }
 
     function renderPeople(people) {
       if (!people.length) {
