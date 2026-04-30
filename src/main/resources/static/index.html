@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Company Intelligence Explorer</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #17202a;
+      --muted: #65717f;
+      --line: #d8dee6;
+      --accent: #1f6feb;
+      --accent-dark: #185abc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    header {
+      margin-bottom: 28px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 34px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      margin: 24px 0;
+    }
+
+    input {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 14px;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    button {
+      height: 44px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 18px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .metric,
+    .result,
+    .endpoint {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+    }
+
+    .section-title {
+      margin: 28px 0 12px;
+      font-size: 20px;
+    }
+
+    .results {
+      display: grid;
+      gap: 12px;
+    }
+
+    .result h2 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    code {
+      display: block;
+      overflow-wrap: anywhere;
+      color: #0f5132;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 14px;
+    }
+
+    .empty {
+      padding: 18px;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 28px 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .toolbar,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Company Intelligence Explorer</h1>
+      <p>Backendova aplikace pro import, sjednoceni, historii zmen a rychle hledani firemnich dat.</p>
+    </header>
+
+    <section class="grid" aria-label="Prehled funkci">
+      <div class="metric">
+        <strong>Import dat</strong>
+        <p>CSV a JSON vstupy pro zalozeni nebo aktualizaci firem.</p>
+      </div>
+      <div class="metric">
+        <strong>Sjednoceni dat</strong>
+        <p>Normalizace nazvu pro spolehlive vyhledavani.</p>
+      </div>
+      <div class="metric">
+        <strong>Historie zmen</strong>
+        <p>U kazde firmy se ukladaji udalosti vytvoreni a uprav.</p>
+      </div>
+    </section>
+
+    <section aria-label="Vyhledavani firem">
+      <h2 class="section-title">Vyhledavani firem</h2>
+      <form class="toolbar" id="search-form">
+        <input id="query" name="q" value="nova" autocomplete="off" aria-label="Hledany text">
+        <button type="submit">Hledat</button>
+      </form>
+      <div id="results" class="results">
+        <div class="empty">Zadej nazev nebo identifikaci firmy a spust hledani.</div>
+      </div>
+    </section>
+
+    <section aria-label="API endpointy">
+      <h2 class="section-title">API endpointy</h2>
+      <div class="results">
+        <div class="endpoint"><code>GET /api/companies/search?q=nova</code></div>
+        <div class="endpoint"><code>GET /api/companies/{id}</code></div>
+        <div class="endpoint"><code>POST /api/companies</code></div>
+        <div class="endpoint"><code>POST /api/import/json</code></div>
+        <div class="endpoint"><code>POST /api/import/csv</code></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const query = document.getElementById('query');
+    const results = document.getElementById('results');
+
+    function renderCompanies(companies) {
+      if (!companies.length) {
+        results.innerHTML = '<div class="empty">Zadne firmy nebyly nalezeny. Nejdriv data naimportuj nebo zaloz pres API.</div>';
+        return;
+      }
+
+      results.innerHTML = companies.map(company => `
+        <article class="result">
+          <h2>${escapeHtml(company.name)}</h2>
+          <p>${escapeHtml(company.legalForm || '')} ${escapeHtml(company.country || '')}</p>
+          <div class="meta">
+            <span>ID: ${company.id}</span>
+            <span>Registrace: ${escapeHtml(company.registrationNumber)}</span>
+            <span>Zmeny: ${(company.changes || []).length}</span>
+            <span>Osoby: ${(company.people || []).length}</span>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      results.innerHTML = '<div class="empty">Hledam...</div>';
+      const response = await fetch(`/api/companies/search?q=${encodeURIComponent(query.value)}`);
+      renderCompanies(await response.json());
+    });
+  </script>
+</body>
+</html>
