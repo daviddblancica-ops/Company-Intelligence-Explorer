@@ -69,6 +69,10 @@ public class Company {
         this.people.add(new CompanyPersonRole(this, person, role));
     }
 
+    public void clearRoles() {
+        this.people.clear();
+    }
+
     public void addChange(String type, String description) {
         this.changes.add(new ChangeEvent(this, type, description));
     }
