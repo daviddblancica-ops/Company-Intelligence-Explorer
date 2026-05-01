@@ -178,6 +178,10 @@
       padding: 10px;
     }
 
+    .shell.sidebar-collapsed > aside {
+      padding: 28px 14px;
+    }
+
     main {
       padding: 30px;
       max-width: 1240px;
@@ -432,6 +436,13 @@
       margin-top: 8px;
     }
 
+    .activity-preview {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: start;
+    }
+
     .activity-item {
       padding: 7px 9px;
       border-radius: 7px;
@@ -444,6 +455,65 @@
       display: block;
       color: var(--ink);
       margin-bottom: 3px;
+    }
+
+    .audit-link {
+      min-height: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0 11px;
+      background: #e8eef7;
+      color: #19324f;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .audit-link:hover {
+      background: #d9e4f3;
+    }
+
+    .audit-panel {
+      margin-top: 20px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: 0 8px 30px rgba(24, 39, 75, .06);
+    }
+
+    .audit-panel .panel-body {
+      padding-top: 14px;
+    }
+
+    .audit-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .audit-entry {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .audit-entry strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+
+    .audit-time {
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .terms {
@@ -894,6 +964,7 @@
         <a class="active" href="#system" title="System"><span class="nav-icon">S</span><span class="nav-label">System</span></a>
         <a href="#import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
         <a href="#search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
+        <a href="#audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
       <div class="side-note">
@@ -959,12 +1030,15 @@
             </div>
           </div>
           <div class="legend-panel">
-            <h2>Provozni log</h2>
-            <div class="activity-log" id="activity-log">
-              <div class="activity-item">
-                <strong>System pripraven</strong>
-                <span>Ceka na import nebo vyhledavani firemnich dat.</span>
+            <h2>Audit log</h2>
+            <div class="activity-preview">
+              <div class="activity-log" id="activity-log">
+                <div class="activity-item">
+                  <strong>System pripraven</strong>
+                  <span>Ceka na import nebo vyhledavani firemnich dat.</span>
+                </div>
               </div>
+              <a class="audit-link" href="#audit">Otevrit</a>
             </div>
           </div>
         </div>
@@ -1054,6 +1128,24 @@
         </section>
       </div>
 
+      <section class="audit-panel" id="audit">
+        <div class="panel-header">
+          <h2>Audit log</h2>
+          <p>Prehled poslednich udalosti v aplikaci: importy, vyhledavani a zmeny watchlistu.</p>
+        </div>
+        <div class="panel-body">
+          <div class="audit-list" id="audit-list">
+            <div class="audit-entry">
+              <div>
+                <strong>System pripraven</strong>
+                <span class="audit-time">po startu</span>
+              </div>
+              <span>Ceka na import nebo vyhledavani firemnich dat.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section class="legend-panel" aria-label="Pomocna legenda">
         <h2>Pomocna legenda</h2>
         <section class="flow" aria-label="Tok dat">
@@ -1141,6 +1233,7 @@
     const csvInput = document.getElementById('csv-input');
     const toast = document.getElementById('toast');
     const activityLog = document.getElementById('activity-log');
+    const auditList = document.getElementById('audit-list');
     const serverStatus = document.getElementById('server-status');
     const statusTitle = document.getElementById('status-title');
     const shell = document.getElementById('app-shell');
@@ -1496,12 +1589,28 @@
     }
 
     function addActivity(title, message) {
-      const entry = document.createElement('div');
-      entry.className = 'activity-item';
-      entry.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>`;
-      activityLog.prepend(entry);
-      while (activityLog.children.length > 5) {
+      const time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      const previewEntry = document.createElement('div');
+      previewEntry.className = 'activity-item';
+      previewEntry.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>`;
+      activityLog.prepend(previewEntry);
+      while (activityLog.children.length > 2) {
         activityLog.removeChild(activityLog.lastElementChild);
+      }
+
+      const auditEntry = document.createElement('div');
+      auditEntry.className = 'audit-entry';
+      auditEntry.innerHTML = `
+        <div>
+          <strong>${escapeHtml(title)}</strong>
+          <span class="audit-time">${escapeHtml(time)}</span>
+        </div>
+        <span>${escapeHtml(message)}</span>
+      `;
+      auditList.prepend(auditEntry);
+      while (auditList.children.length > 20) {
+        auditList.removeChild(auditList.lastElementChild);
       }
     }
 
