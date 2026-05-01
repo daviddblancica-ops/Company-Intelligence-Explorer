@@ -430,6 +430,29 @@
       color: var(--ink);
     }
 
+    .api-reference {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+      overflow: hidden;
+    }
+
+    .api-reference summary {
+      cursor: pointer;
+      padding: 12px 14px;
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .api-reference code {
+      display: block;
+      padding: 0 14px 12px;
+      color: #19324f;
+      white-space: normal;
+      line-height: 1.7;
+    }
+
     .activity-log {
       display: grid;
       gap: 6px;
@@ -1333,6 +1356,16 @@
           <div class="module-item"><strong>NormalizationService</strong><span>sjednoceni nazvu</span></div>
           <div class="module-item"><strong>JPA + H2</strong><span>databaze</span></div>
         </div>
+        <details class="api-reference">
+          <summary>Technicky vypis REST API</summary>
+          <code>
+            POST /api/import/json<br>
+            POST /api/import/csv<br>
+            POST /api/import/ares/{ico}<br>
+            GET /api/companies/search<br>
+            PATCH /api/companies/{id}/watchlist
+          </code>
+        </details>
       </section>
     </main>
   </div>
