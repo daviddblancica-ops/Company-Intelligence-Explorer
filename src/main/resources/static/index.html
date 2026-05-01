@@ -973,18 +973,6 @@
           </div>
           <div class="panel-body">
             <div class="import-block" style="padding-top:0;margin-top:0;border-top:0">
-              <h3>ARES podle ICO</h3>
-              <p>Vhodne pro realna firemni data z ceskeho registru.</p>
-            </div>
-            <form class="form-row" id="ares-form">
-              <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
-              <button type="submit">Importovat</button>
-            </form>
-            <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
-            <div id="toast" class="toast"></div>
-            <div class="demo-list" id="demo-list"></div>
-
-            <div class="import-block">
               <h3>JSON import s lidmi</h3>
               <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
               <textarea id="json-input" aria-label="JSON import"></textarea>
@@ -1003,6 +991,18 @@
                 <button type="button" id="import-csv">Importovat CSV</button>
               </div>
             </div>
+
+            <div class="import-block">
+              <h3>ARES podle ICO</h3>
+              <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
+            </div>
+            <form class="form-row" id="ares-form">
+              <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
+              <button type="submit">Importovat</button>
+            </form>
+            <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
+            <div id="toast" class="toast"></div>
+            <div class="demo-list" id="demo-list"></div>
           </div>
         </section>
 
