@@ -7,6 +7,7 @@ import cz.companyintel.repository.PersonRepository;
 import cz.companyintel.web.CompanyRequest;
 import java.util.List;
 import javax.transaction.Transactional;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -64,7 +65,7 @@ public class CompanyService {
 
     public List<Company> searchCompanies(String query) {
         String normalizedQuery = normalizationService.normalizeName(query);
-        return companyRepository.search(normalizedQuery);
+        return companyRepository.search(normalizedQuery, PageRequest.of(0, 100));
     }
 
     @Transactional
@@ -74,6 +75,16 @@ public class CompanyService {
         company.addChange(
                 watchlisted ? "WATCHLISTED" : "UNWATCHLISTED",
                 watchlisted ? "Company added to watchlist" : "Company removed from watchlist");
+        return companyRepository.save(company);
+    }
+
+    @Transactional
+    public Company assignPerson(Long companyId, String fullName, String role) {
+        Company company = getCompany(companyId);
+        Person person = findOrCreatePerson(fullName);
+        String normalizedRole = role == null || role.trim().isEmpty() ? "role neuvedena" : role.trim();
+        company.replaceRole(person, normalizedRole);
+        company.addChange("PERSON_ASSIGNED", person.getFullName() + " assigned as " + normalizedRole);
         return companyRepository.save(company);
     }
 

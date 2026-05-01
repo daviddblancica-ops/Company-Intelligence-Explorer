@@ -6,9 +6,16 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_change_company_created", columnList = "company_id, createdAt"),
+        @Index(name = "idx_change_type_created", columnList = "type, createdAt")
+})
 public class ChangeEvent {
 
     @Id
@@ -16,6 +23,7 @@ public class ChangeEvent {
     private Long id;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "company_id")
     private Company company;
 
     @Column(nullable = false)

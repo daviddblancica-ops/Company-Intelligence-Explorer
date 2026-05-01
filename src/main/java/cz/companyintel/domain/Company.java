@@ -10,9 +10,16 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_company_normalized_name", columnList = "normalizedName"),
+        @Index(name = "idx_company_registration_number", columnList = "registrationNumber"),
+        @Index(name = "idx_company_watchlisted", columnList = "watchlisted")
+})
 public class Company {
 
     @Id
@@ -82,6 +89,13 @@ public class Company {
 
     public void addRole(Person person, String role) {
         this.people.add(new CompanyPersonRole(this, person, role));
+    }
+
+    public void replaceRole(Person person, String role) {
+        this.people.removeIf(existing -> existing.getPerson().getId() != null
+                && existing.getPerson().getId().equals(person.getId()));
+        addRole(person, role);
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void clearRoles() {

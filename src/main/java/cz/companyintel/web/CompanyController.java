@@ -46,4 +46,9 @@ public class CompanyController {
     public CompanyResponse setWatchlisted(@PathVariable Long id, @RequestBody WatchlistRequest request) {
         return CompanyResponse.from(companyService.setWatchlisted(id, request.isWatchlisted()));
     }
+
+    @PostMapping("/{id}/people")
+    public CompanyResponse assignPerson(@PathVariable Long id, @RequestBody PersonAssignmentRequest request) {
+        return CompanyResponse.from(companyService.assignPerson(id, request.getFullName(), request.getRole()));
+    }
 }

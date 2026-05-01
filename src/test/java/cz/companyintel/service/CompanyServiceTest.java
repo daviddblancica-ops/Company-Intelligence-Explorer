@@ -63,4 +63,20 @@ class CompanyServiceTest {
         assertThat(watched.isWatchlisted()).isTrue();
         assertThat(watched.getChanges()).extracting("type").contains("WATCHLISTED");
     }
+
+    @Test
+    void assignsPersonToExistingCompanyAndWritesHistory() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("People Test s.r.o.");
+        request.setRegistrationNumber("99911123");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+
+        Company saved = companyService.saveCompany(request);
+        Company updated = companyService.assignPerson(saved.getId(), "Eva Prochazkova", "analyticka");
+
+        assertThat(updated.getPeople()).hasSize(1);
+        assertThat(updated.getPeople()).extracting("role").contains("analyticka");
+        assertThat(updated.getChanges()).extracting("type").contains("PERSON_ASSIGNED");
+    }
 }
