@@ -21,6 +21,8 @@ class HomePageTest {
 
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).contains("Company Intelligence Explorer");
+        assertThat(response.getBody()).contains("Nacist z backendu");
+        assertThat(response.getBody()).contains("Priradit");
     }
 
     @Test

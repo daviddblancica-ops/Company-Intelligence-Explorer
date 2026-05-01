@@ -993,6 +993,21 @@
       letter-spacing: 0;
     }
 
+    .person-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .person-form input {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 11px;
+      font: inherit;
+    }
+
     .detail-row {
       display: grid;
       grid-template-columns: 110px minmax(0, 1fr);
@@ -1068,6 +1083,7 @@
       .summary,
       .audit-stats,
       .audit-entry,
+      .person-form,
       .meta {
         grid-template-columns: 1fr;
       }
@@ -1190,6 +1206,16 @@
               <span class="tag">search</span>
             </div>
           </div>
+          <div class="terms">
+            <div>
+              <strong>Indexovane hledani</strong>
+              Prefixovy dotaz nad sjednocenym nazvem a ICO pouziva databazove indexy a vraci omezeny vysledek pro rychlejsi praci s vetsim objemem zaznamu.
+            </div>
+            <div>
+              <strong>Vazby osob</strong>
+              Osobu lze importovat ze zdroje nebo rucne priradit v detailu firmy vcetne role, ktera se ulozi do historie zmen.
+            </div>
+          </div>
           <div class="legend-panel">
             <h2>Audit log</h2>
             <div class="activity-preview">
@@ -1303,6 +1329,7 @@
               <option value="info">Informacni</option>
               <option value="low">Nizke</option>
             </select>
+            <button class="secondary" type="button" id="refresh-audit">Nacist z backendu</button>
             <button class="secondary" type="button" id="archive-audit">Archivovat aktivni</button>
             <button type="button" id="print-audit">Tisk audit logu</button>
             <div class="spacer"></div>
@@ -1363,7 +1390,9 @@
             POST /api/import/csv<br>
             POST /api/import/ares/{ico}<br>
             GET /api/companies/search<br>
+            POST /api/companies/{id}/people<br>
             PATCH /api/companies/{id}/watchlist
+            <br>GET /api/audit
           </code>
         </details>
       </section>
@@ -1423,6 +1452,7 @@
     const archiveList = document.getElementById('archive-list');
     const archiveBox = document.getElementById('archive-box');
     const auditFilter = document.getElementById('audit-filter');
+    const refreshAudit = document.getElementById('refresh-audit');
     const archiveAudit = document.getElementById('archive-audit');
     const printAudit = document.getElementById('print-audit');
     const showArchive = document.getElementById('show-archive');
@@ -1530,6 +1560,10 @@
 
     auditFilter.addEventListener('change', renderAuditLog);
 
+    refreshAudit.addEventListener('click', async () => {
+      await loadBackendAudit();
+    });
+
     archiveAudit.addEventListener('click', () => {
       if (!auditEntries.length) {
         showToast('Audit log nema zadne aktivni zaznamy.');
@@ -1574,11 +1608,13 @@
       if (!response.ok) {
         showToast(`ARES import selhal pro ICO ${normalized}.`);
         addActivity('ARES chyba', `Import ICO ${normalized} selhal.`, 'critical');
+        await loadBackendAudit(false);
         return;
       }
       const company = await response.json();
       showToast(`Nahrano: ${company.name}`);
       addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
+      await loadBackendAudit(false);
       if (refresh) {
         query.value = '';
         watchlistOnly = false;
@@ -1603,11 +1639,13 @@
       if (!response.ok) {
         showToast('Import selhal. Zkontroluj format vstupu.');
         addActivity('Chyba importu', 'Import selhal pri kontrole formatu vstupnich dat.', 'critical');
+        await loadBackendAudit(false);
         return;
       }
       const result = await response.json();
       showToast(successMessage);
       addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, 'info');
+      await loadBackendAudit(false);
       query.value = '';
       watchlistOnly = false;
       showWatchlist.classList.remove('active');
@@ -1730,7 +1768,41 @@
       }
       showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
       addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`, 'warning');
+      await loadBackendAudit(false);
       renderCompanies(currentCompanies);
+    });
+
+    detailPanel.addEventListener('submit', async event => {
+      if (event.target.id !== 'person-form') {
+        return;
+      }
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const fullName = String(formData.get('fullName') || '').trim();
+      const role = String(formData.get('role') || '').trim();
+      if (!fullName) {
+        showToast('Vypln jmeno osoby.');
+        return;
+      }
+      const companyId = event.target.dataset.companyId;
+      const response = await fetch(`/api/companies/${companyId}/people`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, role })
+      });
+      if (!response.ok) {
+        showToast('Osobu se nepodarilo priradit.');
+        addActivity('Vazba osoby', 'Prirazeni osoby k firme selhalo.', 'warning');
+        return;
+      }
+      const updated = await response.json();
+      currentCompanies = currentCompanies.map(company => company.id === updated.id ? updated : company);
+      selectedCompanyId = updated.id;
+      renderCompanies(currentCompanies);
+      renderDetail(updated);
+      showToast('Osoba byla prirazena k firme.');
+      addActivity('Vazba osoby', `${fullName} prirazen k firme ${updated.name}.`, 'warning');
+      await loadBackendAudit(false);
     });
 
     function renderDetail(company) {
@@ -1756,6 +1828,11 @@
         <div class="detail-section">
           <h4>Napojene osoby</h4>
           ${renderPeople(company.people || [])}
+          <form class="person-form" id="person-form" data-company-id="${company.id}">
+            <input name="fullName" autocomplete="off" placeholder="Jmeno osoby" aria-label="Jmeno osoby">
+            <input name="role" autocomplete="off" placeholder="Role ve firme" aria-label="Role ve firme">
+            <button type="submit">Priradit</button>
+          </form>
         </div>
         <div class="detail-section">
           <h4>Historie zmen</h4>
@@ -1836,6 +1913,28 @@
       renderAuditLog();
     }
 
+    async function loadBackendAudit(showMessage = true) {
+      try {
+        const response = await fetch('/api/audit?limit=100');
+        if (!response.ok) {
+          throw new Error('Audit endpoint failed');
+        }
+        const events = await response.json();
+        auditEntries = events.map(event => ({
+          title: event.type || 'AUDIT',
+          message: `${event.companyName || 'Firma'} (${event.registrationNumber || '-'}) - ${event.description || ''}`,
+          level: mapSeverity(event.severity),
+          time: formatDate(event.createdAt) || 'bez data'
+        }));
+        renderAuditLog();
+        if (showMessage) {
+          showToast('Audit log nacten z backendu.');
+        }
+      } catch (error) {
+        addActivity('Audit chyba', 'Backendovy audit log se nepodarilo nacist.', 'warning');
+      }
+    }
+
     function renderAuditLog() {
       const filter = auditFilter.value;
       const visibleEntries = auditEntries.filter(entry => filter === 'all' || entry.level === filter);
@@ -1843,7 +1942,7 @@
 
       activityLog.innerHTML = recentEntries.length
         ? recentEntries.map(entry => renderPreviewEntry(entry)).join('')
-        : '<div class="activity-item"><strong>Audit archivovan</strong><span>Aktivni log je prazdny.</span></div>';
+        : '<div class="activity-item"><strong>Audit zatim prazdny</strong><span>Aktivni log je prazdny.</span></div>';
 
       auditList.innerHTML = visibleEntries.length
         ? visibleEntries.map(entry => renderAuditEntry(entry)).join('')
@@ -1891,6 +1990,17 @@
       return labels[level] || 'informacni';
     }
 
+    function mapSeverity(value) {
+      const normalized = String(value || '').toLowerCase();
+      if (normalized === 'critical') {
+        return 'critical';
+      }
+      if (normalized === 'warning') {
+        return 'warning';
+      }
+      return 'info';
+    }
+
     function escapeHtml(value) {
       return String(value || '')
         .replaceAll('&', '&amp;')
@@ -1901,6 +2011,7 @@
     }
 
     renderAuditLog();
+    loadBackendAudit(false);
     search('');
   </script>
 </body>
