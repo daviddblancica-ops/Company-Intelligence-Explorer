@@ -42,6 +42,11 @@
       min-height: 100vh;
       display: grid;
       grid-template-columns: 280px 1fr;
+      transition: grid-template-columns .18s ease;
+    }
+
+    .shell.sidebar-collapsed {
+      grid-template-columns: 82px 1fr;
     }
 
     .shell > aside {
@@ -51,13 +56,14 @@
       padding: 28px 22px;
       background: #111827;
       color: #f8fafc;
+      overflow: hidden;
     }
 
     .brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      margin-bottom: 34px;
+      margin-bottom: 24px;
     }
 
     .brand-mark {
@@ -83,6 +89,25 @@
       margin-top: 3px;
     }
 
+    .sidebar-toggle {
+      width: 100%;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, .06);
+      color: #f8fafc;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .sidebar-toggle:hover {
+      background: rgba(255, 255, 255, .12);
+    }
+
     nav {
       display: grid;
       gap: 8px;
@@ -90,11 +115,28 @@
     }
 
     nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       color: #d7dde7;
       text-decoration: none;
       padding: 10px 11px;
       border-radius: 7px;
       font-size: 14px;
+    }
+
+    .nav-icon {
+      width: 22px;
+      min-width: 22px;
+      text-align: center;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .nav-label,
+    .brand-text,
+    .side-note {
+      transition: opacity .12s ease;
     }
 
     nav a.active,
@@ -111,6 +153,29 @@
       color: #bac4d3;
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    .sidebar-collapsed .shell > aside {
+      padding: 28px 14px;
+    }
+
+    .sidebar-collapsed .brand {
+      justify-content: center;
+    }
+
+    .sidebar-collapsed .brand-text,
+    .sidebar-collapsed .nav-label,
+    .sidebar-collapsed .side-note {
+      width: 0;
+      height: 0;
+      opacity: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .sidebar-collapsed nav a {
+      justify-content: center;
+      padding: 10px;
     }
 
     main {
@@ -764,9 +829,27 @@
         grid-template-columns: 1fr;
       }
 
+      .shell.sidebar-collapsed {
+        grid-template-columns: 1fr;
+      }
+
       .shell > aside {
         position: static;
         height: auto;
+      }
+
+      .sidebar-collapsed .brand-text,
+      .sidebar-collapsed .nav-label,
+      .sidebar-collapsed .side-note {
+        width: auto;
+        height: auto;
+        opacity: 1;
+        overflow: visible;
+        pointer-events: auto;
+      }
+
+      .sidebar-collapsed nav a {
+        justify-content: flex-start;
       }
 
       main {
@@ -792,20 +875,21 @@
   </style>
 </head>
 <body>
-  <div class="shell">
+  <div class="shell" id="app-shell">
     <aside>
       <div class="brand">
         <div class="brand-mark">CI</div>
-        <div>
+        <div class="brand-text">
           <strong>Company Intelligence Explorer</strong>
           <span>Java backend MVP</span>
         </div>
       </div>
+      <button class="sidebar-toggle" type="button" id="sidebar-toggle" aria-label="Zasunout menu" title="Zasunout menu">‹</button>
       <nav aria-label="Navigace">
-        <a class="active" href="#system">System</a>
-        <a href="#import">Import dat</a>
-        <a href="#search">Rejstrik firem</a>
-        <a href="/h2-console">H2 konzole</a>
+        <a class="active" href="#system" title="System"><span class="nav-icon">S</span><span class="nav-label">System</span></a>
+        <a href="#import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
+        <a href="#search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
+        <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
       <div class="side-note">
         REST API: /api/import/json, /api/import/csv, /api/import/ares/{ico}, /api/companies/search.
@@ -1054,12 +1138,21 @@
     const activityLog = document.getElementById('activity-log');
     const serverStatus = document.getElementById('server-status');
     const statusTitle = document.getElementById('status-title');
+    const shell = document.getElementById('app-shell');
+    const sidebarToggle = document.getElementById('sidebar-toggle');
     const demoList = document.getElementById('demo-list');
     const showAll = document.getElementById('show-all');
     const showWatchlist = document.getElementById('show-watchlist');
     let currentCompanies = [];
     let watchlistOnly = false;
     let selectedCompanyId = null;
+
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    setSidebarCollapsed(sidebarCollapsed);
+
+    sidebarToggle.addEventListener('click', () => {
+      setSidebarCollapsed(!shell.classList.contains('sidebar-collapsed'));
+    });
 
     demoList.innerHTML = demoCompanies.map(item => `
       <div class="demo-item">
@@ -1387,6 +1480,14 @@
       serverStatus.classList.toggle('online', online);
       serverStatus.classList.toggle('offline', !online);
       statusTitle.textContent = online ? 'Server bezi' : 'Server offline';
+    }
+
+    function setSidebarCollapsed(collapsed) {
+      shell.classList.toggle('sidebar-collapsed', collapsed);
+      sidebarToggle.textContent = collapsed ? '›' : '‹';
+      sidebarToggle.setAttribute('aria-label', collapsed ? 'Rozbalit menu' : 'Zasunout menu');
+      sidebarToggle.setAttribute('title', collapsed ? 'Rozbalit menu' : 'Zasunout menu');
+      localStorage.setItem('sidebarCollapsed', String(collapsed));
     }
 
     function addActivity(title, message) {
