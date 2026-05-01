@@ -457,6 +457,10 @@
       margin-bottom: 3px;
     }
 
+    .activity-item span {
+      display: none;
+    }
+
     .audit-link {
       min-height: 32px;
       height: 32px;
@@ -488,6 +492,56 @@
       padding-top: 14px;
     }
 
+    .audit-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .audit-toolbar select {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .audit-toolbar .spacer {
+      flex: 1;
+    }
+
+    .audit-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .audit-stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel-soft);
+    }
+
+    .audit-stat strong {
+      display: block;
+      font-size: 24px;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .audit-stat span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .audit-list {
       display: grid;
       gap: 8px;
@@ -505,15 +559,66 @@
       font-size: 13px;
     }
 
+    .audit-entry.low {
+      border-left: 4px solid #94a3b8;
+    }
+
+    .audit-entry.info {
+      border-left: 4px solid var(--blue);
+    }
+
+    .audit-entry.warning {
+      border-left: 4px solid #f59e0b;
+    }
+
+    .audit-entry.critical {
+      border-left: 4px solid #dc2626;
+      background: #fff7f7;
+    }
+
     .audit-entry strong {
       display: block;
       color: var(--ink);
       margin-bottom: 3px;
     }
 
+    .audit-entry small {
+      display: inline-flex;
+      width: fit-content;
+      margin-top: 6px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #eef2f7;
+      color: #42526b;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .audit-entry.warning small {
+      background: #fff3d6;
+      color: #8a5b00;
+    }
+
+    .audit-entry.critical small {
+      background: #ffe1e1;
+      color: #a11212;
+    }
+
     .audit-time {
       color: var(--muted);
       font-size: 12px;
+    }
+
+    .archive-box {
+      margin-top: 16px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .archive-box h3 {
+      margin: 0 0 10px;
+      font-size: 15px;
     }
 
     .terms {
@@ -938,6 +1043,8 @@
       .explain,
       .terms,
       .summary,
+      .audit-stats,
+      .audit-entry,
       .meta {
         grid-template-columns: 1fr;
       }
@@ -945,6 +1052,40 @@
       .topbar,
       .company-head {
         display: grid;
+      }
+    }
+
+    @media print {
+      body.print-audit {
+        background: #fff;
+      }
+
+      body.print-audit aside,
+      body.print-audit .topbar,
+      body.print-audit #system,
+      body.print-audit .workspace,
+      body.print-audit .legend-panel,
+      body.print-audit .audit-toolbar {
+        display: none !important;
+      }
+
+      body.print-audit .shell {
+        display: block;
+      }
+
+      body.print-audit main {
+        max-width: none;
+        padding: 0;
+      }
+
+      body.print-audit .audit-panel {
+        margin: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      body.print-audit .audit-entry {
+        break-inside: avoid;
       }
     }
   </style>
@@ -967,9 +1108,6 @@
         <a href="#audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
-      <div class="side-note">
-        REST API: /api/import/json, /api/import/csv, /api/import/ares/{ico}, /api/companies/search.
-      </div>
     </aside>
 
     <main>
@@ -1131,17 +1269,32 @@
       <section class="audit-panel" id="audit">
         <div class="panel-header">
           <h2>Audit log</h2>
-          <p>Prehled poslednich udalosti v aplikaci: importy, vyhledavani a zmeny watchlistu.</p>
+          <p>Samostatna stranka pro udalosti aplikace: importy, vyhledavani, chyby, watchlist, archiv a tiskovy vypis.</p>
         </div>
         <div class="panel-body">
-          <div class="audit-list" id="audit-list">
-            <div class="audit-entry">
-              <div>
-                <strong>System pripraven</strong>
-                <span class="audit-time">po startu</span>
-              </div>
-              <span>Ceka na import nebo vyhledavani firemnich dat.</span>
-            </div>
+          <div class="audit-toolbar">
+            <select id="audit-filter" aria-label="Filtr audit logu">
+              <option value="all">Vsechny dulezitosti</option>
+              <option value="critical">Kriticke</option>
+              <option value="warning">Upozorneni</option>
+              <option value="info">Informacni</option>
+              <option value="low">Nizke</option>
+            </select>
+            <button class="secondary" type="button" id="archive-audit">Archivovat aktivni</button>
+            <button type="button" id="print-audit">Tisk audit logu</button>
+            <div class="spacer"></div>
+            <button class="secondary" type="button" id="show-archive">Zobrazit archiv</button>
+          </div>
+          <div class="audit-stats">
+            <div class="audit-stat"><strong id="audit-total">0</strong><span>aktivnich udalosti</span></div>
+            <div class="audit-stat"><strong id="audit-critical">0</strong><span>kriticke</span></div>
+            <div class="audit-stat"><strong id="audit-warning">0</strong><span>upozorneni</span></div>
+            <div class="audit-stat"><strong id="audit-archived">0</strong><span>v archivu</span></div>
+          </div>
+          <div class="audit-list" id="audit-list"></div>
+          <div class="archive-box" id="archive-box" hidden>
+            <h3>Archivovane udalosti</h3>
+            <div class="audit-list" id="archive-list"></div>
           </div>
         </div>
       </section>
@@ -1234,6 +1387,12 @@
     const toast = document.getElementById('toast');
     const activityLog = document.getElementById('activity-log');
     const auditList = document.getElementById('audit-list');
+    const archiveList = document.getElementById('archive-list');
+    const archiveBox = document.getElementById('archive-box');
+    const auditFilter = document.getElementById('audit-filter');
+    const archiveAudit = document.getElementById('archive-audit');
+    const printAudit = document.getElementById('print-audit');
+    const showArchive = document.getElementById('show-archive');
     const serverStatus = document.getElementById('server-status');
     const statusTitle = document.getElementById('status-title');
     const shell = document.getElementById('app-shell');
@@ -1244,6 +1403,16 @@
     let currentCompanies = [];
     let watchlistOnly = false;
     let selectedCompanyId = null;
+    let auditArchiveVisible = false;
+    let auditEntries = [
+      {
+        title: 'System pripraven',
+        message: 'Ceka na import nebo vyhledavani firemnich dat.',
+        level: 'info',
+        time: 'po startu'
+      }
+    ];
+    let archivedAuditEntries = [];
 
     const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
     setSidebarCollapsed(sidebarCollapsed);
@@ -1296,7 +1465,7 @@
         await importAres(item.ico, false);
       }
       showToast('Demo data jsou nahrana.');
-      addActivity('Import z ARES', `${demoCompanies.length} ukazkove subjekty byly nacteny pres ARES API.`);
+      addActivity('Import z ARES', `${demoCompanies.length} ukazkove subjekty byly nacteny pres ARES API.`, 'info');
       await search('');
     });
 
@@ -1326,10 +1495,44 @@
       renderCompanies(currentCompanies);
     });
 
+    auditFilter.addEventListener('change', renderAuditLog);
+
+    archiveAudit.addEventListener('click', () => {
+      if (!auditEntries.length) {
+        showToast('Audit log nema zadne aktivni zaznamy.');
+        return;
+      }
+      archivedAuditEntries = [...auditEntries, ...archivedAuditEntries];
+      auditEntries = [];
+      auditArchiveVisible = true;
+      archiveBox.hidden = false;
+      showArchive.textContent = 'Skrýt archiv';
+      showToast('Aktivni audit log byl presunut do archivu.');
+      renderAuditLog();
+    });
+
+    showArchive.addEventListener('click', () => {
+      auditArchiveVisible = !auditArchiveVisible;
+      archiveBox.hidden = !auditArchiveVisible;
+      showArchive.textContent = auditArchiveVisible ? 'Skrýt archiv' : 'Zobrazit archiv';
+    });
+
+    printAudit.addEventListener('click', () => {
+      const archiveWasHidden = archiveBox.hidden;
+      archiveBox.hidden = false;
+      document.body.classList.add('print-audit');
+      window.print();
+      window.setTimeout(() => {
+        document.body.classList.remove('print-audit');
+        archiveBox.hidden = archiveWasHidden;
+      }, 300);
+    });
+
     async function importAres(value, refresh = true) {
       const normalized = String(value || '').replace(/\D/g, '');
       if (!normalized) {
         showToast('Zadej platne ICO.');
+        addActivity('Neplatny vstup', 'ARES import byl zastaven, protoze ICO nebylo vyplneno.', 'warning');
         return;
       }
 
@@ -1337,11 +1540,12 @@
       const response = await fetch(`/api/import/ares/${encodeURIComponent(normalized)}`, { method: 'POST' });
       if (!response.ok) {
         showToast(`ARES import selhal pro ICO ${normalized}.`);
+        addActivity('ARES chyba', `Import ICO ${normalized} selhal.`, 'critical');
         return;
       }
       const company = await response.json();
       showToast(`Nahrano: ${company.name}`);
-      addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`);
+      addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
       if (refresh) {
         query.value = '';
         watchlistOnly = false;
@@ -1353,6 +1557,7 @@
     async function importPayload(url, body, contentType, successMessage) {
       if (!String(body || '').trim()) {
         showToast('Nejdrive vloz data pro import.');
+        addActivity('Prazdny import', 'Import byl zastaven, protoze vstup neobsahoval data.', 'warning');
         return;
       }
 
@@ -1364,11 +1569,12 @@
       });
       if (!response.ok) {
         showToast('Import selhal. Zkontroluj format vstupu.');
+        addActivity('Chyba importu', 'Import selhal pri kontrole formatu vstupnich dat.', 'critical');
         return;
       }
       const result = await response.json();
       showToast(successMessage);
-      addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`);
+      addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, 'info');
       query.value = '';
       watchlistOnly = false;
       showWatchlist.classList.remove('active');
@@ -1382,16 +1588,18 @@
       } catch (error) {
         setServerStatus(false);
         showToast('Server je offline.');
+        addActivity('Server offline', 'Vyhledavani se nepodarilo spustit, API neodpovedelo.', 'critical');
         return;
       }
       if (!response.ok) {
         setServerStatus(false);
         showToast('Vyhledavani selhalo.');
+        addActivity('Chyba vyhledavani', 'API vratilo chybu pri hledani firemnich zaznamu.', 'critical');
         return;
       }
       setServerStatus(true);
       currentCompanies = await response.json();
-      addActivity('Vyhledavani', `${currentCompanies.length} zaznamu odpovida dotazu "${value || 'vse'}".`);
+      addActivity('Vyhledavani', `${currentCompanies.length} zaznamu odpovida dotazu "${value || 'vse'}".`, 'low');
       if (selectedCompanyId && !currentCompanies.some(company => company.id === selectedCompanyId)) {
         selectedCompanyId = null;
         renderDetail(null);
@@ -1479,6 +1687,7 @@
       });
       if (!response.ok) {
         showToast('Watchlist se nepodarilo ulozit.');
+        addActivity('Watchlist chyba', 'Zmenu watchlistu se nepodarilo ulozit.', 'warning');
         return;
       }
       const updated = await response.json();
@@ -1487,7 +1696,7 @@
         renderDetail(updated);
       }
       showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
-      addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`);
+      addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`, 'warning');
       renderCompanies(currentCompanies);
     });
 
@@ -1588,30 +1797,65 @@
       localStorage.setItem('sidebarCollapsed', String(collapsed));
     }
 
-    function addActivity(title, message) {
+    function addActivity(title, message, level = 'info') {
       const time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      auditEntries.unshift({ title, message, level, time });
+      renderAuditLog();
+    }
 
-      const previewEntry = document.createElement('div');
-      previewEntry.className = 'activity-item';
-      previewEntry.innerHTML = `<strong>${escapeHtml(title)}</strong><span>${escapeHtml(message)}</span>`;
-      activityLog.prepend(previewEntry);
-      while (activityLog.children.length > 2) {
-        activityLog.removeChild(activityLog.lastElementChild);
-      }
+    function renderAuditLog() {
+      const filter = auditFilter.value;
+      const visibleEntries = auditEntries.filter(entry => filter === 'all' || entry.level === filter);
+      const recentEntries = auditEntries.slice(0, 2);
 
-      const auditEntry = document.createElement('div');
-      auditEntry.className = 'audit-entry';
-      auditEntry.innerHTML = `
-        <div>
-          <strong>${escapeHtml(title)}</strong>
-          <span class="audit-time">${escapeHtml(time)}</span>
+      activityLog.innerHTML = recentEntries.length
+        ? recentEntries.map(entry => renderPreviewEntry(entry)).join('')
+        : '<div class="activity-item"><strong>Audit archivovan</strong><span>Aktivni log je prazdny.</span></div>';
+
+      auditList.innerHTML = visibleEntries.length
+        ? visibleEntries.map(entry => renderAuditEntry(entry)).join('')
+        : '<div class="empty">Pro zvoleny filtr nejsou zadne aktivni udalosti.</div>';
+
+      archiveList.innerHTML = archivedAuditEntries.length
+        ? archivedAuditEntries.map(entry => renderAuditEntry(entry)).join('')
+        : '<div class="empty">Archiv je zatim prazdny.</div>';
+
+      document.getElementById('audit-total').textContent = auditEntries.length;
+      document.getElementById('audit-critical').textContent = auditEntries.filter(entry => entry.level === 'critical').length;
+      document.getElementById('audit-warning').textContent = auditEntries.filter(entry => entry.level === 'warning').length;
+      document.getElementById('audit-archived').textContent = archivedAuditEntries.length;
+    }
+
+    function renderPreviewEntry(entry) {
+      return `
+        <div class="activity-item">
+          <strong>${escapeHtml(entry.title)}</strong>
+          <span>${escapeHtml(levelLabel(entry.level))}</span>
         </div>
-        <span>${escapeHtml(message)}</span>
       `;
-      auditList.prepend(auditEntry);
-      while (auditList.children.length > 20) {
-        auditList.removeChild(auditList.lastElementChild);
-      }
+    }
+
+    function renderAuditEntry(entry) {
+      return `
+        <div class="audit-entry ${escapeHtml(entry.level)}">
+          <div>
+            <strong>${escapeHtml(entry.title)}</strong>
+            <span class="audit-time">${escapeHtml(entry.time)}</span>
+            <small>${escapeHtml(levelLabel(entry.level))}</small>
+          </div>
+          <span>${escapeHtml(entry.message)}</span>
+        </div>
+      `;
+    }
+
+    function levelLabel(level) {
+      const labels = {
+        low: 'nizke',
+        info: 'informacni',
+        warning: 'upozorneni',
+        critical: 'kriticke'
+      };
+      return labels[level] || 'informacni';
     }
 
     function escapeHtml(value) {
@@ -1623,6 +1867,7 @@
         .replaceAll("'", '&#039;');
     }
 
+    renderAuditLog();
     search('');
   </script>
 </body>
