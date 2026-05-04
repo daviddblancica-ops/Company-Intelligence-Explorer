@@ -23,6 +23,8 @@ class HomePageTest {
         assertThat(response.getBody()).contains("Company Intelligence Explorer");
         assertThat(response.getBody()).contains("Nacist z backendu");
         assertThat(response.getBody()).contains("Priradit");
+        assertThat(response.getBody()).contains("data-view-target=\"import\"");
+        assertThat(response.getBody()).contains("data-view=\"audit\"");
     }
 
     @Test

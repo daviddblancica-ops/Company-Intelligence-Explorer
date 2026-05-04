@@ -188,6 +188,18 @@
       width: 100%;
     }
 
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .view.ops-grid.active {
+      display: grid;
+    }
+
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -1141,10 +1153,10 @@
       </div>
       <button class="sidebar-toggle" type="button" id="sidebar-toggle" aria-label="Zasunout menu" title="Zasunout menu">‹</button>
       <nav aria-label="Navigace">
-        <a class="active" href="#system" title="System"><span class="nav-icon">S</span><span class="nav-label">System</span></a>
-        <a href="#import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
-        <a href="#search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
-        <a href="#audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
+        <a class="active" href="#system" data-view-target="system" title="System"><span class="nav-icon">S</span><span class="nav-label">System</span></a>
+        <a href="#import" data-view-target="import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
+        <a href="#search" data-view-target="search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
+        <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
@@ -1161,7 +1173,7 @@
         </div>
       </div>
 
-      <section class="ops-grid" id="system" aria-label="Backend system">
+      <section class="ops-grid view active" id="system" data-view="system" aria-label="Backend system">
         <div class="ops-panel">
           <h2>Zpracovatelska linka</h2>
           <div class="pipeline">
@@ -1225,14 +1237,13 @@
                   <span>Ceka na import nebo vyhledavani firemnich dat.</span>
                 </div>
               </div>
-              <a class="audit-link" href="#audit">Otevrit</a>
+              <a class="audit-link" href="#audit" data-view-target="audit">Otevrit</a>
             </div>
           </div>
         </div>
       </section>
 
-      <div class="workspace">
-        <section class="panel" id="import">
+      <section class="panel view" id="import" data-view="import">
           <div class="panel-header">
             <h2>Import datovych zdroju</h2>
             <p>Nahraj data z ruznych vstupu. Backend je zkontroluje, sjednoti a ulozi do databaze.</p>
@@ -1270,9 +1281,9 @@
             <div id="toast" class="toast"></div>
             <div class="demo-list" id="demo-list"></div>
           </div>
-        </section>
+      </section>
 
-        <section class="panel" id="search">
+      <section class="panel view" id="search" data-view="search">
           <div class="panel-header">
             <h2>Rejstrik firem</h2>
             <p>Najdi konkretni firmu, otevri detail, vazby osob, historii zmen a watchlist.</p>
@@ -1312,10 +1323,9 @@
               </section>
             </div>
           </div>
-        </section>
-      </div>
+      </section>
 
-      <section class="audit-panel" id="audit">
+      <section class="audit-panel view" id="audit" data-view="audit">
         <div class="panel-header">
           <h2>Audit log</h2>
           <p>Samostatna stranka pro udalosti aplikace: importy, vyhledavani, chyby, watchlist, archiv a tiskovy vypis.</p>
@@ -1349,7 +1359,7 @@
         </div>
       </section>
 
-      <section class="legend-panel" aria-label="Pomocna legenda">
+      <section class="legend-panel view active" data-view="system" aria-label="Pomocna legenda">
         <h2>Pomocna legenda</h2>
         <section class="flow" aria-label="Tok dat">
           <div class="flow-card">
@@ -1460,6 +1470,8 @@
     const statusTitle = document.getElementById('status-title');
     const shell = document.getElementById('app-shell');
     const sidebarToggle = document.getElementById('sidebar-toggle');
+    const navLinks = Array.from(document.querySelectorAll('[data-view-target]'));
+    const views = Array.from(document.querySelectorAll('[data-view]'));
     const demoList = document.getElementById('demo-list');
     const showAll = document.getElementById('show-all');
     const showWatchlist = document.getElementById('show-watchlist');
@@ -1482,6 +1494,21 @@
 
     sidebarToggle.addEventListener('click', () => {
       setSidebarCollapsed(!shell.classList.contains('sidebar-collapsed'));
+    });
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', event => {
+        event.preventDefault();
+        setActiveView(link.dataset.viewTarget, true);
+      });
+    });
+
+    window.addEventListener('hashchange', () => {
+      setActiveView(currentHashView(), false);
+    });
+
+    window.addEventListener('popstate', () => {
+      setActiveView(currentHashView(), false);
     });
 
     demoList.innerHTML = demoCompanies.map(item => `
@@ -1907,6 +1934,24 @@
       localStorage.setItem('sidebarCollapsed', String(collapsed));
     }
 
+    function setActiveView(viewName, updateHash) {
+      const target = ['system', 'import', 'search', 'audit'].includes(viewName) ? viewName : 'system';
+      views.forEach(view => {
+        view.classList.toggle('active', view.dataset.view === target);
+      });
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.dataset.viewTarget === target);
+      });
+      if (updateHash && window.location.hash !== `#${target}`) {
+        window.history.pushState(null, '', `#${target}`);
+      }
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+
+    function currentHashView() {
+      return window.location.hash.replace('#', '') || 'system';
+    }
+
     function addActivity(title, message, level = 'info') {
       const time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       auditEntries.unshift({ title, message, level, time });
@@ -2010,6 +2055,7 @@
         .replaceAll("'", '&#039;');
     }
 
+    setActiveView(currentHashView(), false);
     renderAuditLog();
     loadBackendAudit(false);
     search('');
