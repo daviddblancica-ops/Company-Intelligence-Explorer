@@ -80,11 +80,35 @@ public class CompanyService {
 
     @Transactional
     public Company assignPerson(Long companyId, String fullName, String role) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            throw new IllegalArgumentException("Person full name is required");
+        }
         Company company = getCompany(companyId);
-        Person person = findOrCreatePerson(fullName);
+        Person person = findOrCreatePerson(fullName.trim());
         String normalizedRole = role == null || role.trim().isEmpty() ? "role neuvedena" : role.trim();
         company.replaceRole(person, normalizedRole);
         company.addChange("PERSON_ASSIGNED", person.getFullName() + " assigned as " + normalizedRole);
+        return companyRepository.save(company);
+    }
+
+    @Transactional
+    public Company updatePersonRole(Long companyId, Long personId, String role) {
+        Company company = getCompany(companyId);
+        String normalizedRole = role == null || role.trim().isEmpty() ? "role neuvedena" : role.trim();
+        if (!company.updateRole(personId, normalizedRole)) {
+            throw new ResourceNotFoundException("Person assignment not found: " + personId);
+        }
+        company.addChange("PERSON_ROLE_UPDATED", "Person role updated to " + normalizedRole);
+        return companyRepository.save(company);
+    }
+
+    @Transactional
+    public Company removePerson(Long companyId, Long personId) {
+        Company company = getCompany(companyId);
+        if (!company.removeRole(personId)) {
+            throw new ResourceNotFoundException("Person assignment not found: " + personId);
+        }
+        company.addChange("PERSON_REMOVED", "Person removed from company");
         return companyRepository.save(company);
     }
 

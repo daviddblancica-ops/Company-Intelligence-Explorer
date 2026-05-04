@@ -188,6 +188,10 @@
       width: 100%;
     }
 
+    .page:not(.active) {
+      display: none !important;
+    }
+
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -250,6 +254,32 @@
       grid-template-columns: minmax(340px, 430px) minmax(0, 1fr);
       gap: 20px;
       align-items: start;
+    }
+
+    .import-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .import-grid .import-block {
+      display: grid;
+      align-content: start;
+      margin: 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .import-grid .import-block h3 {
+      margin-top: 0;
+    }
+
+    .import-grid .toast {
+      grid-column: 1 / -1;
+      margin-top: 0;
     }
 
     .flow {
@@ -1008,6 +1038,35 @@
       font: inherit;
     }
 
+    .person-form input[readonly] {
+      background: #f1f5f9;
+      color: var(--muted);
+    }
+
+    .person-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .person-tools button,
+    .person-form button {
+      min-height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .danger {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .danger:hover {
+      background: #ffe4e6;
+    }
+
     .detail-row {
       display: grid;
       grid-template-columns: 110px minmax(0, 1fr);
@@ -1075,6 +1134,7 @@
       }
 
       .workspace,
+      .import-grid,
       .registry-grid,
       .flow,
       .ops-grid,
@@ -1161,7 +1221,7 @@
         </div>
       </div>
 
-      <section class="ops-grid" id="system" aria-label="Backend system">
+      <section class="ops-grid page active" id="system" aria-label="Backend system">
         <div class="ops-panel">
           <h2>Zpracovatelska linka</h2>
           <div class="pipeline">
@@ -1228,94 +1288,145 @@
               <a class="audit-link" href="#audit">Otevrit</a>
             </div>
           </div>
+          <section class="legend-panel" aria-label="Pomocna legenda">
+            <h2>Pomocna legenda</h2>
+            <section class="flow" aria-label="Tok dat">
+              <div class="flow-card">
+                <h2>Vstup</h2>
+                <ul>
+                  <li>CSV nebo JSON soubory s daty o firmach</li>
+                  <li>informace o lidech</li>
+                  <li>role lidi ve firmach</li>
+                </ul>
+              </div>
+              <div class="flow-card">
+                <h2>Uvnitř</h2>
+                <ul>
+                  <li>kontrola a sjednoceni dat</li>
+                  <li>ulozeni vazeb mezi lidmi a firmami</li>
+                  <li>historie zmen a priprava pro hledani</li>
+                </ul>
+              </div>
+              <div class="flow-card">
+                <h2>Výstup</h2>
+                <ul>
+                  <li>vyhledavani a detail firmy</li>
+                  <li>prehled napojenych lidi</li>
+                  <li>historie zmen a watchlist</li>
+                </ul>
+              </div>
+            </section>
+            <div class="module-list">
+              <div class="module-item"><strong>ImportController</strong><span>vstupy dat</span></div>
+              <div class="module-item"><strong>CompanyService</strong><span>logika a historie</span></div>
+              <div class="module-item"><strong>NormalizationService</strong><span>sjednoceni nazvu</span></div>
+              <div class="module-item"><strong>JPA + H2</strong><span>databaze</span></div>
+            </div>
+            <details class="api-reference">
+              <summary>Technicky vypis REST API</summary>
+              <code>
+                POST /api/import/json<br>
+                POST /api/import/csv<br>
+                POST /api/import/ares/{ico}<br>
+                GET /api/companies/search<br>
+                POST /api/companies/{id}/people<br>
+                PATCH /api/companies/{id}/watchlist
+                <br>GET /api/audit
+              </code>
+            </details>
+          </section>
         </div>
       </section>
 
-      <div class="workspace">
-        <section class="panel" id="import">
-          <div class="panel-header">
-            <h2>Import datovych zdroju</h2>
-            <p>Nahraj data z ruznych vstupu. Backend je zkontroluje, sjednoti a ulozi do databaze.</p>
+      <section class="panel page" id="import">
+        <div class="panel-header">
+          <h2>Import datovych zdroju</h2>
+          <p>Nahraj data z ruznych vstupu. Backend je zkontroluje, sjednoti a ulozi do databaze.</p>
+        </div>
+        <div class="panel-body import-grid">
+          <div class="import-block">
+            <h3>JSON import s lidmi</h3>
+            <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
+            <textarea id="json-input" aria-label="JSON import"></textarea>
+            <div class="import-actions">
+              <button class="secondary" type="button" id="load-json-demo">Vlozit ukazku</button>
+              <button type="button" id="import-json">Importovat JSON</button>
+            </div>
           </div>
-          <div class="panel-body">
-            <div class="import-block" style="padding-top:0;margin-top:0;border-top:0">
-              <h3>JSON import s lidmi</h3>
-              <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
-              <textarea id="json-input" aria-label="JSON import"></textarea>
-              <div class="import-actions">
-                <button class="secondary" type="button" id="load-json-demo">Vlozit ukazku</button>
-                <button type="button" id="import-json">Importovat JSON</button>
-              </div>
-            </div>
 
-            <div class="import-block">
-              <h3>CSV import</h3>
-              <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
-              <textarea id="csv-input" aria-label="CSV import"></textarea>
-              <div class="import-actions">
-                <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
-                <button type="button" id="import-csv">Importovat CSV</button>
-              </div>
+          <div class="import-block">
+            <h3>CSV import</h3>
+            <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
+            <textarea id="csv-input" aria-label="CSV import"></textarea>
+            <div class="import-actions">
+              <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
+              <button type="button" id="import-csv">Importovat CSV</button>
             </div>
+          </div>
 
-            <div class="import-block">
-              <h3>ARES podle ICO</h3>
-              <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
-            </div>
+          <div class="import-block">
+            <h3>ARES podle ICO</h3>
+            <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
             <form class="form-row" id="ares-form">
               <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
               <button type="submit">Importovat</button>
             </form>
+          </div>
+
+          <div class="import-block">
+            <h3>Demo importy</h3>
+            <p>Rychle nacti ukazkove subjekty nebo jednotlivy zaznam z predpripraveneho seznamu.</p>
             <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
-            <div id="toast" class="toast"></div>
             <div class="demo-list" id="demo-list"></div>
           </div>
-        </section>
 
-        <section class="panel" id="search">
-          <div class="panel-header">
-            <h2>Rejstrik firem</h2>
-            <p>Najdi konkretni firmu, otevri detail, vazby osob, historii zmen a watchlist.</p>
-          </div>
-          <div class="panel-body">
-            <form class="toolbar" id="search-form">
-              <input id="query" name="q" value="" autocomplete="off" aria-label="Hledany text">
-              <button type="submit">Hledat</button>
-              <button class="secondary" type="button" id="show-all">Zobrazit vse</button>
-              <button class="watch" type="button" id="show-watchlist">Watchlist</button>
-            </form>
-            <div class="summary">
-              <div class="metric">
-                <strong id="count">0</strong>
-                <span>nalezenych firem</span>
-              </div>
-              <div class="metric">
-                <strong id="ares-count">0</strong>
-                <span>zaznamu z ARES</span>
-              </div>
-              <div class="metric">
-                <strong id="change-count">0</strong>
-                <span>udalosti historie</span>
-              </div>
-              <div class="metric">
-                <strong id="watch-count">0</strong>
-                <span>na watchlistu</span>
-              </div>
+          <div id="toast" class="toast"></div>
+        </div>
+      </section>
+
+      <section class="panel page" id="search">
+        <div class="panel-header">
+          <h2>Rejstrik firem</h2>
+          <p>Najdi konkretni firmu, otevri detail, vazby osob, historii zmen a watchlist.</p>
+        </div>
+        <div class="panel-body">
+          <form class="toolbar" id="search-form">
+            <input id="query" name="q" value="" autocomplete="off" aria-label="Hledany text">
+            <button type="submit">Hledat</button>
+            <button class="secondary" type="button" id="show-all">Zobrazit vse</button>
+            <button class="watch" type="button" id="show-watchlist">Watchlist</button>
+          </form>
+          <div class="summary">
+            <div class="metric">
+              <strong id="count">0</strong>
+              <span>nalezenych firem</span>
             </div>
-            <div class="registry-grid">
-              <div id="results" class="results">
-                <div class="empty">Zatim nejsou nactena data. Pouzij vstup dat vlevo.</div>
-              </div>
-              <section class="detail" id="detail-panel" aria-label="Detail firmy">
-                <h3>Detail firmy</h3>
-                <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
-              </section>
+            <div class="metric">
+              <strong id="ares-count">0</strong>
+              <span>zaznamu z ARES</span>
+            </div>
+            <div class="metric">
+              <strong id="change-count">0</strong>
+              <span>udalosti historie</span>
+            </div>
+            <div class="metric">
+              <strong id="watch-count">0</strong>
+              <span>na watchlistu</span>
             </div>
           </div>
-        </section>
-      </div>
+          <div class="registry-grid">
+            <div id="results" class="results">
+              <div class="empty">Zatim nejsou nactena data. Pouzij vstup dat vlevo.</div>
+            </div>
+            <section class="detail" id="detail-panel" aria-label="Detail firmy">
+              <h3>Detail firmy</h3>
+              <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
+            </section>
+          </div>
+        </div>
+      </section>
 
-      <section class="audit-panel" id="audit">
+      <section class="audit-panel page" id="audit">
         <div class="panel-header">
           <h2>Audit log</h2>
           <p>Samostatna stranka pro udalosti aplikace: importy, vyhledavani, chyby, watchlist, archiv a tiskovy vypis.</p>
@@ -1349,670 +1460,9 @@
         </div>
       </section>
 
-      <section class="legend-panel" aria-label="Pomocna legenda">
-        <h2>Pomocna legenda</h2>
-        <section class="flow" aria-label="Tok dat">
-          <div class="flow-card">
-            <h2>Vstup</h2>
-            <ul>
-              <li>CSV nebo JSON soubory s daty o firmach</li>
-              <li>informace o lidech</li>
-              <li>role lidi ve firmach</li>
-            </ul>
-          </div>
-          <div class="flow-card">
-            <h2>Uvnitř</h2>
-            <ul>
-              <li>kontrola a sjednoceni dat</li>
-              <li>ulozeni vazeb mezi lidmi a firmami</li>
-              <li>historie zmen a priprava pro hledani</li>
-            </ul>
-          </div>
-          <div class="flow-card">
-            <h2>Výstup</h2>
-            <ul>
-              <li>vyhledavani a detail firmy</li>
-              <li>prehled napojenych lidi</li>
-              <li>historie zmen a watchlist</li>
-            </ul>
-          </div>
-        </section>
-        <div class="module-list">
-          <div class="module-item"><strong>ImportController</strong><span>vstupy dat</span></div>
-          <div class="module-item"><strong>CompanyService</strong><span>logika a historie</span></div>
-          <div class="module-item"><strong>NormalizationService</strong><span>sjednoceni nazvu</span></div>
-          <div class="module-item"><strong>JPA + H2</strong><span>databaze</span></div>
-        </div>
-        <details class="api-reference">
-          <summary>Technicky vypis REST API</summary>
-          <code>
-            POST /api/import/json<br>
-            POST /api/import/csv<br>
-            POST /api/import/ares/{ico}<br>
-            GET /api/companies/search<br>
-            POST /api/companies/{id}/people<br>
-            PATCH /api/companies/{id}/watchlist
-            <br>GET /api/audit
-          </code>
-        </details>
-      </section>
     </main>
   </div>
 
-  <script>
-    const demoCompanies = [
-      { ico: '00006947', name: 'Ministerstvo financi' },
-      { ico: '26168685', name: 'Seznam.cz' },
-      { ico: '27082440', name: 'Alza.cz' },
-      { ico: '45274649', name: 'CEZ' }
-    ];
-
-    const sampleJson = JSON.stringify([
-      {
-        name: 'Atlas Data Lab s.r.o.',
-        registrationNumber: '70010001',
-        country: 'CZ',
-        legalForm: 's.r.o.',
-        address: 'Na Prikope 12, Praha',
-        people: [
-          { fullName: 'Jan Novak', role: 'jednatel' },
-          { fullName: 'Eva Svobodova', role: 'datova analyticka' }
-        ]
-      },
-      {
-        name: 'North Bridge Ventures a.s.',
-        registrationNumber: '70010002',
-        country: 'CZ',
-        legalForm: 'a.s.',
-        address: 'Jana Babaka 11, Brno',
-        people: [
-          { fullName: 'Petra Dvorakova', role: 'clen predstavenstva' },
-          { fullName: 'Tomas Marek', role: 'financni reditel' }
-        ]
-      }
-    ], null, 2);
-
-    const sampleCsv = [
-      'name,registrationNumber,country,legalForm,people',
-      'Data Bridge s.r.o.,70020001,CZ,s.r.o.,Michaela Cerna|jednatel;Karel Novak|analytik',
-      'Meridian Trade a.s.,70020002,CZ,a.s.,Lucie Hruba|clen predstavenstva;Pavel Urban|obchodni reditel'
-    ].join('\n');
-
-    const form = document.getElementById('search-form');
-    const query = document.getElementById('query');
-    const results = document.getElementById('results');
-    const detailPanel = document.getElementById('detail-panel');
-    const aresForm = document.getElementById('ares-form');
-    const ico = document.getElementById('ico');
-    const jsonInput = document.getElementById('json-input');
-    const csvInput = document.getElementById('csv-input');
-    const toast = document.getElementById('toast');
-    const activityLog = document.getElementById('activity-log');
-    const auditList = document.getElementById('audit-list');
-    const archiveList = document.getElementById('archive-list');
-    const archiveBox = document.getElementById('archive-box');
-    const auditFilter = document.getElementById('audit-filter');
-    const refreshAudit = document.getElementById('refresh-audit');
-    const archiveAudit = document.getElementById('archive-audit');
-    const printAudit = document.getElementById('print-audit');
-    const showArchive = document.getElementById('show-archive');
-    const serverStatus = document.getElementById('server-status');
-    const statusTitle = document.getElementById('status-title');
-    const shell = document.getElementById('app-shell');
-    const sidebarToggle = document.getElementById('sidebar-toggle');
-    const demoList = document.getElementById('demo-list');
-    const showAll = document.getElementById('show-all');
-    const showWatchlist = document.getElementById('show-watchlist');
-    let currentCompanies = [];
-    let watchlistOnly = false;
-    let selectedCompanyId = null;
-    let auditArchiveVisible = false;
-    let auditEntries = [
-      {
-        title: 'System pripraven',
-        message: 'Ceka na import nebo vyhledavani firemnich dat.',
-        level: 'info',
-        time: 'po startu'
-      }
-    ];
-    let archivedAuditEntries = [];
-
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    setSidebarCollapsed(sidebarCollapsed);
-
-    sidebarToggle.addEventListener('click', () => {
-      setSidebarCollapsed(!shell.classList.contains('sidebar-collapsed'));
-    });
-
-    demoList.innerHTML = demoCompanies.map(item => `
-      <div class="demo-item">
-        <div>
-          <strong>${escapeHtml(item.name)}</strong>
-          <span>ICO ${item.ico}</span>
-        </div>
-        <button class="secondary" type="button" data-ico="${item.ico}">Nahrat</button>
-      </div>
-    `).join('');
-
-    demoList.addEventListener('click', event => {
-      const button = event.target.closest('button[data-ico]');
-      if (button) {
-        importAres(button.dataset.ico);
-      }
-    });
-
-    jsonInput.value = sampleJson;
-    csvInput.value = sampleCsv;
-
-    document.getElementById('load-json-demo').addEventListener('click', () => {
-      jsonInput.value = sampleJson;
-      showToast('JSON ukazka je pripravena.');
-    });
-
-    document.getElementById('load-csv-demo').addEventListener('click', () => {
-      csvInput.value = sampleCsv;
-      showToast('CSV ukazka je pripravena.');
-    });
-
-    document.getElementById('import-json').addEventListener('click', async () => {
-      await importPayload('/api/import/json', jsonInput.value, 'application/json', 'JSON import dokoncen.');
-    });
-
-    document.getElementById('import-csv').addEventListener('click', async () => {
-      await importPayload('/api/import/csv', csvInput.value, 'text/csv', 'CSV import dokoncen.');
-    });
-
-    document.getElementById('seed-demo').addEventListener('click', async () => {
-      showToast('Nacitam demo data z ARES...');
-      for (const item of demoCompanies) {
-        await importAres(item.ico, false);
-      }
-      showToast('Demo data jsou nahrana.');
-      addActivity('Import z ARES', `${demoCompanies.length} ukazkove subjekty byly nacteny pres ARES API.`, 'info');
-      await search('');
-    });
-
-    aresForm.addEventListener('submit', async event => {
-      event.preventDefault();
-      await importAres(ico.value);
-    });
-
-    form.addEventListener('submit', async event => {
-      event.preventDefault();
-      showToast(query.value.trim() ? `Hledam: ${query.value.trim()}` : 'Zobrazuji vsechny firmy.');
-      await search(query.value);
-    });
-
-    showAll.addEventListener('click', async () => {
-      query.value = '';
-      watchlistOnly = false;
-      showWatchlist.classList.remove('active');
-      showToast('Zobrazuji vsechny firmy.');
-      await search('');
-    });
-
-    showWatchlist.addEventListener('click', () => {
-      watchlistOnly = !watchlistOnly;
-      showWatchlist.classList.toggle('active', watchlistOnly);
-      showToast(watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji vsechny vysledky.');
-      renderCompanies(currentCompanies);
-    });
-
-    auditFilter.addEventListener('change', renderAuditLog);
-
-    refreshAudit.addEventListener('click', async () => {
-      await loadBackendAudit();
-    });
-
-    archiveAudit.addEventListener('click', () => {
-      if (!auditEntries.length) {
-        showToast('Audit log nema zadne aktivni zaznamy.');
-        return;
-      }
-      archivedAuditEntries = [...auditEntries, ...archivedAuditEntries];
-      auditEntries = [];
-      auditArchiveVisible = true;
-      archiveBox.hidden = false;
-      showArchive.textContent = 'Skrýt archiv';
-      showToast('Aktivni audit log byl presunut do archivu.');
-      renderAuditLog();
-    });
-
-    showArchive.addEventListener('click', () => {
-      auditArchiveVisible = !auditArchiveVisible;
-      archiveBox.hidden = !auditArchiveVisible;
-      showArchive.textContent = auditArchiveVisible ? 'Skrýt archiv' : 'Zobrazit archiv';
-    });
-
-    printAudit.addEventListener('click', () => {
-      const archiveWasHidden = archiveBox.hidden;
-      archiveBox.hidden = false;
-      document.body.classList.add('print-audit');
-      window.print();
-      window.setTimeout(() => {
-        document.body.classList.remove('print-audit');
-        archiveBox.hidden = archiveWasHidden;
-      }, 300);
-    });
-
-    async function importAres(value, refresh = true) {
-      const normalized = String(value || '').replace(/\D/g, '');
-      if (!normalized) {
-        showToast('Zadej platne ICO.');
-        addActivity('Neplatny vstup', 'ARES import byl zastaven, protoze ICO nebylo vyplneno.', 'warning');
-        return;
-      }
-
-      showToast(`Importuji ICO ${normalized} z ARES...`);
-      const response = await fetch(`/api/import/ares/${encodeURIComponent(normalized)}`, { method: 'POST' });
-      if (!response.ok) {
-        showToast(`ARES import selhal pro ICO ${normalized}.`);
-        addActivity('ARES chyba', `Import ICO ${normalized} selhal.`, 'critical');
-        await loadBackendAudit(false);
-        return;
-      }
-      const company = await response.json();
-      showToast(`Nahrano: ${company.name}`);
-      addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
-      await loadBackendAudit(false);
-      if (refresh) {
-        query.value = '';
-        watchlistOnly = false;
-        showWatchlist.classList.remove('active');
-        await search('');
-      }
-    }
-
-    async function importPayload(url, body, contentType, successMessage) {
-      if (!String(body || '').trim()) {
-        showToast('Nejdrive vloz data pro import.');
-        addActivity('Prazdny import', 'Import byl zastaven, protoze vstup neobsahoval data.', 'warning');
-        return;
-      }
-
-      showToast('Importuji data...');
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': contentType },
-        body
-      });
-      if (!response.ok) {
-        showToast('Import selhal. Zkontroluj format vstupu.');
-        addActivity('Chyba importu', 'Import selhal pri kontrole formatu vstupnich dat.', 'critical');
-        await loadBackendAudit(false);
-        return;
-      }
-      const result = await response.json();
-      showToast(successMessage);
-      addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, 'info');
-      await loadBackendAudit(false);
-      query.value = '';
-      watchlistOnly = false;
-      showWatchlist.classList.remove('active');
-      await search('');
-    }
-
-    async function search(value) {
-      let response;
-      try {
-        response = await fetch(`/api/companies/search?q=${encodeURIComponent(value || '')}`);
-      } catch (error) {
-        setServerStatus(false);
-        showToast('Server je offline.');
-        addActivity('Server offline', 'Vyhledavani se nepodarilo spustit, API neodpovedelo.', 'critical');
-        return;
-      }
-      if (!response.ok) {
-        setServerStatus(false);
-        showToast('Vyhledavani selhalo.');
-        addActivity('Chyba vyhledavani', 'API vratilo chybu pri hledani firemnich zaznamu.', 'critical');
-        return;
-      }
-      setServerStatus(true);
-      currentCompanies = await response.json();
-      addActivity('Vyhledavani', `${currentCompanies.length} zaznamu odpovida dotazu "${value || 'vse'}".`, 'low');
-      if (selectedCompanyId && !currentCompanies.some(company => company.id === selectedCompanyId)) {
-        selectedCompanyId = null;
-        renderDetail(null);
-      }
-      renderCompanies(currentCompanies);
-    }
-
-    function renderCompanies(companies) {
-      const visibleCompanies = watchlistOnly ? companies.filter(c => c.watchlisted) : companies;
-      document.getElementById('count').textContent = visibleCompanies.length;
-      document.getElementById('ares-count').textContent = visibleCompanies.filter(c => c.dataSource === 'ARES').length;
-      document.getElementById('change-count').textContent = visibleCompanies.reduce((sum, c) => sum + ((c.changes || []).length), 0);
-      document.getElementById('watch-count').textContent = companies.filter(c => c.watchlisted).length;
-
-      if (!visibleCompanies.length) {
-        results.innerHTML = watchlistOnly
-          ? '<div class="empty">Watchlist je prazdny. Oznac firmu tlacitkem Sledovat.</div>'
-          : '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>';
-        return;
-      }
-
-      if (!selectedCompanyId || !visibleCompanies.some(company => company.id === selectedCompanyId)) {
-        selectedCompanyId = visibleCompanies[0].id;
-        renderDetail(visibleCompanies[0]);
-      }
-
-      results.innerHTML = visibleCompanies.map(company => `
-        <article class="company ${company.id === selectedCompanyId ? 'selected' : ''}">
-          <div class="company-head">
-            <div>
-              <h3>${escapeHtml(company.name)}</h3>
-              <p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p>
-            </div>
-            <div class="company-actions">
-              <button class="secondary" type="button" data-detail-id="${company.id}">Detail</button>
-              <button class="watch ${company.watchlisted ? 'active' : ''}" type="button" data-watch-id="${company.id}" data-watch-state="${company.watchlisted ? 'false' : 'true'}">
-                ${company.watchlisted ? 'Sledovano' : 'Sledovat'}
-              </button>
-              <span class="badge ${company.watchlisted ? 'watchlisted' : ''}">${company.watchlisted ? 'WATCHLIST' : escapeHtml(company.dataSource || 'LOCAL')}</span>
-            </div>
-          </div>
-          <div class="meta">
-            <span><strong>ICO:</strong> ${escapeHtml(company.registrationNumber)}</span>
-            <span><strong>Stat:</strong> ${escapeHtml(company.country || '-')}</span>
-            <span><strong>Pravni forma:</strong> ${escapeHtml(company.legalForm || '-')}</span>
-            <span><strong>Historie:</strong> ${(company.changes || []).length} udalosti</span>
-            <span><strong>Lide:</strong> ${(company.people || []).length}</span>
-            <span><strong>Watchlist:</strong> ${company.watchlisted ? 'ano' : 'ne'}</span>
-          </div>
-          <details class="history">
-            <summary>Zobrazit napojene lidi</summary>
-            <div class="history-list">
-              ${renderPeople(company.people || [])}
-            </div>
-          </details>
-          <details class="history">
-            <summary>Zobrazit historii zmen</summary>
-            <div class="history-list">
-              ${renderHistory(company.changes || [])}
-            </div>
-          </details>
-        </article>
-      `).join('');
-    }
-
-    results.addEventListener('click', async event => {
-      const detailButton = event.target.closest('button[data-detail-id]');
-      if (detailButton) {
-        selectedCompanyId = Number(detailButton.dataset.detailId);
-        renderDetail(currentCompanies.find(company => company.id === selectedCompanyId));
-        renderCompanies(currentCompanies);
-        return;
-      }
-
-      const watchButton = event.target.closest('button[data-watch-id]');
-      if (!watchButton) {
-        return;
-      }
-      const id = watchButton.dataset.watchId;
-      const watchlisted = watchButton.dataset.watchState === 'true';
-      const response = await fetch(`/api/companies/${id}/watchlist`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ watchlisted })
-      });
-      if (!response.ok) {
-        showToast('Watchlist se nepodarilo ulozit.');
-        addActivity('Watchlist chyba', 'Zmenu watchlistu se nepodarilo ulozit.', 'warning');
-        return;
-      }
-      const updated = await response.json();
-      currentCompanies = currentCompanies.map(company => company.id === updated.id ? updated : company);
-      if (selectedCompanyId === updated.id) {
-        renderDetail(updated);
-      }
-      showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
-      addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`, 'warning');
-      await loadBackendAudit(false);
-      renderCompanies(currentCompanies);
-    });
-
-    detailPanel.addEventListener('submit', async event => {
-      if (event.target.id !== 'person-form') {
-        return;
-      }
-      event.preventDefault();
-      const formData = new FormData(event.target);
-      const fullName = String(formData.get('fullName') || '').trim();
-      const role = String(formData.get('role') || '').trim();
-      if (!fullName) {
-        showToast('Vypln jmeno osoby.');
-        return;
-      }
-      const companyId = event.target.dataset.companyId;
-      const response = await fetch(`/api/companies/${companyId}/people`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, role })
-      });
-      if (!response.ok) {
-        showToast('Osobu se nepodarilo priradit.');
-        addActivity('Vazba osoby', 'Prirazeni osoby k firme selhalo.', 'warning');
-        return;
-      }
-      const updated = await response.json();
-      currentCompanies = currentCompanies.map(company => company.id === updated.id ? updated : company);
-      selectedCompanyId = updated.id;
-      renderCompanies(currentCompanies);
-      renderDetail(updated);
-      showToast('Osoba byla prirazena k firme.');
-      addActivity('Vazba osoby', `${fullName} prirazen k firme ${updated.name}.`, 'warning');
-      await loadBackendAudit(false);
-    });
-
-    function renderDetail(company) {
-      if (!company) {
-        detailPanel.innerHTML = `
-          <h3>Detail firmy</h3>
-          <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
-        `;
-        return;
-      }
-
-      detailPanel.innerHTML = `
-        <h3>${escapeHtml(company.name)}</h3>
-        <p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p>
-        <div class="detail-section">
-          <h4>Sjednoceny zaznam</h4>
-          ${renderDetailRow('ICO', company.registrationNumber)}
-          ${renderDetailRow('Stat', company.country || '-')}
-          ${renderDetailRow('Pravni forma', company.legalForm || '-')}
-          ${renderDetailRow('Zdroj', company.dataSource || 'LOCAL')}
-          ${renderDetailRow('Watchlist', company.watchlisted ? 'ano' : 'ne')}
-        </div>
-        <div class="detail-section">
-          <h4>Napojene osoby</h4>
-          ${renderPeople(company.people || [])}
-          <form class="person-form" id="person-form" data-company-id="${company.id}">
-            <input name="fullName" autocomplete="off" placeholder="Jmeno osoby" aria-label="Jmeno osoby">
-            <input name="role" autocomplete="off" placeholder="Role ve firme" aria-label="Role ve firme">
-            <button type="submit">Priradit</button>
-          </form>
-        </div>
-        <div class="detail-section">
-          <h4>Historie zmen</h4>
-          ${renderHistory(company.changes || [])}
-        </div>
-      `;
-    }
-
-    function renderDetailRow(label, value) {
-      return `
-        <div class="detail-row">
-          <strong>${escapeHtml(label)}</strong>
-          <span>${escapeHtml(value)}</span>
-        </div>
-      `;
-    }
-
-    function renderPeople(people) {
-      if (!people.length) {
-        return '<div class="history-item">U teto firmy zatim nejsou ulozene vazby na osoby.</div>';
-      }
-
-      return people.map(person => `
-        <div class="history-item">
-          <strong>${escapeHtml(person.fullName || 'Osoba')}</strong>
-          <span>${escapeHtml(person.role || 'role neuvedena')}</span>
-        </div>
-      `).join('');
-    }
-
-    function renderHistory(changes) {
-      if (!changes.length) {
-        return '<div class="history-item">Historie zatim neobsahuje zadne udalosti.</div>';
-      }
-
-      return changes.map(change => `
-        <div class="history-item">
-          <strong>${escapeHtml(change.type || 'Zmena')}</strong>
-          <span>${escapeHtml(change.description || '')}</span>
-          <span>${formatDate(change.createdAt)}</span>
-        </div>
-      `).join('');
-    }
-
-    function formatDate(value) {
-      if (!value) {
-        return '';
-      }
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) {
-        return escapeHtml(value);
-      }
-      return date.toLocaleString('cs-CZ');
-    }
-
-    function showToast(message) {
-      toast.textContent = message;
-      toast.classList.add('visible');
-    }
-
-    function setServerStatus(online) {
-      serverStatus.classList.toggle('online', online);
-      serverStatus.classList.toggle('offline', !online);
-      statusTitle.textContent = online ? 'Server bezi' : 'Server offline';
-    }
-
-    function setSidebarCollapsed(collapsed) {
-      shell.classList.toggle('sidebar-collapsed', collapsed);
-      sidebarToggle.textContent = collapsed ? '›' : '‹';
-      sidebarToggle.setAttribute('aria-label', collapsed ? 'Rozbalit menu' : 'Zasunout menu');
-      sidebarToggle.setAttribute('title', collapsed ? 'Rozbalit menu' : 'Zasunout menu');
-      localStorage.setItem('sidebarCollapsed', String(collapsed));
-    }
-
-    function addActivity(title, message, level = 'info') {
-      const time = new Date().toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      auditEntries.unshift({ title, message, level, time });
-      renderAuditLog();
-    }
-
-    async function loadBackendAudit(showMessage = true) {
-      try {
-        const response = await fetch('/api/audit?limit=100');
-        if (!response.ok) {
-          throw new Error('Audit endpoint failed');
-        }
-        const events = await response.json();
-        auditEntries = events.map(event => ({
-          title: event.type || 'AUDIT',
-          message: `${event.companyName || 'Firma'} (${event.registrationNumber || '-'}) - ${event.description || ''}`,
-          level: mapSeverity(event.severity),
-          time: formatDate(event.createdAt) || 'bez data'
-        }));
-        renderAuditLog();
-        if (showMessage) {
-          showToast('Audit log nacten z backendu.');
-        }
-      } catch (error) {
-        addActivity('Audit chyba', 'Backendovy audit log se nepodarilo nacist.', 'warning');
-      }
-    }
-
-    function renderAuditLog() {
-      const filter = auditFilter.value;
-      const visibleEntries = auditEntries.filter(entry => filter === 'all' || entry.level === filter);
-      const recentEntries = auditEntries.slice(0, 2);
-
-      activityLog.innerHTML = recentEntries.length
-        ? recentEntries.map(entry => renderPreviewEntry(entry)).join('')
-        : '<div class="activity-item"><strong>Audit zatim prazdny</strong><span>Aktivni log je prazdny.</span></div>';
-
-      auditList.innerHTML = visibleEntries.length
-        ? visibleEntries.map(entry => renderAuditEntry(entry)).join('')
-        : '<div class="empty">Pro zvoleny filtr nejsou zadne aktivni udalosti.</div>';
-
-      archiveList.innerHTML = archivedAuditEntries.length
-        ? archivedAuditEntries.map(entry => renderAuditEntry(entry)).join('')
-        : '<div class="empty">Archiv je zatim prazdny.</div>';
-
-      document.getElementById('audit-total').textContent = auditEntries.length;
-      document.getElementById('audit-critical').textContent = auditEntries.filter(entry => entry.level === 'critical').length;
-      document.getElementById('audit-warning').textContent = auditEntries.filter(entry => entry.level === 'warning').length;
-      document.getElementById('audit-archived').textContent = archivedAuditEntries.length;
-    }
-
-    function renderPreviewEntry(entry) {
-      return `
-        <div class="activity-item">
-          <strong>${escapeHtml(entry.title)}</strong>
-          <span>${escapeHtml(levelLabel(entry.level))}</span>
-        </div>
-      `;
-    }
-
-    function renderAuditEntry(entry) {
-      return `
-        <div class="audit-entry ${escapeHtml(entry.level)}">
-          <div>
-            <strong>${escapeHtml(entry.title)}</strong>
-            <span class="audit-time">${escapeHtml(entry.time)}</span>
-            <small>${escapeHtml(levelLabel(entry.level))}</small>
-          </div>
-          <span>${escapeHtml(entry.message)}</span>
-        </div>
-      `;
-    }
-
-    function levelLabel(level) {
-      const labels = {
-        low: 'nizke',
-        info: 'informacni',
-        warning: 'upozorneni',
-        critical: 'kriticke'
-      };
-      return labels[level] || 'informacni';
-    }
-
-    function mapSeverity(value) {
-      const normalized = String(value || '').toLowerCase();
-      if (normalized === 'critical') {
-        return 'critical';
-      }
-      if (normalized === 'warning') {
-        return 'warning';
-      }
-      return 'info';
-    }
-
-    function escapeHtml(value) {
-      return String(value || '')
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;')
-        .replaceAll("'", '&#039;');
-    }
-
-    renderAuditLog();
-    loadBackendAudit(false);
-    search('');
-  </script>
+  <script src="/app.js"></script>
 </body>
 </html>

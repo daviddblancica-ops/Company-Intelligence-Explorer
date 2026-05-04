@@ -98,6 +98,26 @@ public class Company {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public boolean updateRole(Long personId, String role) {
+        for (CompanyPersonRole existing : this.people) {
+            if (existing.getPerson().getId() != null && existing.getPerson().getId().equals(personId)) {
+                existing.updateRole(role);
+                this.updatedAt = LocalDateTime.now();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean removeRole(Long personId) {
+        boolean removed = this.people.removeIf(existing -> existing.getPerson().getId() != null
+                && existing.getPerson().getId().equals(personId));
+        if (removed) {
+            this.updatedAt = LocalDateTime.now();
+        }
+        return removed;
+    }
+
     public void clearRoles() {
         this.people.clear();
     }

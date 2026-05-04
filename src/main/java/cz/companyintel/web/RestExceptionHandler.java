@@ -14,4 +14,10 @@ public class RestExceptionHandler {
     public ErrorResponse notFound(ResourceNotFoundException exception) {
         return new ErrorResponse(exception.getMessage());
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse badRequest(IllegalArgumentException exception) {
+        return new ErrorResponse(exception.getMessage());
+    }
 }

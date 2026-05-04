@@ -5,6 +5,7 @@ import cz.companyintel.service.CompanyService;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -50,5 +51,18 @@ public class CompanyController {
     @PostMapping("/{id}/people")
     public CompanyResponse assignPerson(@PathVariable Long id, @RequestBody PersonAssignmentRequest request) {
         return CompanyResponse.from(companyService.assignPerson(id, request.getFullName(), request.getRole()));
+    }
+
+    @PatchMapping("/{id}/people/{personId}")
+    public CompanyResponse updatePersonRole(
+            @PathVariable Long id,
+            @PathVariable Long personId,
+            @RequestBody PersonAssignmentRequest request) {
+        return CompanyResponse.from(companyService.updatePersonRole(id, personId, request.getRole()));
+    }
+
+    @DeleteMapping("/{id}/people/{personId}")
+    public CompanyResponse removePerson(@PathVariable Long id, @PathVariable Long personId) {
+        return CompanyResponse.from(companyService.removePerson(id, personId));
     }
 }
