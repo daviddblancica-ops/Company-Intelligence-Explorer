@@ -41,8 +41,19 @@ class HomePageTest {
         ResponseEntity<String> response = restTemplate.getForEntity("/app.js", String.class);
 
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).contains("Priradit");
-        assertThat(response.getBody()).contains("ARCHIVED_AUDIT_IDS_KEY");
+        assertThat(response.getBody()).contains("./js/audit.js");
+        assertThat(response.getBody()).contains("./js/companies.js");
+    }
+
+    @Test
+    void servesSegmentedApplicationModules() {
+        ResponseEntity<String> audit = restTemplate.getForEntity("/js/audit.js", String.class);
+        ResponseEntity<String> companies = restTemplate.getForEntity("/js/companies.js", String.class);
+
+        assertThat(audit.getStatusCodeValue()).isEqualTo(200);
+        assertThat(audit.getBody()).contains("ARCHIVED_AUDIT_IDS_KEY");
+        assertThat(companies.getStatusCodeValue()).isEqualTo(200);
+        assertThat(companies.getBody()).contains("Priradit");
     }
 
     @Test
