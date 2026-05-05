@@ -656,6 +656,114 @@
       font-size: 15px;
     }
 
+    .task-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(150px, .8fr) minmax(120px, .5fr) auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .task-form input,
+    .task-form select {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .task-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .task-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .task-item {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel-soft);
+    }
+
+    .task-item.done {
+      opacity: .72;
+    }
+
+    .task-item.done strong {
+      text-decoration: line-through;
+    }
+
+    .task-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--blue);
+    }
+
+    .task-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--ink);
+    }
+
+    .task-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .task-priority {
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #e8eef7;
+      color: #19324f;
+    }
+
+    .task-priority.high {
+      background: #ffe1e1;
+      color: #a11212;
+    }
+
+    .task-priority.medium {
+      background: #fff3d6;
+      color: #8a5b00;
+    }
+
+    .task-priority.low {
+      background: #e7f7ed;
+      color: #107b3f;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .task-empty {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      color: var(--muted);
+      background: #fff;
+    }
+
     .terms {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1096,6 +1204,7 @@
       .audit-stats,
       .audit-entry,
       .person-form,
+      .task-form,
       .meta {
         grid-template-columns: 1fr;
       }
@@ -1157,6 +1266,7 @@
         <a href="#import" data-view-target="import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
         <a href="#search" data-view-target="search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
+        <a href="#tasks" data-view-target="tasks" title="Checklist"><span class="nav-icon">U</span><span class="nav-label">Checklist</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
@@ -1359,6 +1469,46 @@
         </div>
       </section>
 
+      <section class="audit-panel view" id="tasks" data-view="tasks">
+        <div class="panel-header">
+          <h2>Checklist projektu</h2>
+          <p>Ukoly k dodelani backendu, importu, vyhledavani, auditu, prirazovani lidi a UI.</p>
+        </div>
+        <div class="panel-body">
+          <form class="task-form" id="task-form">
+            <input id="task-title" name="title" autocomplete="off" placeholder="Novy ukol" aria-label="Nazev ukolu">
+            <select id="task-segment" name="segment" aria-label="Segment ukolu">
+              <option value="Import">Import</option>
+              <option value="Vyhledavani">Vyhledavani</option>
+              <option value="Audit">Audit</option>
+              <option value="Lide">Lide</option>
+              <option value="UI">UI</option>
+              <option value="Projekt">Projekt</option>
+            </select>
+            <select id="task-priority" name="priority" aria-label="Priorita ukolu">
+              <option value="HIGH">Vysoka</option>
+              <option value="MEDIUM" selected>Stredni</option>
+              <option value="LOW">Nizka</option>
+            </select>
+            <button type="submit">Pridat</button>
+          </form>
+          <div class="task-summary">
+            <div class="audit-stat"><strong id="task-total">0</strong><span>aktivnich ukolu</span></div>
+            <div class="audit-stat"><strong id="task-done">0</strong><span>hotovo</span></div>
+            <div class="audit-stat"><strong id="task-open">0</strong><span>zbyva</span></div>
+          </div>
+          <div class="audit-toolbar">
+            <button class="secondary" type="button" id="refresh-tasks">Nacist ukoly</button>
+            <button class="secondary" type="button" id="toggle-task-archive">Zobrazit archiv</button>
+          </div>
+          <div class="task-list" id="task-list"></div>
+          <div class="archive-box" id="task-archive-box" hidden>
+            <h3>Archivovane ukoly</h3>
+            <div class="task-list" id="task-archive-list"></div>
+          </div>
+        </div>
+      </section>
+
       <section class="legend-panel view active" data-view="system" aria-label="Pomocna legenda">
         <h2>Pomocna legenda</h2>
         <section class="flow" aria-label="Tok dat">
@@ -1466,6 +1616,18 @@
     const archiveAudit = document.getElementById('archive-audit');
     const printAudit = document.getElementById('print-audit');
     const showArchive = document.getElementById('show-archive');
+    const taskForm = document.getElementById('task-form');
+    const taskTitle = document.getElementById('task-title');
+    const taskSegment = document.getElementById('task-segment');
+    const taskPriority = document.getElementById('task-priority');
+    const taskList = document.getElementById('task-list');
+    const taskArchiveList = document.getElementById('task-archive-list');
+    const taskArchiveBox = document.getElementById('task-archive-box');
+    const refreshTasks = document.getElementById('refresh-tasks');
+    const toggleTaskArchive = document.getElementById('toggle-task-archive');
+    const taskTotal = document.getElementById('task-total');
+    const taskDone = document.getElementById('task-done');
+    const taskOpen = document.getElementById('task-open');
     const serverStatus = document.getElementById('server-status');
     const statusTitle = document.getElementById('status-title');
     const shell = document.getElementById('app-shell');
@@ -1479,6 +1641,9 @@
     let watchlistOnly = false;
     let selectedCompanyId = null;
     let auditArchiveVisible = false;
+    let taskArchiveVisible = false;
+    let currentTasks = [];
+    let archivedTasks = [];
     let auditEntries = [
       {
         title: 'System pripraven',
@@ -1620,6 +1785,71 @@
         document.body.classList.remove('print-audit');
         archiveBox.hidden = archiveWasHidden;
       }, 300);
+    });
+
+    taskForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const title = taskTitle.value.trim();
+      if (!title) {
+        showToast('Vypln nazev ukolu.');
+        return;
+      }
+      await saveTask('/api/tasks', 'POST', {
+        title,
+        segment: taskSegment.value,
+        priority: taskPriority.value
+      });
+      taskTitle.value = '';
+    });
+
+    refreshTasks.addEventListener('click', async () => {
+      await loadTasks(true);
+    });
+
+    toggleTaskArchive.addEventListener('click', () => {
+      taskArchiveVisible = !taskArchiveVisible;
+      taskArchiveBox.hidden = !taskArchiveVisible;
+      toggleTaskArchive.textContent = taskArchiveVisible ? 'Skrýt archiv' : 'Zobrazit archiv';
+      if (taskArchiveVisible) {
+        loadArchivedTasks();
+      }
+    });
+
+    taskList.addEventListener('change', async event => {
+      if (!event.target.matches('input[type="checkbox"][data-task-done]')) {
+        return;
+      }
+      await patchTask(`/api/tasks/${event.target.dataset.taskDone}/done`, { done: event.target.checked });
+    });
+
+    taskList.addEventListener('click', async event => {
+      const editButton = event.target.closest('button[data-task-edit]');
+      const archiveButton = event.target.closest('button[data-task-archive]');
+      if (editButton) {
+        const task = currentTasks.find(item => String(item.id) === editButton.dataset.taskEdit);
+        if (!task) {
+          return;
+        }
+        const title = window.prompt('Upravit ukol', task.title);
+        if (title === null) {
+          return;
+        }
+        await saveTask(`/api/tasks/${task.id}`, 'PUT', {
+          title,
+          segment: task.segment,
+          priority: task.priority
+        });
+      }
+      if (archiveButton) {
+        await patchTask(`/api/tasks/${archiveButton.dataset.taskArchive}/archive`, { archived: true });
+      }
+    });
+
+    taskArchiveList.addEventListener('click', async event => {
+      const restoreButton = event.target.closest('button[data-task-restore]');
+      if (restoreButton) {
+        await patchTask(`/api/tasks/${restoreButton.dataset.taskRestore}/archive`, { archived: false });
+      }
     });
 
     async function importAres(value, refresh = true) {
@@ -1935,7 +2165,7 @@
     }
 
     function setActiveView(viewName, updateHash) {
-      const target = ['system', 'import', 'search', 'audit'].includes(viewName) ? viewName : 'system';
+      const target = ['system', 'import', 'search', 'audit', 'tasks'].includes(viewName) ? viewName : 'system';
       views.forEach(view => {
         view.classList.toggle('active', view.dataset.view === target);
       });
@@ -2046,6 +2276,122 @@
       return 'info';
     }
 
+    async function loadTasks(showMessage = false) {
+      try {
+        const response = await fetch('/api/tasks');
+        if (!response.ok) {
+          throw new Error('Task endpoint failed');
+        }
+        currentTasks = await response.json();
+        renderTasks();
+        if (showMessage) {
+          showToast('Checklist nacten z backendu.');
+        }
+      } catch (error) {
+        showToast('Checklist se nepodarilo nacist.');
+        addActivity('Checklist chyba', 'API pro ukoly neodpovedelo.', 'warning');
+      }
+    }
+
+    async function loadArchivedTasks() {
+      try {
+        const response = await fetch('/api/tasks?archived=true');
+        if (!response.ok) {
+          throw new Error('Task archive endpoint failed');
+        }
+        archivedTasks = await response.json();
+        renderArchivedTasks();
+      } catch (error) {
+        showToast('Archiv ukolu se nepodarilo nacist.');
+      }
+    }
+
+    async function saveTask(url, method, payload) {
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        showToast('Ukol se nepodarilo ulozit.');
+        return;
+      }
+      showToast(method === 'POST' ? 'Ukol byl pridan.' : 'Ukol byl upraven.');
+      addActivity('Checklist', method === 'POST' ? 'Do checklistu byl pridan novy ukol.' : 'Ukol v checklistu byl upraven.', 'info');
+      await loadTasks(false);
+    }
+
+    async function patchTask(url, payload) {
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        showToast('Stav ukolu se nepodarilo ulozit.');
+        return;
+      }
+      showToast('Stav ukolu byl ulozen.');
+      addActivity('Checklist', 'Stav ukolu byl zmenen.', 'info');
+      await loadTasks(false);
+      if (taskArchiveVisible) {
+        await loadArchivedTasks();
+      }
+    }
+
+    function renderTasks() {
+      const done = currentTasks.filter(task => task.done).length;
+      taskTotal.textContent = currentTasks.length;
+      taskDone.textContent = done;
+      taskOpen.textContent = currentTasks.length - done;
+      taskList.innerHTML = currentTasks.length
+        ? currentTasks.map(task => renderTaskItem(task, false)).join('')
+        : '<div class="task-empty">Checklist je prazdny. Pridej prvni ukol.</div>';
+    }
+
+    function renderArchivedTasks() {
+      taskArchiveList.innerHTML = archivedTasks.length
+        ? archivedTasks.map(task => renderTaskItem(task, true)).join('')
+        : '<div class="task-empty">Archiv zatim neobsahuje zadne ukoly.</div>';
+    }
+
+    function renderTaskItem(task, archived) {
+      const priority = String(task.priority || 'MEDIUM').toLowerCase();
+      const checked = task.done ? 'checked' : '';
+      const disabled = archived ? 'disabled' : '';
+      const action = archived
+        ? `<button class="secondary" type="button" data-task-restore="${task.id}">Obnovit</button>`
+        : `
+          <button class="secondary" type="button" data-task-edit="${task.id}">Upravit</button>
+          <button class="secondary" type="button" data-task-archive="${task.id}">Archiv</button>
+        `;
+      return `
+        <div class="task-item ${task.done ? 'done' : ''}">
+          <input type="checkbox" data-task-done="${task.id}" ${checked} ${disabled} aria-label="Hotovo">
+          <div>
+            <strong>${escapeHtml(task.title)}</strong>
+            <div class="task-meta">
+              <span>${escapeHtml(task.segment)}</span>
+              <span class="task-priority ${priority}">${priorityLabel(task.priority)}</span>
+              <span>${formatDate(task.updatedAt)}</span>
+            </div>
+          </div>
+          <div class="task-actions">${action}</div>
+        </div>
+      `;
+    }
+
+    function priorityLabel(value) {
+      const priority = String(value || '').toUpperCase();
+      if (priority === 'HIGH') {
+        return 'vysoka';
+      }
+      if (priority === 'LOW') {
+        return 'nizka';
+      }
+      return 'stredni';
+    }
+
     function escapeHtml(value) {
       return String(value || '')
         .replaceAll('&', '&amp;')
@@ -2058,6 +2404,7 @@
     setActiveView(currentHashView(), false);
     renderAuditLog();
     loadBackendAudit(false);
+    loadTasks(false);
     search('');
   </script>
 </body>
