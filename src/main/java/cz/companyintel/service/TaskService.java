@@ -27,7 +27,7 @@ public class TaskService {
         taskItemRepository.save(task("3. Dodelat registr lidi a detail osoby s vazbami na firmy", "Lide", "HIGH", true));
         taskItemRepository.save(task("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role", "Vyhledavani", "HIGH", true));
         taskItemRepository.save(task("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis", "Audit", "MEDIUM", true));
-        taskItemRepository.save(task("6. Pridat historii importnich behu vcetne chybovych radku", "Import", "MEDIUM", false));
+        taskItemRepository.save(task("6. Pridat historii importnich behu vcetne chybovych radku", "Import", "MEDIUM", true));
         taskItemRepository.save(task("7. Zprehlednit dashboard: metriky firem, osob, vazeb a watchlistu", "UI", "MEDIUM", false));
     }
 

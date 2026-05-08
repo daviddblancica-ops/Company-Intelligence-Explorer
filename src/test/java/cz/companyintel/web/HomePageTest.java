@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -26,6 +28,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("Nacist z backendu");
         assertThat(response.getBody()).contains("Priradit");
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
+        assertThat(response.getBody()).contains("import-runs");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
         assertThat(response.getBody()).contains("audit-type-filter");
@@ -85,6 +88,30 @@ class HomePageTest {
     }
 
     @Test
+    void tracksImportRunsWithRowErrors() {
+        String csv = "name,registrationNumber,country,legalForm,people\n"
+                + "Tracked Import s.r.o.,88112233,CZ,s.r.o.,Jana Dobra|jednatelka\n"
+                + "Broken row without enough columns\n";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("text/csv"));
+
+        ResponseEntity<String> result = restTemplate.postForEntity(
+                "/api/import/csv",
+                new HttpEntity<String>(csv, headers),
+                String.class);
+        ResponseEntity<String> runs = restTemplate.getForEntity("/api/import/runs", String.class);
+
+        assertThat(result.getStatusCodeValue()).isEqualTo(200);
+        assertThat(result.getBody()).contains("\"imported\":1");
+        assertThat(result.getBody()).contains("\"failed\":1");
+        assertThat(runs.getStatusCodeValue()).isEqualTo(200);
+        assertThat(runs.getBody()).contains("\"sourceType\":\"CSV\"");
+        assertThat(runs.getBody()).contains("\"status\":\"PARTIAL\"");
+        assertThat(runs.getBody()).contains("\"rowNumber\":3");
+        assertThat(runs.getBody()).contains("Expected 5 CSV columns");
+    }
+
+    @Test
     void exposesProjectTodoList() {
         ResponseEntity<String> tasks = restTemplate.getForEntity("/api/tasks", String.class);
 
@@ -96,6 +123,7 @@ class HomePageTest {
         assertThat(tasks.getBody()).contains("\"title\":\"3. Dodelat registr lidi a detail osoby s vazbami na firmy\"");
         assertThat(tasks.getBody()).contains("\"title\":\"4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role\"");
         assertThat(tasks.getBody()).contains("\"title\":\"5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"6. Pridat historii importnich behu vcetne chybovych radku\"");
         assertThat(tasks.getBody()).contains("\"done\":true");
     }
 

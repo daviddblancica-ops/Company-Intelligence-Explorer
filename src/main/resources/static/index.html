@@ -971,6 +971,54 @@
       margin-top: 2px;
     }
 
+    .import-runs {
+      display: grid;
+      gap: 8px;
+    }
+
+    .import-run {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .import-run strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+
+    .import-run .meta {
+      margin-top: 8px;
+    }
+
+    .import-run-errors {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .import-run-error {
+      border-radius: 7px;
+      padding: 8px;
+      background: #fff7f7;
+      color: #8a1f1f;
+      font-size: 12px;
+    }
+
+    .import-run-error code {
+      display: block;
+      margin-top: 5px;
+      color: #5f1b1b;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+
     .toolbar {
       display: grid;
       grid-template-columns: 1fr auto auto;
@@ -1496,6 +1544,13 @@
             <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
             <div id="toast" class="toast"></div>
             <div class="demo-list" id="demo-list"></div>
+            <div class="import-block">
+              <h3>Historie importu</h3>
+              <p>Posledni behy importu vcetne stavu a chybovych radku.</p>
+              <div class="import-runs" id="import-runs">
+                <div class="empty">Historie importu se nacte z backendu.</div>
+              </div>
+            </div>
           </div>
       </section>
 
@@ -1789,6 +1844,7 @@
     const navLinks = Array.from(document.querySelectorAll('[data-view-target]'));
     const views = Array.from(document.querySelectorAll('[data-view]'));
     const demoList = document.getElementById('demo-list');
+    const importRuns = document.getElementById('import-runs');
     const showAll = document.getElementById('show-all');
     const showWatchlist = document.getElementById('show-watchlist');
     let currentCompanies = [];
@@ -2075,6 +2131,7 @@
       addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
       await loadHealth();
       await loadBackendAudit(false);
+      await loadImportRuns(false);
       if (refresh) {
         query.value = '';
         watchlistOnly = false;
@@ -2108,6 +2165,7 @@
       addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, 'info');
       await loadHealth();
       await loadBackendAudit(false);
+      await loadImportRuns(false);
       query.value = '';
       watchlistOnly = false;
       showWatchlist.classList.remove('active');
@@ -2551,6 +2609,49 @@
       }
     }
 
+    async function loadImportRuns(showMessage = false) {
+      try {
+        const response = await fetch('/api/import/runs');
+        if (!response.ok) {
+          throw new Error('Import runs endpoint failed');
+        }
+        const runs = await response.json();
+        renderImportRuns(runs);
+        if (showMessage) {
+          showToast('Historie importu nactena z backendu.');
+        }
+      } catch (error) {
+        importRuns.innerHTML = '<div class="empty">Historii importu se nepodarilo nacist.</div>';
+      }
+    }
+
+    function renderImportRuns(runs) {
+      importRuns.innerHTML = runs.length
+        ? runs.map(run => `
+          <article class="import-run">
+            <strong>${escapeHtml(run.sourceType || 'IMPORT')} - ${escapeHtml(run.status || 'UNKNOWN')}</strong>
+            <span>${formatDate(run.startedAt)}${run.finishedAt ? ` - ${formatDate(run.finishedAt)}` : ''}</span>
+            <div class="meta">
+              <span><strong>Radku:</strong> ${run.totalRows || 0}</span>
+              <span><strong>Ulozeno:</strong> ${run.importedRows || 0}</span>
+              <span><strong>Chyby:</strong> ${run.failedRows || 0}</span>
+            </div>
+            ${(run.errors || []).length ? `
+              <div class="import-run-errors">
+                ${(run.errors || []).map(error => `
+                  <div class="import-run-error">
+                    <strong>Radek ${error.rowNumber || '-'}</strong>
+                    <span>${escapeHtml(error.message || '')}</span>
+                    ${error.rawValue ? `<code>${escapeHtml(error.rawValue)}</code>` : ''}
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </article>
+        `).join('')
+        : '<div class="empty">Zatim neprobehly zadne importy.</div>';
+    }
+
     async function loadAuditTypes() {
       try {
         const response = await fetch('/api/audit/types');
@@ -2791,6 +2892,7 @@
     renderAuditLog();
     loadAuditTypes();
     loadBackendAudit(false);
+    loadImportRuns(false);
     loadTasks(false);
     loadPeople('');
     search('');
