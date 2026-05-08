@@ -786,6 +786,44 @@
       margin-bottom: 4px;
     }
 
+    .health-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .health-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel-soft);
+    }
+
+    .health-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .health-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .health-card.ok strong {
+      color: var(--success);
+    }
+
+    .health-card.fail strong {
+      color: #c53030;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -1202,6 +1240,7 @@
       .terms,
       .summary,
       .audit-stats,
+      .health-grid,
       .audit-entry,
       .person-form,
       .task-form,
@@ -1336,6 +1375,15 @@
             <div>
               <strong>Vazby osob</strong>
               Osobu lze importovat ze zdroje nebo rucne priradit v detailu firmy vcetne role, ktera se ulozi do historie zmen.
+            </div>
+          </div>
+          <div class="legend-panel">
+            <h2>Stav jadra</h2>
+            <div class="health-grid" id="health-grid">
+              <div class="health-card"><span>API</span><strong id="health-api">cekam</strong></div>
+              <div class="health-card"><span>Databaze</span><strong id="health-db">cekam</strong></div>
+              <div class="health-card"><span>Firmy</span><strong id="health-companies">0</strong></div>
+              <div class="health-card"><span>Ukoly</span><strong id="health-tasks">0</strong></div>
             </div>
           </div>
           <div class="legend-panel">
@@ -1630,6 +1678,10 @@
     const taskOpen = document.getElementById('task-open');
     const serverStatus = document.getElementById('server-status');
     const statusTitle = document.getElementById('status-title');
+    const healthApi = document.getElementById('health-api');
+    const healthDb = document.getElementById('health-db');
+    const healthCompanies = document.getElementById('health-companies');
+    const healthTasks = document.getElementById('health-tasks');
     const shell = document.getElementById('app-shell');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const navLinks = Array.from(document.querySelectorAll('[data-view-target]'));
@@ -1871,6 +1923,7 @@
       const company = await response.json();
       showToast(`Nahrano: ${company.name}`);
       addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
+      await loadHealth();
       await loadBackendAudit(false);
       if (refresh) {
         query.value = '';
@@ -1902,6 +1955,7 @@
       const result = await response.json();
       showToast(successMessage);
       addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, 'info');
+      await loadHealth();
       await loadBackendAudit(false);
       query.value = '';
       watchlistOnly = false;
@@ -2156,6 +2210,32 @@
       statusTitle.textContent = online ? 'Server bezi' : 'Server offline';
     }
 
+    async function loadHealth() {
+      try {
+        const response = await fetch('/api/health');
+        if (!response.ok) {
+          throw new Error('Health endpoint failed');
+        }
+        const health = await response.json();
+        setServerStatus(true);
+        updateHealthCard(healthApi, health.status || 'UP', true);
+        updateHealthCard(healthDb, health.database || 'UP', health.database === 'UP');
+        healthCompanies.textContent = String(health.companies || 0);
+        healthTasks.textContent = String(health.tasks || 0);
+      } catch (error) {
+        setServerStatus(false);
+        updateHealthCard(healthApi, 'OFF', false);
+        updateHealthCard(healthDb, 'OFF', false);
+      }
+    }
+
+    function updateHealthCard(element, value, ok) {
+      element.textContent = value;
+      const card = element.closest('.health-card');
+      card.classList.toggle('ok', ok);
+      card.classList.toggle('fail', !ok);
+    }
+
     function setSidebarCollapsed(collapsed) {
       shell.classList.toggle('sidebar-collapsed', collapsed);
       sidebarToggle.textContent = collapsed ? '›' : '‹';
@@ -2319,6 +2399,7 @@
       showToast(method === 'POST' ? 'Ukol byl pridan.' : 'Ukol byl upraven.');
       addActivity('TODO list', method === 'POST' ? 'Do TODO listu byl pridan novy ukol.' : 'Ukol v TODO listu byl upraven.', 'info');
       await loadTasks(false);
+      await loadHealth();
     }
 
     async function patchTask(url, payload) {
@@ -2334,6 +2415,7 @@
       showToast('Stav ukolu byl ulozen.');
       addActivity('TODO list', 'Stav ukolu byl zmenen.', 'info');
       await loadTasks(false);
+      await loadHealth();
       if (taskArchiveVisible) {
         await loadArchivedTasks();
       }
@@ -2402,6 +2484,8 @@
     }
 
     setActiveView(currentHashView(), false);
+    loadHealth();
+    window.setInterval(loadHealth, 30000);
     renderAuditLog();
     loadBackendAudit(false);
     loadTasks(false);

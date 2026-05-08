@@ -26,6 +26,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
         assertThat(response.getBody()).contains("TODO list projektu");
+        assertThat(response.getBody()).contains("Stav jadra");
     }
 
     @Test
@@ -62,5 +63,28 @@ class HomePageTest {
         assertThat(tasks.getStatusCodeValue()).isEqualTo(200);
         assertThat(tasks.getBody()).contains("Stabilizovat jadro");
         assertThat(tasks.getBody()).contains("Rozsirit rychle vyhledavani");
+    }
+
+    @Test
+    void exposesHealthStatus() {
+        ResponseEntity<String> health = restTemplate.getForEntity("/api/health", String.class);
+
+        assertThat(health.getStatusCodeValue()).isEqualTo(200);
+        assertThat(health.getBody()).contains("\"status\":\"UP\"");
+        assertThat(health.getBody()).contains("\"database\":\"UP\"");
+        assertThat(health.getBody()).contains("\"tasks\"");
+    }
+
+    @Test
+    void returnsStructuredBadRequestForInvalidTask() {
+        TaskRequest task = new TaskRequest();
+        task.setTitle("");
+
+        ResponseEntity<String> response = restTemplate.postForEntity("/api/tasks", task, String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(400);
+        assertThat(response.getBody()).contains("\"status\":400");
+        assertThat(response.getBody()).contains("\"error\":\"Bad Request\"");
+        assertThat(response.getBody()).contains("\"path\":\"/api/tasks\"");
     }
 }
