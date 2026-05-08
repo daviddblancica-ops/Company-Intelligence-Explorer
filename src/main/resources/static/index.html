@@ -1016,6 +1016,21 @@
       align-items: start;
     }
 
+    .people-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .people-toolbar {
+      grid-template-columns: 1fr auto auto;
+    }
+
+    .people-summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .company {
       padding: 16px;
       border: 1px solid var(--line);
@@ -1023,12 +1038,21 @@
       background: #fff;
     }
 
-    .company.selected {
+    .person-card {
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .company.selected,
+    .person-card.selected {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(23, 105, 224, .10);
     }
 
-    .company-head {
+    .company-head,
+    .person-head {
       display: flex;
       justify-content: space-between;
       gap: 14px;
@@ -1036,7 +1060,8 @@
       margin-bottom: 10px;
     }
 
-    .company h3 {
+    .company h3,
+    .person-card h3 {
       margin: 0;
       font-size: 18px;
       line-height: 1.25;
@@ -1099,6 +1124,36 @@
       display: grid;
       gap: 8px;
       margin-top: 10px;
+    }
+
+    .relationship-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .relationship-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 10px;
+      border-radius: 7px;
+      background: var(--panel-soft);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .relationship-item strong {
+      display: block;
+      color: var(--ink);
+      margin-bottom: 3px;
+    }
+
+    .relationship-item button {
+      height: 34px;
+      padding: 0 10px;
+      font-size: 12px;
     }
 
     .history-item {
@@ -1234,6 +1289,7 @@
 
       .workspace,
       .registry-grid,
+      .people-grid,
       .flow,
       .ops-grid,
       .explain,
@@ -1249,7 +1305,8 @@
       }
 
       .topbar,
-      .company-head {
+      .company-head,
+      .person-head {
         display: grid;
       }
     }
@@ -1304,6 +1361,7 @@
         <a class="active" href="#system" data-view-target="system" title="System"><span class="nav-icon">S</span><span class="nav-label">System</span></a>
         <a href="#import" data-view-target="import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
         <a href="#search" data-view-target="search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
+        <a href="#people" data-view-target="people" title="Registr lidi"><span class="nav-icon">L</span><span class="nav-label">Registr lidi</span></a>
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="#tasks" data-view-target="tasks" title="TODO list"><span class="nav-icon">T</span><span class="nav-label">TODO list</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
@@ -1483,6 +1541,39 @@
           </div>
       </section>
 
+      <section class="panel view" id="people" data-view="people">
+        <div class="panel-header">
+          <h2>Registr lidi</h2>
+          <p>Samostatny prehled osob, jejich roli a firem, kde se v datech vyskytuji.</p>
+        </div>
+        <div class="panel-body">
+          <form class="toolbar people-toolbar" id="people-form">
+            <input id="people-query" name="q" value="" autocomplete="off" aria-label="Hledana osoba" placeholder="Jmeno osoby nebo cast jmena">
+            <button type="submit">Hledat</button>
+            <button class="secondary" type="button" id="people-show-all">Zobrazit vse</button>
+          </form>
+          <div class="summary people-summary">
+            <div class="metric">
+              <strong id="people-total">0</strong>
+              <span>nalezenych osob</span>
+            </div>
+            <div class="metric">
+              <strong id="relationship-total">0</strong>
+              <span>vazeb na firmy</span>
+            </div>
+          </div>
+          <div class="people-grid">
+            <div class="results" id="people-results">
+              <div class="empty">Registr lidi se nacte z backendu podle importovanych nebo rucne prirazenych osob.</div>
+            </div>
+            <section class="detail" id="people-detail" aria-label="Detail osoby">
+              <h3>Detail osoby</h3>
+              <p>Vyber osobu v registru. Tady se ukazou firmy, role a rychly prechod na detail firmy.</p>
+            </section>
+          </div>
+        </div>
+      </section>
+
       <section class="audit-panel view" id="audit" data-view="audit">
         <div class="panel-header">
           <h2>Audit log</h2>
@@ -1650,6 +1741,13 @@
     const query = document.getElementById('query');
     const results = document.getElementById('results');
     const detailPanel = document.getElementById('detail-panel');
+    const peopleForm = document.getElementById('people-form');
+    const peopleQuery = document.getElementById('people-query');
+    const peopleResults = document.getElementById('people-results');
+    const peopleDetail = document.getElementById('people-detail');
+    const peopleShowAll = document.getElementById('people-show-all');
+    const peopleTotal = document.getElementById('people-total');
+    const relationshipTotal = document.getElementById('relationship-total');
     const aresForm = document.getElementById('ares-form');
     const ico = document.getElementById('ico');
     const jsonInput = document.getElementById('json-input');
@@ -1690,8 +1788,10 @@
     const showAll = document.getElementById('show-all');
     const showWatchlist = document.getElementById('show-watchlist');
     let currentCompanies = [];
+    let currentPeople = [];
     let watchlistOnly = false;
     let selectedCompanyId = null;
+    let selectedPersonId = null;
     let auditArchiveVisible = false;
     let taskArchiveVisible = false;
     let currentTasks = [];
@@ -1800,6 +1900,39 @@
       showWatchlist.classList.toggle('active', watchlistOnly);
       showToast(watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji vsechny vysledky.');
       renderCompanies(currentCompanies);
+    });
+
+    peopleForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      await loadPeople(peopleQuery.value);
+    });
+
+    peopleShowAll.addEventListener('click', async () => {
+      peopleQuery.value = '';
+      await loadPeople('');
+    });
+
+    peopleResults.addEventListener('click', event => {
+      const detailButton = event.target.closest('button[data-person-id]');
+      if (!detailButton) {
+        return;
+      }
+      selectedPersonId = Number(detailButton.dataset.personId);
+      renderPeopleRegistry(currentPeople);
+      renderPersonDetail(currentPeople.find(person => person.id === selectedPersonId));
+    });
+
+    peopleDetail.addEventListener('click', async event => {
+      const companyButton = event.target.closest('button[data-company-registration]');
+      if (!companyButton) {
+        return;
+      }
+      const registrationNumber = companyButton.dataset.companyRegistration;
+      setActiveView('search', true);
+      query.value = registrationNumber;
+      watchlistOnly = false;
+      showWatchlist.classList.remove('active');
+      await search(registrationNumber);
     });
 
     auditFilter.addEventListener('change', renderAuditLog);
@@ -1930,6 +2063,7 @@
         watchlistOnly = false;
         showWatchlist.classList.remove('active');
         await search('');
+        await loadPeople('');
       }
     }
 
@@ -1961,6 +2095,7 @@
       watchlistOnly = false;
       showWatchlist.classList.remove('active');
       await search('');
+      await loadPeople('');
     }
 
     async function search(value) {
@@ -1987,6 +2122,111 @@
         renderDetail(null);
       }
       renderCompanies(currentCompanies);
+    }
+
+    async function loadPeople(value = '') {
+      let response;
+      try {
+        response = await fetch(`/api/people?q=${encodeURIComponent(value || '')}`);
+      } catch (error) {
+        setServerStatus(false);
+        showToast('Server je offline.');
+        addActivity('Server offline', 'Registr lidi se nepodarilo nacist, API neodpovedelo.', 'critical');
+        return;
+      }
+      if (!response.ok) {
+        setServerStatus(false);
+        showToast('Registr lidi se nepodarilo nacist.');
+        addActivity('Chyba registru lidi', 'API vratilo chybu pri nacitani osob a vazeb.', 'critical');
+        return;
+      }
+      setServerStatus(true);
+      currentPeople = await response.json();
+      addActivity('Registr lidi', `${currentPeople.length} osob odpovida dotazu "${value || 'vse'}".`, 'low');
+      if (selectedPersonId && !currentPeople.some(person => person.id === selectedPersonId)) {
+        selectedPersonId = null;
+        renderPersonDetail(null);
+      }
+      renderPeopleRegistry(currentPeople);
+    }
+
+    function renderPeopleRegistry(people) {
+      peopleTotal.textContent = String(people.length);
+      relationshipTotal.textContent = String(people.reduce((sum, person) => sum + (person.roleCount || 0), 0));
+
+      if (!people.length) {
+        peopleResults.innerHTML = '<div class="empty">Zadne osoby nebyly nalezeny. Prirad osobu v detailu firmy nebo importuj JSON/CSV s lidmi.</div>';
+        renderPersonDetail(null);
+        return;
+      }
+
+      if (!selectedPersonId || !people.some(person => person.id === selectedPersonId)) {
+        selectedPersonId = people[0].id;
+      }
+
+      const selected = people.find(person => person.id === selectedPersonId);
+      renderPersonDetail(selected);
+
+      peopleResults.innerHTML = people.map(person => `
+        <article class="person-card ${person.id === selectedPersonId ? 'selected' : ''}">
+          <div class="person-head">
+            <div>
+              <h3>${escapeHtml(person.fullName)}</h3>
+              <p>${escapeHtml(person.normalizedName || '')}</p>
+            </div>
+            <button class="secondary" type="button" data-person-id="${person.id}">Detail</button>
+          </div>
+          <div class="meta">
+            <span><strong>Firmy:</strong> ${person.companyCount || 0}</span>
+            <span><strong>Role:</strong> ${person.roleCount || 0}</span>
+          </div>
+          <div class="relationship-list">
+            ${renderPersonCompanies(person.companies || [], false)}
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function renderPersonDetail(person) {
+      if (!person) {
+        peopleDetail.innerHTML = `
+          <h3>Detail osoby</h3>
+          <p>Vyber osobu v registru. Tady se ukazou firmy, role a rychly prechod na detail firmy.</p>
+        `;
+        return;
+      }
+
+      peopleDetail.innerHTML = `
+        <h3>${escapeHtml(person.fullName)}</h3>
+        <p>${escapeHtml(person.normalizedName || '')}</p>
+        <div class="detail-section">
+          <h4>Souhrn vazeb</h4>
+          ${renderDetailRow('Firmy', String(person.companyCount || 0))}
+          ${renderDetailRow('Role', String(person.roleCount || 0))}
+        </div>
+        <div class="detail-section">
+          <h4>Firmy a role</h4>
+          <div class="relationship-list">
+            ${renderPersonCompanies(person.companies || [], true)}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderPersonCompanies(companies, withAction) {
+      if (!companies.length) {
+        return '<div class="history-item">Osoba zatim nema vazbu na zadnou firmu.</div>';
+      }
+
+      return companies.map(company => `
+        <div class="relationship-item">
+          <div>
+            <strong>${escapeHtml(company.companyName || 'Firma')}</strong>
+            <span>${escapeHtml(company.role || 'role neuvedena')} | ICO ${escapeHtml(company.registrationNumber || '-')}</span>
+          </div>
+          ${withAction ? `<button class="secondary" type="button" data-company-registration="${escapeHtml(company.registrationNumber || '')}">Firma</button>` : ''}
+        </div>
+      `).join('');
     }
 
     function renderCompanies(companies) {
@@ -2114,6 +2354,7 @@
       showToast('Osoba byla prirazena k firme.');
       addActivity('Vazba osoby', `${fullName} prirazen k firme ${updated.name}.`, 'warning');
       await loadBackendAudit(false);
+      await loadPeople(peopleQuery.value);
     });
 
     function renderDetail(company) {
@@ -2245,7 +2486,7 @@
     }
 
     function setActiveView(viewName, updateHash) {
-      const target = ['system', 'import', 'search', 'audit', 'tasks'].includes(viewName) ? viewName : 'system';
+      const target = ['system', 'import', 'search', 'people', 'audit', 'tasks'].includes(viewName) ? viewName : 'system';
       views.forEach(view => {
         view.classList.toggle('active', view.dataset.view === target);
       });
@@ -2489,6 +2730,7 @@
     renderAuditLog();
     loadBackendAudit(false);
     loadTasks(false);
+    loadPeople('');
     search('');
   </script>
 </body>

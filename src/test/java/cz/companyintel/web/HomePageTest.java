@@ -2,6 +2,8 @@ package cz.companyintel.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +26,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("Nacist z backendu");
         assertThat(response.getBody()).contains("Priradit");
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
+        assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");
@@ -65,6 +68,7 @@ class HomePageTest {
         assertThat(tasks.getBody()).contains("Rozsirit rychle vyhledavani");
         assertThat(tasks.getBody()).contains("\"title\":\"1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze\"");
         assertThat(tasks.getBody()).contains("\"title\":\"2. Pridat startup demo data pro firmy, osoby, vazby a audit\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"3. Dodelat registr lidi a detail osoby s vazbami na firmy\"");
         assertThat(tasks.getBody()).contains("\"done\":true");
     }
 
@@ -94,6 +98,24 @@ class HomePageTest {
     }
 
     @Test
+    void exposesPeopleRegistryWithCompanyRelationships() {
+        ResponseEntity<String> people = restTemplate.getForEntity("/api/people?q=michaela", String.class);
+
+        assertThat(people.getStatusCodeValue()).isEqualTo(200);
+        assertThat(people.getBody()).contains("Michaela Cerna");
+        assertThat(people.getBody()).contains("Atlas Data Lab s.r.o.");
+        assertThat(people.getBody()).contains("jednatelka");
+
+        Long personId = firstId(people.getBody());
+        ResponseEntity<String> detail = restTemplate.getForEntity("/api/people/" + personId, String.class);
+
+        assertThat(detail.getStatusCodeValue()).isEqualTo(200);
+        assertThat(detail.getBody()).contains("\"companyCount\":1");
+        assertThat(detail.getBody()).contains("\"roleCount\":1");
+        assertThat(detail.getBody()).contains("Atlas Data Lab s.r.o.");
+    }
+
+    @Test
     void returnsStructuredBadRequestForInvalidTask() {
         TaskRequest task = new TaskRequest();
         task.setTitle("");
@@ -104,5 +126,11 @@ class HomePageTest {
         assertThat(response.getBody()).contains("\"status\":400");
         assertThat(response.getBody()).contains("\"error\":\"Bad Request\"");
         assertThat(response.getBody()).contains("\"path\":\"/api/tasks\"");
+    }
+
+    private Long firstId(String json) {
+        Matcher matcher = Pattern.compile("\"id\":(\\d+)").matcher(json);
+        assertThat(matcher.find()).isTrue();
+        return Long.valueOf(matcher.group(1));
     }
 }
