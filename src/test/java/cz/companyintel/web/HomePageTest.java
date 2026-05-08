@@ -69,6 +69,7 @@ class HomePageTest {
         assertThat(tasks.getBody()).contains("\"title\":\"1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze\"");
         assertThat(tasks.getBody()).contains("\"title\":\"2. Pridat startup demo data pro firmy, osoby, vazby a audit\"");
         assertThat(tasks.getBody()).contains("\"title\":\"3. Dodelat registr lidi a detail osoby s vazbami na firmy\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role\"");
         assertThat(tasks.getBody()).contains("\"done\":true");
     }
 

@@ -50,6 +50,26 @@ class CompanyServiceTest {
     }
 
     @Test
+    void searchesByRegistrationNumberPersonAndRole() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Relationship Search s.r.o.");
+        request.setRegistrationNumber("55544433");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+
+        CompanyRequest.PersonRole role = new CompanyRequest.PersonRole();
+        role.setFullName("Michaela Strategicka");
+        role.setRole("risk manager");
+        request.setPeople(Collections.singletonList(role));
+
+        companyService.saveCompany(request);
+
+        assertThat(companyService.searchCompanies("55544433")).extracting("name").contains("Relationship Search s.r.o.");
+        assertThat(companyService.searchCompanies("michaela")).extracting("name").contains("Relationship Search s.r.o.");
+        assertThat(companyService.searchCompanies("manager")).extracting("name").contains("Relationship Search s.r.o.");
+    }
+
+    @Test
     void togglesWatchlistAndWritesHistory() {
         CompanyRequest request = new CompanyRequest();
         request.setName("Watch Test s.r.o.");
