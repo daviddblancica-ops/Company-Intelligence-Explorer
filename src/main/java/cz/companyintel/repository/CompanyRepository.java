@@ -12,6 +12,8 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     Optional<Company> findByRegistrationNumber(String registrationNumber);
 
+    long countByWatchlistedTrue();
+
     @Query("select distinct c from Company c "
             + "left join c.people relationship "
             + "left join relationship.person person "

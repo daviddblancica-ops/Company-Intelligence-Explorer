@@ -824,6 +824,45 @@
       color: #c53030;
     }
 
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .dashboard-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+      box-shadow: 0 6px 18px rgba(24, 39, 75, .05);
+    }
+
+    .dashboard-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .dashboard-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .dashboard-card small {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -1345,6 +1384,7 @@
       .summary,
       .audit-stats,
       .health-grid,
+      .dashboard-grid,
       .audit-entry,
       .person-form,
       .task-form,
@@ -1481,6 +1521,17 @@
             <div>
               <strong>Vazby osob</strong>
               Osobu lze importovat ze zdroje nebo rucne priradit v detailu firmy vcetne role, ktera se ulozi do historie zmen.
+            </div>
+          </div>
+          <div class="legend-panel">
+            <h2>Dashboard dat</h2>
+            <div class="dashboard-grid" id="dashboard-grid">
+              <div class="dashboard-card"><span>Firmy</span><strong id="dashboard-companies">0</strong><small>firemni zaznamy</small></div>
+              <div class="dashboard-card"><span>Osoby</span><strong id="dashboard-people">0</strong><small>napojene osoby</small></div>
+              <div class="dashboard-card"><span>Vazby</span><strong id="dashboard-relationships">0</strong><small>role ve firmach</small></div>
+              <div class="dashboard-card"><span>Watchlist</span><strong id="dashboard-watchlisted">0</strong><small>sledovane firmy</small></div>
+              <div class="dashboard-card"><span>Audit</span><strong id="dashboard-audit">0</strong><small>udalosti historie</small></div>
+              <div class="dashboard-card"><span>Importy</span><strong id="dashboard-imports">0</strong><small>behy zdroju</small></div>
             </div>
           </div>
           <div class="legend-panel">
@@ -1839,6 +1890,12 @@
     const healthDb = document.getElementById('health-db');
     const healthCompanies = document.getElementById('health-companies');
     const healthTasks = document.getElementById('health-tasks');
+    const dashboardCompanies = document.getElementById('dashboard-companies');
+    const dashboardPeople = document.getElementById('dashboard-people');
+    const dashboardRelationships = document.getElementById('dashboard-relationships');
+    const dashboardWatchlisted = document.getElementById('dashboard-watchlisted');
+    const dashboardAudit = document.getElementById('dashboard-audit');
+    const dashboardImports = document.getElementById('dashboard-imports');
     const shell = document.getElementById('app-shell');
     const sidebarToggle = document.getElementById('sidebar-toggle');
     const navLinks = Array.from(document.querySelectorAll('[data-view-target]'));
@@ -2130,6 +2187,7 @@
       showToast(`Nahrano: ${company.name}`);
       addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
       await loadHealth();
+      await loadDashboard();
       await loadBackendAudit(false);
       await loadImportRuns(false);
       if (refresh) {
@@ -2164,6 +2222,7 @@
       showToast(successMessage);
       addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, 'info');
       await loadHealth();
+      await loadDashboard();
       await loadBackendAudit(false);
       await loadImportRuns(false);
       query.value = '';
@@ -2395,6 +2454,7 @@
       showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
       addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`, 'warning');
       await loadBackendAudit(false);
+      await loadDashboard();
       renderCompanies(currentCompanies);
     });
 
@@ -2429,6 +2489,7 @@
       showToast('Osoba byla prirazena k firme.');
       addActivity('Vazba osoby', `${fullName} prirazen k firme ${updated.name}.`, 'warning');
       await loadBackendAudit(false);
+      await loadDashboard();
       await loadPeople(peopleQuery.value);
     });
 
@@ -2542,6 +2603,30 @@
         setServerStatus(false);
         updateHealthCard(healthApi, 'OFF', false);
         updateHealthCard(healthDb, 'OFF', false);
+      }
+    }
+
+    async function loadDashboard() {
+      try {
+        const response = await fetch('/api/dashboard');
+        if (!response.ok) {
+          throw new Error('Dashboard endpoint failed');
+        }
+        const dashboard = await response.json();
+        dashboardCompanies.textContent = String(dashboard.companies || 0);
+        dashboardPeople.textContent = String(dashboard.people || 0);
+        dashboardRelationships.textContent = String(dashboard.relationships || 0);
+        dashboardWatchlisted.textContent = String(dashboard.watchlisted || 0);
+        dashboardAudit.textContent = String(dashboard.auditEvents || 0);
+        dashboardImports.textContent = String(dashboard.importRuns || 0);
+      } catch (error) {
+        dashboardCompanies.textContent = '-';
+        dashboardPeople.textContent = '-';
+        dashboardRelationships.textContent = '-';
+        dashboardWatchlisted.textContent = '-';
+        dashboardAudit.textContent = '-';
+        dashboardImports.textContent = '-';
+        addActivity('Dashboard chyba', 'Metriky dashboardu se nepodarilo nacist.', 'warning');
       }
     }
 
@@ -2889,6 +2974,8 @@
     setActiveView(currentHashView(), false);
     loadHealth();
     window.setInterval(loadHealth, 30000);
+    loadDashboard();
+    window.setInterval(loadDashboard, 30000);
     renderAuditLog();
     loadAuditTypes();
     loadBackendAudit(false);

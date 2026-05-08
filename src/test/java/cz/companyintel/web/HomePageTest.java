@@ -34,6 +34,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("audit-type-filter");
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");
+        assertThat(response.getBody()).contains("dashboard-companies");
     }
 
     @Test
@@ -135,6 +136,19 @@ class HomePageTest {
         assertThat(health.getBody()).contains("\"status\":\"UP\"");
         assertThat(health.getBody()).contains("\"database\":\"UP\"");
         assertThat(health.getBody()).contains("\"tasks\"");
+    }
+
+    @Test
+    void exposesDashboardMetrics() {
+        ResponseEntity<String> dashboard = restTemplate.getForEntity("/api/dashboard", String.class);
+
+        assertThat(dashboard.getStatusCodeValue()).isEqualTo(200);
+        assertThat(dashboard.getBody()).contains("\"companies\":3");
+        assertThat(dashboard.getBody()).contains("\"people\":4");
+        assertThat(dashboard.getBody()).contains("\"relationships\":4");
+        assertThat(dashboard.getBody()).contains("\"watchlisted\":1");
+        assertThat(dashboard.getBody()).contains("\"auditEvents\"");
+        assertThat(dashboard.getBody()).contains("\"importRuns\"");
     }
 
     @Test
