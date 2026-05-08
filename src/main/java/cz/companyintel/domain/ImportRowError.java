@@ -17,7 +17,7 @@ public class ImportRowError {
     @ManyToOne(optional = false)
     private ImportRun importRun;
 
-    @Column(nullable = false)
+    @Column(name = "source_row_number", nullable = false)
     private int rowNumber;
 
     @Column(length = 1200)
