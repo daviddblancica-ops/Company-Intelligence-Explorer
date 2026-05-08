@@ -22,13 +22,13 @@ public class TaskService {
         if (taskItemRepository.count() > 0) {
             return;
         }
-        taskItemRepository.save(new TaskItem("1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze", "Projekt", "HIGH"));
-        taskItemRepository.save(new TaskItem("2. Pridat startup demo data pro firmy, osoby, vazby a audit", "Import", "HIGH"));
-        taskItemRepository.save(new TaskItem("3. Dodelat registr lidi a detail osoby s vazbami na firmy", "Lide", "HIGH"));
-        taskItemRepository.save(new TaskItem("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role", "Vyhledavani", "HIGH"));
-        taskItemRepository.save(new TaskItem("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis", "Audit", "MEDIUM"));
-        taskItemRepository.save(new TaskItem("6. Pridat historii importnich behu vcetne chybovych radku", "Import", "MEDIUM"));
-        taskItemRepository.save(new TaskItem("7. Zprehlednit dashboard: metriky firem, osob, vazeb a watchlistu", "UI", "MEDIUM"));
+        taskItemRepository.save(task("1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze", "Projekt", "HIGH", true));
+        taskItemRepository.save(task("2. Pridat startup demo data pro firmy, osoby, vazby a audit", "Import", "HIGH", true));
+        taskItemRepository.save(task("3. Dodelat registr lidi a detail osoby s vazbami na firmy", "Lide", "HIGH", false));
+        taskItemRepository.save(task("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role", "Vyhledavani", "HIGH", false));
+        taskItemRepository.save(task("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis", "Audit", "MEDIUM", false));
+        taskItemRepository.save(task("6. Pridat historii importnich behu vcetne chybovych radku", "Import", "MEDIUM", false));
+        taskItemRepository.save(task("7. Zprehlednit dashboard: metriky firem, osob, vazeb a watchlistu", "UI", "MEDIUM", false));
     }
 
     public List<TaskItem> findActive() {
@@ -37,6 +37,12 @@ public class TaskService {
 
     public List<TaskItem> findArchived() {
         return taskItemRepository.findByArchivedOrderByDoneAscIdAsc(true);
+    }
+
+    private TaskItem task(String title, String segment, String priority, boolean done) {
+        TaskItem task = new TaskItem(title, segment, priority);
+        task.setDone(done);
+        return task;
     }
 
     @Transactional

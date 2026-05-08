@@ -63,6 +63,9 @@ class HomePageTest {
         assertThat(tasks.getStatusCodeValue()).isEqualTo(200);
         assertThat(tasks.getBody()).contains("Stabilizovat jadro");
         assertThat(tasks.getBody()).contains("Rozsirit rychle vyhledavani");
+        assertThat(tasks.getBody()).contains("\"title\":\"1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"2. Pridat startup demo data pro firmy, osoby, vazby a audit\"");
+        assertThat(tasks.getBody()).contains("\"done\":true");
     }
 
     @Test
@@ -73,6 +76,21 @@ class HomePageTest {
         assertThat(health.getBody()).contains("\"status\":\"UP\"");
         assertThat(health.getBody()).contains("\"database\":\"UP\"");
         assertThat(health.getBody()).contains("\"tasks\"");
+    }
+
+    @Test
+    void startsWithDemoCompaniesPeopleAndAudit() {
+        ResponseEntity<String> companies = restTemplate.getForEntity("/api/companies/search?q=", String.class);
+        ResponseEntity<String> audit = restTemplate.getForEntity("/api/audit?limit=20", String.class);
+        ResponseEntity<String> health = restTemplate.getForEntity("/api/health", String.class);
+
+        assertThat(companies.getStatusCodeValue()).isEqualTo(200);
+        assertThat(companies.getBody()).contains("Atlas Data Lab s.r.o.");
+        assertThat(companies.getBody()).contains("Michaela Cerna");
+        assertThat(companies.getBody()).contains("watchlisted\":true");
+        assertThat(audit.getBody()).contains("DEMO_DATA");
+        assertThat(health.getBody()).contains("\"companies\":3");
+        assertThat(health.getBody()).contains("\"people\":4");
     }
 
     @Test
