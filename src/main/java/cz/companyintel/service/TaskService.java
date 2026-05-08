@@ -22,19 +22,21 @@ public class TaskService {
         if (taskItemRepository.count() > 0) {
             return;
         }
-        taskItemRepository.save(new TaskItem("Zkontrolovat import CSV a JSON dat", "Import", "HIGH"));
-        taskItemRepository.save(new TaskItem("Doplnit rychle vyhledavani pro vetsi objem dat", "Vyhledavani", "HIGH"));
-        taskItemRepository.save(new TaskItem("Proverit prirazovani lidi k firmam", "Lide", "HIGH"));
-        taskItemRepository.save(new TaskItem("Projit audit log, archivaci a tisk", "Audit", "MEDIUM"));
-        taskItemRepository.save(new TaskItem("Doladit rozdeleni obrazovek podle menu", "UI", "MEDIUM"));
+        taskItemRepository.save(new TaskItem("1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze", "Projekt", "HIGH"));
+        taskItemRepository.save(new TaskItem("2. Pridat startup demo data pro firmy, osoby, vazby a audit", "Import", "HIGH"));
+        taskItemRepository.save(new TaskItem("3. Dodelat registr lidi a detail osoby s vazbami na firmy", "Lide", "HIGH"));
+        taskItemRepository.save(new TaskItem("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role", "Vyhledavani", "HIGH"));
+        taskItemRepository.save(new TaskItem("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis", "Audit", "MEDIUM"));
+        taskItemRepository.save(new TaskItem("6. Pridat historii importnich behu vcetne chybovych radku", "Import", "MEDIUM"));
+        taskItemRepository.save(new TaskItem("7. Zprehlednit dashboard: metriky firem, osob, vazeb a watchlistu", "UI", "MEDIUM"));
     }
 
     public List<TaskItem> findActive() {
-        return taskItemRepository.findByArchivedOrderByDoneAscPriorityAscUpdatedAtDesc(false);
+        return taskItemRepository.findByArchivedOrderByDoneAscIdAsc(false);
     }
 
     public List<TaskItem> findArchived() {
-        return taskItemRepository.findByArchivedOrderByDoneAscPriorityAscUpdatedAtDesc(true);
+        return taskItemRepository.findByArchivedOrderByDoneAscIdAsc(true);
     }
 
     @Transactional

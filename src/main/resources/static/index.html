@@ -1266,7 +1266,7 @@
         <a href="#import" data-view-target="import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
         <a href="#search" data-view-target="search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
-        <a href="#tasks" data-view-target="tasks" title="Checklist"><span class="nav-icon">U</span><span class="nav-label">Checklist</span></a>
+        <a href="#tasks" data-view-target="tasks" title="TODO list"><span class="nav-icon">T</span><span class="nav-label">TODO list</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
@@ -1471,8 +1471,8 @@
 
       <section class="audit-panel view" id="tasks" data-view="tasks">
         <div class="panel-header">
-          <h2>Checklist projektu</h2>
-          <p>Ukoly k dodelani backendu, importu, vyhledavani, auditu, prirazovani lidi a UI.</p>
+          <h2>TODO list projektu</h2>
+          <p>Postup prace na Company Intelligence Exploreru po jasnych bodech.</p>
         </div>
         <div class="panel-body">
           <form class="task-form" id="task-form">
@@ -2285,11 +2285,11 @@
         currentTasks = await response.json();
         renderTasks();
         if (showMessage) {
-          showToast('Checklist nacten z backendu.');
+          showToast('TODO list nacten z backendu.');
         }
       } catch (error) {
-        showToast('Checklist se nepodarilo nacist.');
-        addActivity('Checklist chyba', 'API pro ukoly neodpovedelo.', 'warning');
+        showToast('TODO list se nepodarilo nacist.');
+        addActivity('TODO chyba', 'API pro ukoly neodpovedelo.', 'warning');
       }
     }
 
@@ -2317,7 +2317,7 @@
         return;
       }
       showToast(method === 'POST' ? 'Ukol byl pridan.' : 'Ukol byl upraven.');
-      addActivity('Checklist', method === 'POST' ? 'Do checklistu byl pridan novy ukol.' : 'Ukol v checklistu byl upraven.', 'info');
+      addActivity('TODO list', method === 'POST' ? 'Do TODO listu byl pridan novy ukol.' : 'Ukol v TODO listu byl upraven.', 'info');
       await loadTasks(false);
     }
 
@@ -2332,7 +2332,7 @@
         return;
       }
       showToast('Stav ukolu byl ulozen.');
-      addActivity('Checklist', 'Stav ukolu byl zmenen.', 'info');
+      addActivity('TODO list', 'Stav ukolu byl zmenen.', 'info');
       await loadTasks(false);
       if (taskArchiveVisible) {
         await loadArchivedTasks();
@@ -2346,7 +2346,7 @@
       taskOpen.textContent = currentTasks.length - done;
       taskList.innerHTML = currentTasks.length
         ? currentTasks.map(task => renderTaskItem(task, false)).join('')
-        : '<div class="task-empty">Checklist je prazdny. Pridej prvni ukol.</div>';
+        : '<div class="task-empty">TODO list je prazdny. Pridej prvni ukol.</div>';
     }
 
     function renderArchivedTasks() {

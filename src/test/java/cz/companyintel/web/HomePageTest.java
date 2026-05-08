@@ -25,6 +25,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("Priradit");
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
+        assertThat(response.getBody()).contains("TODO list projektu");
     }
 
     @Test
@@ -52,5 +53,14 @@ class HomePageTest {
         ResponseEntity<String> audit = restTemplate.getForEntity("/api/audit?limit=20", String.class);
         assertThat(audit.getStatusCodeValue()).isEqualTo(200);
         assertThat(audit.getBody()).contains("PERSON_ASSIGNED");
+    }
+
+    @Test
+    void exposesProjectTodoList() {
+        ResponseEntity<String> tasks = restTemplate.getForEntity("/api/tasks", String.class);
+
+        assertThat(tasks.getStatusCodeValue()).isEqualTo(200);
+        assertThat(tasks.getBody()).contains("Stabilizovat jadro");
+        assertThat(tasks.getBody()).contains("Rozsirit rychle vyhledavani");
     }
 }
