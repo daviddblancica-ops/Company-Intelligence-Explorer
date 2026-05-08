@@ -48,6 +48,15 @@ jdbc:h2:mem:companyintel
 mvnw.cmd test
 ```
 
+## Produkcni profil a hosting
+
+Pro nasazeni s externi MariaDB/MySQL databazi je pripraveny profil `prod`.
+Postup pro Webglobe, SFTP/SCP a databazove promenne je v:
+
+```text
+docs/webglobe-deploy.md
+```
+
 ## API priklady
 
 Vytvoreni nebo aktualizace firmy:
