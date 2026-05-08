@@ -13,6 +13,7 @@ public class ChangeEventResponse {
     private String severity;
     private String description;
     private LocalDateTime createdAt;
+    private boolean archived;
 
     public static ChangeEventResponse from(ChangeEvent event) {
         ChangeEventResponse response = new ChangeEventResponse();
@@ -24,6 +25,7 @@ public class ChangeEventResponse {
         response.severity = severity(event.getType());
         response.description = event.getDescription();
         response.createdAt = event.getCreatedAt();
+        response.archived = event.isArchived();
         return response;
     }
 
@@ -70,5 +72,9 @@ public class ChangeEventResponse {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isArchived() {
+        return archived;
     }
 }

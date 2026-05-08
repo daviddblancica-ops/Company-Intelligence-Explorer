@@ -28,6 +28,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
+        assertThat(response.getBody()).contains("audit-type-filter");
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");
     }
@@ -60,6 +61,30 @@ class HomePageTest {
     }
 
     @Test
+    void archivesAuditEventsAndExposesEventTypes() {
+        ResponseEntity<String> types = restTemplate.getForEntity("/api/audit/types", String.class);
+        ResponseEntity<String> active = restTemplate.getForEntity("/api/audit?archived=false&limit=20", String.class);
+
+        assertThat(types.getStatusCodeValue()).isEqualTo(200);
+        assertThat(types.getBody()).contains("DEMO_DATA");
+        assertThat(active.getStatusCodeValue()).isEqualTo(200);
+        assertThat(active.getBody()).contains("\"archived\":false");
+
+        Long eventId = firstId(active.getBody());
+        AuditArchiveRequest request = new AuditArchiveRequest();
+        request.setArchived(true);
+        ResponseEntity<String> archived = restTemplate.postForEntity(
+                "/api/audit/" + eventId + "/archive",
+                new HttpEntity<AuditArchiveRequest>(request),
+                String.class);
+        ResponseEntity<String> archive = restTemplate.getForEntity("/api/audit?archived=true&limit=20", String.class);
+
+        assertThat(archived.getStatusCodeValue()).isEqualTo(200);
+        assertThat(archived.getBody()).contains("\"archived\":true");
+        assertThat(archive.getBody()).contains("\"id\":" + eventId);
+    }
+
+    @Test
     void exposesProjectTodoList() {
         ResponseEntity<String> tasks = restTemplate.getForEntity("/api/tasks", String.class);
 
@@ -70,6 +95,7 @@ class HomePageTest {
         assertThat(tasks.getBody()).contains("\"title\":\"2. Pridat startup demo data pro firmy, osoby, vazby a audit\"");
         assertThat(tasks.getBody()).contains("\"title\":\"3. Dodelat registr lidi a detail osoby s vazbami na firmy\"");
         assertThat(tasks.getBody()).contains("\"title\":\"4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis\"");
         assertThat(tasks.getBody()).contains("\"done\":true");
     }
 

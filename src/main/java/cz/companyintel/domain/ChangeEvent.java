@@ -14,7 +14,8 @@ import javax.persistence.Table;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_change_company_created", columnList = "company_id, createdAt"),
-        @Index(name = "idx_change_type_created", columnList = "type, createdAt")
+        @Index(name = "idx_change_type_created", columnList = "type, createdAt"),
+        @Index(name = "idx_change_archived_created", columnList = "archived, createdAt")
 })
 public class ChangeEvent {
 
@@ -34,6 +35,9 @@ public class ChangeEvent {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private boolean archived;
 
     protected ChangeEvent() {
     }
@@ -63,5 +67,13 @@ public class ChangeEvent {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 }

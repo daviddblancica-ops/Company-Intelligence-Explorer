@@ -1581,6 +1581,9 @@
         </div>
         <div class="panel-body">
           <div class="audit-toolbar">
+            <select id="audit-type-filter" aria-label="Filtr typu audit logu">
+              <option value="">Vsechny typy udalosti</option>
+            </select>
             <select id="audit-filter" aria-label="Filtr audit logu">
               <option value="all">Vsechny dulezitosti</option>
               <option value="critical">Kriticke</option>
@@ -1757,6 +1760,7 @@
     const auditList = document.getElementById('audit-list');
     const archiveList = document.getElementById('archive-list');
     const archiveBox = document.getElementById('archive-box');
+    const auditTypeFilter = document.getElementById('audit-type-filter');
     const auditFilter = document.getElementById('audit-filter');
     const refreshAudit = document.getElementById('refresh-audit');
     const archiveAudit = document.getElementById('archive-audit');
@@ -1935,24 +1939,37 @@
       await search(registrationNumber);
     });
 
+    auditTypeFilter.addEventListener('change', async () => {
+      await loadBackendAudit(false);
+    });
+
     auditFilter.addEventListener('change', renderAuditLog);
 
     refreshAudit.addEventListener('click', async () => {
       await loadBackendAudit();
     });
 
-    archiveAudit.addEventListener('click', () => {
-      if (!auditEntries.length) {
+    archiveAudit.addEventListener('click', async () => {
+      const filter = auditFilter.value;
+      const visibleEntries = auditEntries.filter(entry => filter === 'all' || entry.level === filter);
+      if (!visibleEntries.length) {
         showToast('Audit log nema zadne aktivni zaznamy.');
         return;
       }
-      archivedAuditEntries = [...auditEntries, ...archivedAuditEntries];
-      auditEntries = [];
+      try {
+        for (const entry of visibleEntries) {
+          await setAuditArchived(entry.id, true);
+        }
+      } catch (error) {
+        showToast('Archivace audit logu selhala.');
+        addActivity('Audit archiv', 'Backend neulozil archivaci vybranych udalosti.', 'warning');
+        return;
+      }
       auditArchiveVisible = true;
       archiveBox.hidden = false;
       showArchive.textContent = 'Skrýt archiv';
       showToast('Aktivni audit log byl presunut do archivu.');
-      renderAuditLog();
+      await loadBackendAudit(false);
     });
 
     showArchive.addEventListener('click', () => {
@@ -2511,17 +2528,20 @@
 
     async function loadBackendAudit(showMessage = true) {
       try {
-        const response = await fetch('/api/audit?limit=100');
+        const selectedType = auditTypeFilter.value || '';
+        const query = `type=${encodeURIComponent(selectedType)}&limit=100`;
+        const response = await fetch(`/api/audit?archived=false&${query}`);
+        const archiveResponse = await fetch(`/api/audit?archived=true&${query}`);
         if (!response.ok) {
           throw new Error('Audit endpoint failed');
         }
+        if (!archiveResponse.ok) {
+          throw new Error('Audit archive endpoint failed');
+        }
         const events = await response.json();
-        auditEntries = events.map(event => ({
-          title: event.type || 'AUDIT',
-          message: `${event.companyName || 'Firma'} (${event.registrationNumber || '-'}) - ${event.description || ''}`,
-          level: mapSeverity(event.severity),
-          time: formatDate(event.createdAt) || 'bez data'
-        }));
+        const archivedEvents = await archiveResponse.json();
+        auditEntries = events.map(toAuditEntry);
+        archivedAuditEntries = archivedEvents.map(toAuditEntry);
         renderAuditLog();
         if (showMessage) {
           showToast('Audit log nacten z backendu.');
@@ -2529,6 +2549,47 @@
       } catch (error) {
         addActivity('Audit chyba', 'Backendovy audit log se nepodarilo nacist.', 'warning');
       }
+    }
+
+    async function loadAuditTypes() {
+      try {
+        const response = await fetch('/api/audit/types');
+        if (!response.ok) {
+          throw new Error('Audit types endpoint failed');
+        }
+        const currentValue = auditTypeFilter.value;
+        const types = await response.json();
+        auditTypeFilter.innerHTML = '<option value="">Vsechny typy udalosti</option>' + types.map(type => (
+          `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`
+        )).join('');
+        auditTypeFilter.value = types.includes(currentValue) ? currentValue : '';
+      } catch (error) {
+        addActivity('Audit typy', 'Typy auditnich udalosti se nepodarilo nacist.', 'warning');
+      }
+    }
+
+    async function setAuditArchived(id, archived) {
+      const response = await fetch(`/api/audit/${id}/archive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archived })
+      });
+      if (!response.ok) {
+        throw new Error('Audit archive failed');
+      }
+      return response.json();
+    }
+
+    function toAuditEntry(event) {
+      return {
+        id: event.id,
+        title: event.type || 'AUDIT',
+        type: event.type || 'AUDIT',
+        message: `${event.companyName || 'Firma'} (${event.registrationNumber || '-'}) - ${event.description || ''}`,
+        level: mapSeverity(event.severity),
+        time: formatDate(event.createdAt) || 'bez data',
+        archived: Boolean(event.archived)
+      };
     }
 
     function renderAuditLog() {
@@ -2728,6 +2789,7 @@
     loadHealth();
     window.setInterval(loadHealth, 30000);
     renderAuditLog();
+    loadAuditTypes();
     loadBackendAudit(false);
     loadTasks(false);
     loadPeople('');
