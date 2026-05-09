@@ -52,4 +52,8 @@ public class CompanyPersonRole {
     public String getRole() {
         return role;
     }
+
+    public void updateRole(String role) {
+        this.role = role;
+    }
 }

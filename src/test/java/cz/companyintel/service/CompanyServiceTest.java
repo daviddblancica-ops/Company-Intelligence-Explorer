@@ -1,8 +1,10 @@
 package cz.companyintel.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import cz.companyintel.domain.Company;
+import cz.companyintel.repository.PersonRepository;
 import cz.companyintel.web.CompanyRequest;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,9 @@ class CompanyServiceTest {
 
     @Autowired
     private CompanyService companyService;
+
+    @Autowired
+    private PersonRepository personRepository;
 
     @Test
     void savesCompanyWithNormalizedNamePeopleAndChangeHistory() {
@@ -39,14 +44,14 @@ class CompanyServiceTest {
     @Test
     void searchesByNormalizedName() {
         CompanyRequest request = new CompanyRequest();
-        request.setName("Central Trade Group a.s.");
+        request.setName("Česká Trade Group a.s.");
         request.setRegistrationNumber("87654321");
         request.setCountry("CZ");
         request.setLegalForm("a.s.");
 
         companyService.saveCompany(request);
 
-        assertThat(companyService.searchCompanies("central trade")).hasSize(1);
+        assertThat(companyService.searchCompanies("ceska trade")).hasSize(1);
     }
 
     @Test
@@ -98,5 +103,59 @@ class CompanyServiceTest {
         assertThat(updated.getPeople()).hasSize(1);
         assertThat(updated.getPeople()).extracting("role").contains("analyticka");
         assertThat(updated.getChanges()).extracting("type").contains("PERSON_ASSIGNED");
+    }
+
+    @Test
+    void updatesAssignedPersonRoleAndWritesHistory() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Role Update Test s.r.o.");
+        request.setRegistrationNumber("99911125");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+
+        Company saved = companyService.saveCompany(request);
+        Company assigned = companyService.assignPerson(saved.getId(), "Jana Role", "analyticka");
+        Long personId = assigned.getPeople().iterator().next().getPerson().getId();
+
+        Company updated = companyService.updatePersonRole(saved.getId(), personId, "jednatelka");
+
+        assertThat(updated.getPeople()).hasSize(1);
+        assertThat(updated.getPeople()).extracting("role").containsExactly("jednatelka");
+        assertThat(updated.getChanges()).extracting("type").contains("PERSON_ROLE_UPDATED");
+    }
+
+    @Test
+    void removesAssignedPersonAndWritesHistory() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Role Delete Test s.r.o.");
+        request.setRegistrationNumber("99911126");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+
+        Company saved = companyService.saveCompany(request);
+        Company assigned = companyService.assignPerson(saved.getId(), "Petr Remove", "kontrolor");
+        Long personId = assigned.getPeople().iterator().next().getPerson().getId();
+
+        Company updated = companyService.removePerson(saved.getId(), personId);
+
+        assertThat(updated.getPeople()).isEmpty();
+        assertThat(updated.getChanges()).extracting("type").contains("PERSON_REMOVED");
+    }
+
+    @Test
+    void rejectsBlankPersonAssignmentBeforeCreatingPerson() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Blank People Test s.r.o.");
+        request.setRegistrationNumber("99911124");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+
+        Company saved = companyService.saveCompany(request);
+        long peopleBefore = personRepository.count();
+
+        assertThatThrownBy(() -> companyService.assignPerson(saved.getId(), "   ", "kontrolor"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Person full name is required");
+        assertThat(personRepository.count()).isEqualTo(peopleBefore);
     }
 }

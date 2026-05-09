@@ -39,4 +39,10 @@ public class RestExceptionHandler {
                 "Unexpected server error",
                 request.getRequestURI());
     }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse badRequest(IllegalArgumentException exception) {
+        return new ErrorResponse(exception.getMessage());
+    }
 }

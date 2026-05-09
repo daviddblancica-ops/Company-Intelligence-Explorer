@@ -264,6 +264,32 @@
       align-items: start;
     }
 
+    .import-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .import-grid .import-block {
+      display: grid;
+      align-content: start;
+      margin: 0;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .import-grid .import-block h3 {
+      margin-top: 0;
+    }
+
+    .import-grid .toast {
+      grid-column: 1 / -1;
+      margin-top: 0;
+    }
+
     .flow {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1308,6 +1334,35 @@
       font: inherit;
     }
 
+    .person-form input[readonly] {
+      background: #f1f5f9;
+      color: var(--muted);
+    }
+
+    .person-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .person-tools button,
+    .person-form button {
+      min-height: 32px;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .danger {
+      border-color: #fecaca;
+      background: #fff1f2;
+      color: #be123c;
+    }
+
+    .danger:hover {
+      background: #ffe4e6;
+    }
+
     .detail-row {
       display: grid;
       grid-template-columns: 110px minmax(0, 1fr);
@@ -1375,6 +1430,7 @@
       }
 
       .workspace,
+      .import-grid,
       .registry-grid,
       .people-grid,
       .flow,
@@ -1555,6 +1611,53 @@
               <a class="audit-link" href="#audit" data-view-target="audit">Otevrit</a>
             </div>
           </div>
+          <section class="legend-panel" aria-label="Pomocna legenda">
+            <h2>Pomocna legenda</h2>
+            <section class="flow" aria-label="Tok dat">
+              <div class="flow-card">
+                <h2>Vstup</h2>
+                <ul>
+                  <li>CSV nebo JSON soubory s daty o firmach</li>
+                  <li>informace o lidech</li>
+                  <li>role lidi ve firmach</li>
+                </ul>
+              </div>
+              <div class="flow-card">
+                <h2>Uvnitř</h2>
+                <ul>
+                  <li>kontrola a sjednoceni dat</li>
+                  <li>ulozeni vazeb mezi lidmi a firmami</li>
+                  <li>historie zmen a priprava pro hledani</li>
+                </ul>
+              </div>
+              <div class="flow-card">
+                <h2>Výstup</h2>
+                <ul>
+                  <li>vyhledavani a detail firmy</li>
+                  <li>prehled napojenych lidi</li>
+                  <li>historie zmen a watchlist</li>
+                </ul>
+              </div>
+            </section>
+            <div class="module-list">
+              <div class="module-item"><strong>ImportController</strong><span>vstupy dat</span></div>
+              <div class="module-item"><strong>CompanyService</strong><span>logika a historie</span></div>
+              <div class="module-item"><strong>NormalizationService</strong><span>sjednoceni nazvu</span></div>
+              <div class="module-item"><strong>JPA + H2</strong><span>databaze</span></div>
+            </div>
+            <details class="api-reference">
+              <summary>Technicky vypis REST API</summary>
+              <code>
+                POST /api/import/json<br>
+                POST /api/import/csv<br>
+                POST /api/import/ares/{ico}<br>
+                GET /api/companies/search<br>
+                POST /api/companies/{id}/people<br>
+                PATCH /api/companies/{id}/watchlist
+                <br>GET /api/audit
+              </code>
+            </details>
+          </section>
         </div>
       </section>
 
@@ -1573,27 +1676,31 @@
                 <button type="button" id="import-json">Importovat JSON</button>
               </div>
             </div>
+          </div>
 
-            <div class="import-block">
-              <h3>CSV import</h3>
-              <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
-              <textarea id="csv-input" aria-label="CSV import"></textarea>
-              <div class="import-actions">
-                <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
-                <button type="button" id="import-csv">Importovat CSV</button>
-              </div>
+          <div class="import-block">
+            <h3>CSV import</h3>
+            <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
+            <textarea id="csv-input" aria-label="CSV import"></textarea>
+            <div class="import-actions">
+              <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
+              <button type="button" id="import-csv">Importovat CSV</button>
             </div>
+          </div>
 
-            <div class="import-block">
-              <h3>ARES podle ICO</h3>
-              <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
-            </div>
+          <div class="import-block">
+            <h3>ARES podle ICO</h3>
+            <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
             <form class="form-row" id="ares-form">
               <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
               <button type="submit">Importovat</button>
             </form>
+          </div>
+
+          <div class="import-block">
+            <h3>Demo importy</h3>
+            <p>Rychle nacti ukazkove subjekty nebo jednotlivy zaznam z predpripraveneho seznamu.</p>
             <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
-            <div id="toast" class="toast"></div>
             <div class="demo-list" id="demo-list"></div>
             <div class="import-block">
               <h3>Historie importu</h3>
@@ -1635,14 +1742,17 @@
                 <span>na watchlistu</span>
               </div>
             </div>
-            <div class="registry-grid">
-              <div id="results" class="results">
-                <div class="empty">Zatim nejsou nactena data. Pouzij vstup dat vlevo.</div>
-              </div>
-              <section class="detail" id="detail-panel" aria-label="Detail firmy">
-                <h3>Detail firmy</h3>
-                <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
-              </section>
+            <div class="metric">
+              <strong id="ares-count">0</strong>
+              <span>zaznamu z ARES</span>
+            </div>
+            <div class="metric">
+              <strong id="change-count">0</strong>
+              <span>udalosti historie</span>
+            </div>
+            <div class="metric">
+              <strong id="watch-count">0</strong>
+              <span>na watchlistu</span>
             </div>
           </div>
       </section>
