@@ -39,6 +39,8 @@ class HomePageTest {
         assertThat(response.getBody()).contains("Priradit");
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
         assertThat(response.getBody()).contains("import-runs");
+        assertThat(response.getBody()).contains("import-total-saved");
+        assertThat(response.getBody()).contains("refresh-import-runs");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view-target=\"notes\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");

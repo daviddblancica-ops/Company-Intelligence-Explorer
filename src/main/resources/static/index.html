@@ -1045,6 +1045,36 @@
       gap: 8px;
     }
 
+    .import-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .import-summary-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel-soft);
+    }
+
+    .import-summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .import-summary-card strong {
+      display: block;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
     .demo-list {
       display: grid;
       gap: 8px;
@@ -1480,6 +1510,7 @@
       .health-grid,
       .dashboard-grid,
       .module-links,
+      .import-summary,
       .audit-entry,
       .person-form,
       .task-form,
@@ -1729,6 +1760,12 @@
             <p>Nahraj data z ruznych vstupu. Backend je zkontroluje, sjednoti a ulozi do databaze.</p>
           </div>
           <div class="panel-body">
+            <div class="import-summary" aria-label="Souhrn importu">
+              <div class="import-summary-card"><span>Behu celkem</span><strong id="import-total-runs">0</strong></div>
+              <div class="import-summary-card"><span>Ulozeno radku</span><strong id="import-total-saved">0</strong></div>
+              <div class="import-summary-card"><span>Chybne radky</span><strong id="import-total-failed">0</strong></div>
+              <div class="import-summary-card"><span>Posledni stav</span><strong id="import-last-status">-</strong></div>
+            </div>
             <div class="import-block" style="padding-top:0;margin-top:0;border-top:0">
               <h3>JSON import s lidmi</h3>
               <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
@@ -1767,6 +1804,9 @@
             <div class="import-block">
               <h3>Historie importu</h3>
               <p>Posledni behy importu vcetne stavu a chybovych radku.</p>
+              <div class="import-actions">
+                <button class="secondary" type="button" id="refresh-import-runs">Obnovit historii</button>
+              </div>
               <div class="import-runs" id="import-runs">
                 <div class="empty">Historie importu se nacte z backendu.</div>
               </div>
@@ -2074,6 +2114,11 @@
     const views = Array.from(document.querySelectorAll('[data-view]'));
     const demoList = document.getElementById('demo-list');
     const importRuns = document.getElementById('import-runs');
+    const refreshImportRuns = document.getElementById('refresh-import-runs');
+    const importTotalRuns = document.getElementById('import-total-runs');
+    const importTotalSaved = document.getElementById('import-total-saved');
+    const importTotalFailed = document.getElementById('import-total-failed');
+    const importLastStatus = document.getElementById('import-last-status');
     const showAll = document.getElementById('show-all');
     const showWatchlist = document.getElementById('show-watchlist');
     let currentCompanies = [];
@@ -2232,6 +2277,10 @@
 
     refreshAudit.addEventListener('click', async () => {
       await loadBackendAudit();
+    });
+
+    refreshImportRuns.addEventListener('click', async () => {
+      await loadImportRuns(true);
     });
 
     archiveAudit.addEventListener('click', async () => {
@@ -2874,11 +2923,13 @@
         }
         const runs = await response.json();
         renderImportRuns(runs);
+        updateImportSummary(runs);
         if (showMessage) {
           showToast('Historie importu nactena z backendu.');
         }
       } catch (error) {
         importRuns.innerHTML = '<div class="empty">Historii importu se nepodarilo nacist.</div>';
+        updateImportSummary([]);
       }
     }
 
@@ -2907,6 +2958,15 @@
           </article>
         `).join('')
         : '<div class="empty">Zatim neprobehly zadne importy.</div>';
+    }
+
+    function updateImportSummary(runs) {
+      const saved = runs.reduce((sum, run) => sum + (run.importedRows || 0), 0);
+      const failed = runs.reduce((sum, run) => sum + (run.failedRows || 0), 0);
+      importTotalRuns.textContent = String(runs.length);
+      importTotalSaved.textContent = String(saved);
+      importTotalFailed.textContent = String(failed);
+      importLastStatus.textContent = runs.length ? (runs[0].status || '-') : '-';
     }
 
     async function loadAuditTypes() {
