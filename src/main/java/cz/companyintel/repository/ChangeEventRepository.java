@@ -12,4 +12,10 @@ public interface ChangeEventRepository extends JpaRepository<ChangeEvent, Long> 
     List<ChangeEvent> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     List<ChangeEvent> findByTypeOrderByCreatedAtDesc(String type, Pageable pageable);
+
+    List<ChangeEvent> findByArchivedOrderByCreatedAtDesc(boolean archived, Pageable pageable);
+
+    List<ChangeEvent> findByTypeAndArchivedOrderByCreatedAtDesc(String type, boolean archived, Pageable pageable);
+
+    List<ChangeEvent> findAllByOrderByTypeAsc();
 }

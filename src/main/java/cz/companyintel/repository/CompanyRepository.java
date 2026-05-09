@@ -12,6 +12,15 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
 
     Optional<Company> findByRegistrationNumber(String registrationNumber);
 
-    @Query("select c from Company c where c.normalizedName like concat(:query, '%') or c.registrationNumber like concat(:query, '%') order by c.updatedAt desc")
+    long countByWatchlistedTrue();
+
+    @Query("select distinct c from Company c "
+            + "left join c.people relationship "
+            + "left join relationship.person person "
+            + "where lower(c.normalizedName) like lower(concat(:query, '%')) "
+            + "or c.registrationNumber like concat(:query, '%') "
+            + "or lower(person.normalizedName) like lower(concat('%', :query, '%')) "
+            + "or lower(relationship.role) like lower(concat('%', :query, '%')) "
+            + "order by c.updatedAt desc")
     List<Company> search(@Param("query") String query, Pageable pageable);
 }

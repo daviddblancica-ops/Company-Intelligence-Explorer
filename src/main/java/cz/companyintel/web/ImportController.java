@@ -1,10 +1,13 @@
 package cz.companyintel.web;
 
+import cz.companyintel.service.AresImportService;
 import cz.companyintel.service.ImportResult;
 import cz.companyintel.service.ImportService;
-import cz.companyintel.service.AresImportService;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,5 +39,12 @@ public class ImportController {
     @PostMapping("/ares/{ico}")
     public CompanyResponse importAres(@PathVariable String ico) {
         return CompanyResponse.from(aresImportService.importByIco(ico));
+    }
+
+    @GetMapping("/runs")
+    public List<ImportRunResponse> runs() {
+        return importService.findRecentRuns(50).stream()
+                .map(ImportRunResponse::from)
+                .collect(Collectors.toList());
     }
 }
