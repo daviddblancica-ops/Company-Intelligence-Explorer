@@ -40,7 +40,9 @@ class HomePageTest {
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
         assertThat(response.getBody()).contains("import-runs");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
+        assertThat(response.getBody()).contains("data-view-target=\"notes\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
+        assertThat(response.getBody()).contains("data-view=\"notes\"");
         assertThat(response.getBody()).contains("audit-type-filter");
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");

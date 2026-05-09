@@ -430,6 +430,44 @@
       white-space: nowrap;
     }
 
+    .module-links {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .module-links a {
+      display: block;
+      min-height: 74px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      text-decoration: none;
+      transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+    }
+
+    .module-links a:hover {
+      border-color: var(--primary);
+      box-shadow: 0 10px 24px rgba(24, 111, 242, .12);
+      transform: translateY(-1px);
+    }
+
+    .module-links strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    .module-links span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .module-list {
       display: grid;
       gap: 8px;
@@ -1441,6 +1479,7 @@
       .audit-stats,
       .health-grid,
       .dashboard-grid,
+      .module-links,
       .audit-entry,
       .person-form,
       .task-form,
@@ -1502,12 +1541,13 @@
       </div>
       <button class="sidebar-toggle" type="button" id="sidebar-toggle" aria-label="Zasunout menu" title="Zasunout menu">‹</button>
       <nav aria-label="Navigace">
-        <a class="active" href="#system" data-view-target="system" title="System"><span class="nav-icon">S</span><span class="nav-label">System</span></a>
+        <a class="active" href="#system" data-view-target="system" title="Dashboard"><span class="nav-icon">D</span><span class="nav-label">Dashboard</span></a>
         <a href="#import" data-view-target="import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
         <a href="#search" data-view-target="search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
         <a href="#people" data-view-target="people" title="Registr lidi"><span class="nav-icon">L</span><span class="nav-label">Registr lidi</span></a>
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="#tasks" data-view-target="tasks" title="TODO list"><span class="nav-icon">T</span><span class="nav-label">TODO list</span></a>
+        <a href="#notes" data-view-target="notes" title="Technicke poznamky"><span class="nav-icon">N</span><span class="nav-label">Poznamky</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
@@ -1524,7 +1564,7 @@
         </div>
       </div>
 
-      <section class="ops-grid view active" id="system" data-view="system" aria-label="Backend system">
+      <section class="ops-grid view active" id="system" data-view="system" aria-label="Dashboard">
         <div class="ops-panel">
           <h2>Zpracovatelska linka</h2>
           <div class="pipeline">
@@ -1578,6 +1618,28 @@
               <strong>Vazby osob</strong>
               Osobu lze importovat ze zdroje nebo rucne priradit v detailu firmy vcetne role, ktera se ulozi do historie zmen.
             </div>
+          </div>
+          <div class="module-links" aria-label="Hlavni moduly aplikace">
+            <a href="#import" data-view-target="import">
+              <strong>Importy</strong>
+              <span>JSON, CSV, ARES a historie behu</span>
+            </a>
+            <a href="#search" data-view-target="search">
+              <strong>Rejstrik firem</strong>
+              <span>rychle hledani a detail firmy</span>
+            </a>
+            <a href="#people" data-view-target="people">
+              <strong>Registr lidi</strong>
+              <span>osoby, role a vazby na firmy</span>
+            </a>
+            <a href="#audit" data-view-target="audit">
+              <strong>Audit log</strong>
+              <span>udalosti, archiv a tisk</span>
+            </a>
+            <a href="#tasks" data-view-target="tasks">
+              <strong>TODO list</strong>
+              <span>postup prace po bodech</span>
+            </a>
           </div>
           <div class="legend-panel">
             <h2>Dashboard dat</h2>
@@ -1867,8 +1929,8 @@
         </div>
       </section>
 
-      <section class="legend-panel view active" data-view="system" aria-label="Pomocna legenda">
-        <h2>Pomocna legenda</h2>
+      <section class="legend-panel view" id="notes" data-view="notes" aria-label="Technicke poznamky">
+        <h2>Technicke poznamky</h2>
         <section class="flow" aria-label="Tok dat">
           <div class="flow-card">
             <h2>Vstup</h2>
@@ -2756,7 +2818,7 @@
     }
 
     function setActiveView(viewName, updateHash) {
-      const target = ['system', 'import', 'search', 'people', 'audit', 'tasks'].includes(viewName) ? viewName : 'system';
+      const target = ['system', 'import', 'search', 'people', 'audit', 'tasks', 'notes'].includes(viewName) ? viewName : 'system';
       views.forEach(view => {
         view.classList.toggle('active', view.dataset.view === target);
       });
