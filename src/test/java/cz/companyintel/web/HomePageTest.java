@@ -41,6 +41,8 @@ class HomePageTest {
         assertThat(response.getBody()).contains("import-runs");
         assertThat(response.getBody()).contains("import-total-saved");
         assertThat(response.getBody()).contains("refresh-import-runs");
+        assertThat(response.getBody()).contains("preview-json");
+        assertThat(response.getBody()).contains("import-preview");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view-target=\"notes\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
@@ -124,6 +126,28 @@ class HomePageTest {
         assertThat(runs.getBody()).contains("\"status\":\"PARTIAL\"");
         assertThat(runs.getBody()).contains("\"rowNumber\":3");
         assertThat(runs.getBody()).contains("Expected 5 CSV columns");
+    }
+
+    @Test
+    void previewsCsvImportWithoutSavingCompanies() {
+        String csv = "name,registrationNumber,country,legalForm,people\n"
+                + "Preview API s.r.o.,91919191,CZ,s.r.o.,Pavel Preview|jednatel\n"
+                + "Broken row\n";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("text/csv"));
+
+        ResponseEntity<String> preview = restTemplate.postForEntity(
+                "/api/import/preview/csv",
+                new HttpEntity<String>(csv, headers),
+                String.class);
+        ResponseEntity<String> companies = restTemplate.getForEntity("/api/companies/search?q=Preview%20API", String.class);
+
+        assertThat(preview.getStatusCodeValue()).isEqualTo(200);
+        assertThat(preview.getBody()).contains("\"sourceType\":\"CSV\"");
+        assertThat(preview.getBody()).contains("\"validRows\":1");
+        assertThat(preview.getBody()).contains("\"invalidRows\":1");
+        assertThat(preview.getBody()).contains("Expected 5 CSV columns");
+        assertThat(companies.getBody()).doesNotContain("Preview API s.r.o.");
     }
 
     @Test

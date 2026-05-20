@@ -30,7 +30,8 @@ public class ImportService {
             CompanyRequest[] requests = objectMapper.readValue(body, CompanyRequest[].class);
             List<ImportRow> rows = new ArrayList<ImportRow>();
             for (int index = 0; index < requests.length; index++) {
-                rows.add(new ImportRow(index + 1, requests[index], requests[index].getRegistrationNumber()));
+                CompanyRequest request = requests[index];
+                rows.add(new ImportRow(index + 1, request, request == null ? "" : request.getRegistrationNumber()));
             }
             return saveAll("JSON", rows);
         } catch (IOException exception) {
@@ -72,6 +73,78 @@ public class ImportService {
             rows.add(new ImportRow(rowNumber, request, line));
         }
         return saveAll(run, rows);
+    }
+
+    public ImportPreview previewJson(String body) {
+        try {
+            CompanyRequest[] requests = objectMapper.readValue(body, CompanyRequest[].class);
+            List<ImportPreviewRow> previewRows = new ArrayList<ImportPreviewRow>();
+            int valid = 0;
+            int invalid = 0;
+            for (int index = 0; index < requests.length; index++) {
+                CompanyRequest request = requests[index];
+                String validationError = validate(request);
+                boolean rowValid = validationError == null;
+                if (rowValid) {
+                    valid++;
+                } else {
+                    invalid++;
+                }
+                previewRows.add(toPreviewRow(index + 1, request, rowValid, validationError, request == null ? "" : request.getRegistrationNumber()));
+            }
+            return new ImportPreview("JSON", previewRows.size(), valid, invalid, previewRows);
+        } catch (IOException exception) {
+            List<ImportPreviewRow> rows = new ArrayList<ImportPreviewRow>();
+            rows.add(new ImportPreviewRow(1, false, "", "", "JSON input could not be parsed: " + exception.getMessage(), limit(body)));
+            return new ImportPreview("JSON", 1, 0, 1, rows);
+        }
+    }
+
+    public ImportPreview previewCsv(String body) throws IOException {
+        BufferedReader reader = new BufferedReader(new StringReader(body));
+        List<ImportPreviewRow> previewRows = new ArrayList<ImportPreviewRow>();
+        String line;
+        boolean header = true;
+        int rowNumber = 0;
+        int valid = 0;
+        int invalid = 0;
+        while ((line = reader.readLine()) != null) {
+            rowNumber++;
+            if (line.trim().isEmpty()) {
+                continue;
+            }
+            if (header) {
+                header = false;
+                continue;
+            }
+            String[] columns = line.split(",", -1);
+            if (columns.length < 5) {
+                invalid++;
+                previewRows.add(new ImportPreviewRow(
+                        rowNumber,
+                        false,
+                        "",
+                        "",
+                        "Expected 5 CSV columns but found " + columns.length,
+                        limit(line)));
+                continue;
+            }
+            CompanyRequest request = new CompanyRequest();
+            request.setName(columns[0].trim());
+            request.setRegistrationNumber(columns[1].trim());
+            request.setCountry(columns[2].trim());
+            request.setLegalForm(columns[3].trim());
+            request.setPeople(parsePeople(columns[4]));
+            String validationError = validate(request);
+            boolean rowValid = validationError == null;
+            if (rowValid) {
+                valid++;
+            } else {
+                invalid++;
+            }
+            previewRows.add(toPreviewRow(rowNumber, request, rowValid, validationError, line));
+        }
+        return new ImportPreview("CSV", previewRows.size(), valid, invalid, previewRows);
     }
 
     public List<ImportRun> findRecentRuns(int limit) {
@@ -126,6 +199,9 @@ public class ImportService {
     }
 
     private String validate(CompanyRequest request) {
+        if (request == null) {
+            return "Company row is empty";
+        }
         if (request.getName() == null || request.getName().trim().isEmpty()) {
             return "Company name is required";
         }
@@ -133,6 +209,16 @@ public class ImportService {
             return "Registration number is required";
         }
         return null;
+    }
+
+    private ImportPreviewRow toPreviewRow(int rowNumber, CompanyRequest request, boolean valid, String message, String rawValue) {
+        return new ImportPreviewRow(
+                rowNumber,
+                valid,
+                request == null ? "" : request.getName(),
+                request == null ? "" : request.getRegistrationNumber(),
+                valid ? "Ready for import" : message,
+                limit(rawValue));
     }
 
     private String limit(String value) {

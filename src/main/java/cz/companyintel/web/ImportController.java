@@ -1,6 +1,7 @@
 package cz.companyintel.web;
 
 import cz.companyintel.service.AresImportService;
+import cz.companyintel.service.ImportPreview;
 import cz.companyintel.service.ImportResult;
 import cz.companyintel.service.ImportService;
 import java.io.IOException;
@@ -34,6 +35,16 @@ public class ImportController {
     @PostMapping(value = "/csv", consumes = "text/csv")
     public ImportResult importCsv(@RequestBody String body) throws IOException {
         return importService.importCsv(body);
+    }
+
+    @PostMapping(value = "/preview/json", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ImportPreview previewJson(@RequestBody String body) {
+        return importService.previewJson(body);
+    }
+
+    @PostMapping(value = "/preview/csv", consumes = "text/csv")
+    public ImportPreview previewCsv(@RequestBody String body) throws IOException {
+        return importService.previewCsv(body);
     }
 
     @PostMapping("/ares/{ico}")

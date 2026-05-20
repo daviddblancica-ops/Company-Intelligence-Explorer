@@ -1075,6 +1075,61 @@
       line-height: 1.2;
     }
 
+    .import-preview {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .import-preview-header {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .import-preview-stat,
+    .import-preview-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel-soft);
+    }
+
+    .import-preview-stat span,
+    .import-preview-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .import-preview-stat strong,
+    .import-preview-row strong {
+      display: block;
+      color: var(--ink);
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .import-preview-row.valid {
+      border-color: #bde4cd;
+      background: #f3fbf6;
+    }
+
+    .import-preview-row.invalid {
+      border-color: #f4b9b9;
+      background: #fff6f6;
+    }
+
+    .import-preview-row code {
+      display: block;
+      margin-top: 6px;
+      color: #5f1b1b;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      font-size: 12px;
+    }
+
     .demo-list {
       display: grid;
       gap: 8px;
@@ -1511,6 +1566,7 @@
       .dashboard-grid,
       .module-links,
       .import-summary,
+      .import-preview-header,
       .audit-entry,
       .person-form,
       .task-form,
@@ -1772,6 +1828,7 @@
               <textarea id="json-input" aria-label="JSON import"></textarea>
               <div class="import-actions">
                 <button class="secondary" type="button" id="load-json-demo">Vlozit ukazku</button>
+                <button class="secondary" type="button" id="preview-json">Zkontrolovat JSON</button>
                 <button type="button" id="import-json">Importovat JSON</button>
               </div>
             </div>
@@ -1783,7 +1840,16 @@
             <textarea id="csv-input" aria-label="CSV import"></textarea>
             <div class="import-actions">
               <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
+              <button class="secondary" type="button" id="preview-csv">Zkontrolovat CSV</button>
               <button type="button" id="import-csv">Importovat CSV</button>
+            </div>
+          </div>
+
+          <div class="import-block">
+            <h3>Predimportni kontrola</h3>
+            <p>Nahled ukaze, ktere radky jsou pripravene k ulozeni a ktere je potreba opravit jeste pred importem.</p>
+            <div class="import-preview" id="import-preview">
+              <div class="empty">Spust kontrolu JSON nebo CSV vstupu.</div>
             </div>
           </div>
 
@@ -2114,6 +2180,7 @@
     const views = Array.from(document.querySelectorAll('[data-view]'));
     const demoList = document.getElementById('demo-list');
     const importRuns = document.getElementById('import-runs');
+    const importPreview = document.getElementById('import-preview');
     const refreshImportRuns = document.getElementById('refresh-import-runs');
     const importTotalRuns = document.getElementById('import-total-runs');
     const importTotalSaved = document.getElementById('import-total-saved');
@@ -2196,8 +2263,16 @@
       await importPayload('/api/import/json', jsonInput.value, 'application/json', 'JSON import dokoncen.');
     });
 
+    document.getElementById('preview-json').addEventListener('click', async () => {
+      await previewPayload('/api/import/preview/json', jsonInput.value, 'application/json');
+    });
+
     document.getElementById('import-csv').addEventListener('click', async () => {
       await importPayload('/api/import/csv', csvInput.value, 'text/csv', 'CSV import dokoncen.');
+    });
+
+    document.getElementById('preview-csv').addEventListener('click', async () => {
+      await previewPayload('/api/import/preview/csv', csvInput.value, 'text/csv');
     });
 
     document.getElementById('seed-demo').addEventListener('click', async () => {
@@ -2451,6 +2526,33 @@
       showWatchlist.classList.remove('active');
       await search('');
       await loadPeople('');
+    }
+
+    async function previewPayload(url, body, contentType) {
+      if (!String(body || '').trim()) {
+        showToast('Nejdrive vloz data pro kontrolu.');
+        addActivity('Prazdna kontrola', 'Predimportni kontrola byla zastavena, protoze vstup neobsahoval data.', 'warning');
+        return;
+      }
+
+      showToast('Kontroluji vstupni data...');
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': contentType },
+        body
+      });
+      if (!response.ok) {
+        showToast('Kontrola selhala.');
+        addActivity('Kontrola importu', 'Backend nevratil validacni nahled importu.', 'warning');
+        return;
+      }
+      const preview = await response.json();
+      renderImportPreview(preview);
+      showToast(preview.invalidRows ? 'Kontrola nasla chyby ve vstupu.' : 'Vstup je pripraveny k importu.');
+      addActivity(
+        'Kontrola importu',
+        `${preview.sourceType || 'IMPORT'}: ${preview.validRows || 0} radku pripraveno, ${preview.invalidRows || 0} radku s chybou.`,
+        preview.invalidRows ? 'warning' : 'info');
     }
 
     async function search(value) {
@@ -2958,6 +3060,26 @@
           </article>
         `).join('')
         : '<div class="empty">Zatim neprobehly zadne importy.</div>';
+    }
+
+    function renderImportPreview(preview) {
+      const rows = preview.rows || [];
+      importPreview.innerHTML = `
+        <div class="import-preview-header">
+          <div class="import-preview-stat"><span>Zdroj</span><strong>${escapeHtml(preview.sourceType || 'IMPORT')}</strong></div>
+          <div class="import-preview-stat"><span>Radku</span><strong>${preview.totalRows || 0}</strong></div>
+          <div class="import-preview-stat"><span>Pripraveno</span><strong>${preview.validRows || 0}</strong></div>
+          <div class="import-preview-stat"><span>Chyby</span><strong>${preview.invalidRows || 0}</strong></div>
+        </div>
+        ${rows.length ? rows.map(row => `
+          <article class="import-preview-row ${row.valid ? 'valid' : 'invalid'}">
+            <strong>Radek ${row.rowNumber || '-'} - ${row.valid ? 'pripraveno' : 'chyba'}</strong>
+            <span>${escapeHtml(row.name || 'bez nazvu')} ${row.registrationNumber ? ` / ICO ${escapeHtml(row.registrationNumber)}` : ''}</span>
+            <span>${escapeHtml(row.message || '')}</span>
+            ${!row.valid && row.rawValue ? `<code>${escapeHtml(row.rawValue)}</code>` : ''}
+          </article>
+        `).join('') : '<div class="empty">Kontrola neobsahuje zadne datove radky.</div>'}
+      `;
     }
 
     function updateImportSummary(runs) {
