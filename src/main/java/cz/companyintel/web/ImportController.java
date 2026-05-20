@@ -58,4 +58,9 @@ public class ImportController {
                 .map(ImportRunResponse::from)
                 .collect(Collectors.toList());
     }
+
+    @GetMapping("/runs/{id}")
+    public ImportRunResponse run(@PathVariable Long id) {
+        return ImportRunResponse.from(importService.findRun(id));
+    }
 }

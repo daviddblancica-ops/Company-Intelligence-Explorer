@@ -152,6 +152,11 @@ public class ImportService {
         return importRunRepository.findAllByOrderByStartedAtDesc(PageRequest.of(0, safeLimit));
     }
 
+    public ImportRun findRun(Long id) {
+        return importRunRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Import run not found: " + id));
+    }
+
     private ImportResult saveAll(String sourceType, List<ImportRow> rows) {
         return saveAll(new ImportRun(sourceType), rows);
     }

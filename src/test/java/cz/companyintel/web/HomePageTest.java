@@ -41,6 +41,8 @@ class HomePageTest {
         assertThat(response.getBody()).contains("import-runs");
         assertThat(response.getBody()).contains("import-total-saved");
         assertThat(response.getBody()).contains("refresh-import-runs");
+        assertThat(response.getBody()).contains("import-run-detail");
+        assertThat(response.getBody()).contains("back-to-import-runs");
         assertThat(response.getBody()).contains("preview-json");
         assertThat(response.getBody()).contains("import-preview");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
@@ -126,6 +128,31 @@ class HomePageTest {
         assertThat(runs.getBody()).contains("\"status\":\"PARTIAL\"");
         assertThat(runs.getBody()).contains("\"rowNumber\":3");
         assertThat(runs.getBody()).contains("Expected 5 CSV columns");
+    }
+
+    @Test
+    void exposesSingleImportRunDetail() {
+        String csv = "name,registrationNumber,country,legalForm,people\n"
+                + "Detail Import s.r.o.,88112234,CZ,s.r.o.,Jana Detail|jednatelka\n"
+                + "Broken detail row\n";
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf("text/csv"));
+
+        ResponseEntity<String> result = restTemplate.postForEntity(
+                "/api/import/csv",
+                new HttpEntity<String>(csv, headers),
+                String.class);
+        Long runId = firstValue(result.getBody(), "runId");
+        ResponseEntity<String> detail = restTemplate.getForEntity("/api/import/runs/" + runId, String.class);
+
+        assertThat(detail.getStatusCodeValue()).isEqualTo(200);
+        assertThat(detail.getBody()).contains("\"id\":" + runId);
+        assertThat(detail.getBody()).contains("\"sourceType\":\"CSV\"");
+        assertThat(detail.getBody()).contains("\"status\":\"PARTIAL\"");
+        assertThat(detail.getBody()).contains("\"importedRows\":1");
+        assertThat(detail.getBody()).contains("\"failedRows\":1");
+        assertThat(detail.getBody()).contains("\"rowNumber\":3");
+        assertThat(detail.getBody()).contains("Broken detail row");
     }
 
     @Test
@@ -237,6 +264,12 @@ class HomePageTest {
 
     private Long firstId(String json) {
         Matcher matcher = Pattern.compile("\"id\":(\\d+)").matcher(json);
+        assertThat(matcher.find()).isTrue();
+        return Long.valueOf(matcher.group(1));
+    }
+
+    private Long firstValue(String json, String field) {
+        Matcher matcher = Pattern.compile("\"" + field + "\":(\\d+)").matcher(json);
         assertThat(matcher.find()).isTrue();
         return Long.valueOf(matcher.group(1));
     }

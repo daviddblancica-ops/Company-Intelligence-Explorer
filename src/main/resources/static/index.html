@@ -358,6 +358,14 @@
       margin-bottom: 14px;
     }
 
+    .ops-grid.view {
+      display: none;
+    }
+
+    .ops-grid.view.active {
+      display: grid;
+    }
+
     .ops-panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -1165,6 +1173,10 @@
     }
 
     .import-run {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 10px;
@@ -1181,6 +1193,66 @@
 
     .import-run .meta {
       margin-top: 8px;
+    }
+
+    .import-run-summary {
+      min-width: 0;
+    }
+
+    .import-run-detail {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .import-run-detail[hidden] {
+      display: none;
+    }
+
+    .import-run-detail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .import-run-detail-head h3 {
+      margin: 0 0 4px;
+    }
+
+    .import-run-detail-head p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .import-run-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .import-run-detail-card {
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .import-run-detail-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 4px;
+    }
+
+    .import-run-detail-card strong {
+      color: var(--ink);
+      font-size: 18px;
     }
 
     .import-run-errors {
@@ -1876,6 +1948,9 @@
               <div class="import-runs" id="import-runs">
                 <div class="empty">Historie importu se nacte z backendu.</div>
               </div>
+              <div class="import-run-detail" id="import-run-detail" hidden>
+                <div class="empty">Vyber importni beh ze seznamu.</div>
+              </div>
             </div>
           </div>
       </section>
@@ -1910,17 +1985,14 @@
                 <span>na watchlistu</span>
               </div>
             </div>
-            <div class="metric">
-              <strong id="ares-count">0</strong>
-              <span>zaznamu z ARES</span>
-            </div>
-            <div class="metric">
-              <strong id="change-count">0</strong>
-              <span>udalosti historie</span>
-            </div>
-            <div class="metric">
-              <strong id="watch-count">0</strong>
-              <span>na watchlistu</span>
+            <div class="content-grid">
+              <div class="results" id="results">
+                <div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>
+              </div>
+              <section class="detail" id="detail-panel" aria-label="Detail firmy">
+                <h3>Detail firmy</h3>
+                <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
+              </section>
             </div>
           </div>
       </section>
@@ -2085,6 +2157,8 @@
     </main>
   </div>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
     const demoCompanies = [
       { ico: '00006947', name: 'Ministerstvo financi' },
@@ -2180,6 +2254,7 @@
     const views = Array.from(document.querySelectorAll('[data-view]'));
     const demoList = document.getElementById('demo-list');
     const importRuns = document.getElementById('import-runs');
+    const importRunDetail = document.getElementById('import-run-detail');
     const importPreview = document.getElementById('import-preview');
     const refreshImportRuns = document.getElementById('refresh-import-runs');
     const importTotalRuns = document.getElementById('import-total-runs');
@@ -2356,6 +2431,22 @@
 
     refreshImportRuns.addEventListener('click', async () => {
       await loadImportRuns(true);
+    });
+
+    importRuns.addEventListener('click', async event => {
+      const button = event.target.closest('[data-import-run-id]');
+      if (!button) {
+        return;
+      }
+      await loadImportRunDetail(button.dataset.importRunId);
+    });
+
+    importRunDetail.addEventListener('click', event => {
+      if (!event.target.closest('#back-to-import-runs')) {
+        return;
+      }
+      importRunDetail.hidden = true;
+      importRuns.hidden = false;
     });
 
     archiveAudit.addEventListener('click', async () => {
@@ -3026,6 +3117,8 @@
         const runs = await response.json();
         renderImportRuns(runs);
         updateImportSummary(runs);
+        importRunDetail.hidden = true;
+        importRuns.hidden = false;
         if (showMessage) {
           showToast('Historie importu nactena z backendu.');
         }
@@ -3035,31 +3128,71 @@
       }
     }
 
+    async function loadImportRunDetail(id) {
+      if (!id) {
+        return;
+      }
+      try {
+        const response = await fetch(`/api/import/runs/${encodeURIComponent(id)}`);
+        if (!response.ok) {
+          throw new Error('Import run detail endpoint failed');
+        }
+        const run = await response.json();
+        renderImportRunDetail(run);
+        importRuns.hidden = true;
+        importRunDetail.hidden = false;
+        showToast('Detail importu nacten.');
+      } catch (error) {
+        showToast('Detail importu se nepodarilo nacist.');
+        addActivity('Detail importu', 'Backend nevratil detail vybraneho importniho behu.', 'warning');
+      }
+    }
+
     function renderImportRuns(runs) {
       importRuns.innerHTML = runs.length
         ? runs.map(run => `
           <article class="import-run">
-            <strong>${escapeHtml(run.sourceType || 'IMPORT')} - ${escapeHtml(run.status || 'UNKNOWN')}</strong>
-            <span>${formatDate(run.startedAt)}${run.finishedAt ? ` - ${formatDate(run.finishedAt)}` : ''}</span>
-            <div class="meta">
-              <span><strong>Radku:</strong> ${run.totalRows || 0}</span>
-              <span><strong>Ulozeno:</strong> ${run.importedRows || 0}</span>
-              <span><strong>Chyby:</strong> ${run.failedRows || 0}</span>
-            </div>
-            ${(run.errors || []).length ? `
-              <div class="import-run-errors">
-                ${(run.errors || []).map(error => `
-                  <div class="import-run-error">
-                    <strong>Radek ${error.rowNumber || '-'}</strong>
-                    <span>${escapeHtml(error.message || '')}</span>
-                    ${error.rawValue ? `<code>${escapeHtml(error.rawValue)}</code>` : ''}
-                  </div>
-                `).join('')}
+            <div class="import-run-summary">
+              <strong>${escapeHtml(run.sourceType || 'IMPORT')} - ${escapeHtml(run.status || 'UNKNOWN')}</strong>
+              <span>${formatDate(run.startedAt)}${run.finishedAt ? ` - ${formatDate(run.finishedAt)}` : ''}</span>
+              <div class="meta">
+                <span><strong>Radku:</strong> ${run.totalRows || 0}</span>
+                <span><strong>Ulozeno:</strong> ${run.importedRows || 0}</span>
+                <span><strong>Chyby:</strong> ${run.failedRows || 0}</span>
               </div>
-            ` : ''}
+            </div>
+            <button class="secondary" type="button" data-import-run-id="${run.id}">Detail</button>
           </article>
         `).join('')
         : '<div class="empty">Zatim neprobehly zadne importy.</div>';
+    }
+
+    function renderImportRunDetail(run) {
+      const errors = run.errors || [];
+      importRunDetail.innerHTML = `
+        <div class="import-run-detail-head">
+          <div>
+            <h3>${escapeHtml(run.sourceType || 'IMPORT')} - ${escapeHtml(run.status || 'UNKNOWN')}</h3>
+            <p>Beh #${run.id || '-'} od ${formatDate(run.startedAt)}${run.finishedAt ? ` do ${formatDate(run.finishedAt)}` : ''}</p>
+          </div>
+          <button class="secondary" type="button" id="back-to-import-runs">Zpet na historii</button>
+        </div>
+        <div class="import-run-detail-grid">
+          <div class="import-run-detail-card"><span>Radku celkem</span><strong>${run.totalRows || 0}</strong></div>
+          <div class="import-run-detail-card"><span>Ulozeno</span><strong>${run.importedRows || 0}</strong></div>
+          <div class="import-run-detail-card"><span>Chybne</span><strong>${run.failedRows || 0}</strong></div>
+          <div class="import-run-detail-card"><span>Zdroj</span><strong>${escapeHtml(run.sourceType || '-')}</strong></div>
+        </div>
+        <div class="import-run-errors">
+          ${errors.length ? errors.map(error => `
+            <div class="import-run-error">
+              <strong>Radek ${error.rowNumber || '-'}</strong>
+              <span>${escapeHtml(error.message || '')}</span>
+              ${error.rawValue ? `<code>${escapeHtml(error.rawValue)}</code>` : ''}
+            </div>
+          `).join('') : '<div class="empty">Import neobsahuje zadne chybove radky.</div>'}
+        </div>
+      `;
     }
 
     function renderImportPreview(preview) {
