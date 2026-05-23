@@ -3254,11 +3254,14 @@
     }
 
     function toAuditEntry(event) {
+      const subject = event.importRunId
+        ? `Import #${event.importRunId}`
+        : `${event.companyName || 'Firma'} (${event.registrationNumber || '-'})`;
       return {
         id: event.id,
         title: event.type || 'AUDIT',
         type: event.type || 'AUDIT',
-        message: `${event.companyName || 'Firma'} (${event.registrationNumber || '-'}) - ${event.description || ''}`,
+        message: `${subject} - ${event.description || ''}`,
         level: mapSeverity(event.severity),
         time: formatDate(event.createdAt) || 'bez data',
         archived: Boolean(event.archived)

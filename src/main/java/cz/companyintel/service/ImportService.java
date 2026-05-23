@@ -18,11 +18,17 @@ public class ImportService {
     private final CompanyService companyService;
     private final ObjectMapper objectMapper;
     private final ImportRunRepository importRunRepository;
+    private final AuditService auditService;
 
-    public ImportService(CompanyService companyService, ObjectMapper objectMapper, ImportRunRepository importRunRepository) {
+    public ImportService(
+            CompanyService companyService,
+            ObjectMapper objectMapper,
+            ImportRunRepository importRunRepository,
+            AuditService auditService) {
         this.companyService = companyService;
         this.objectMapper = objectMapper;
         this.importRunRepository = importRunRepository;
+        this.auditService = auditService;
     }
 
     public ImportResult importJson(String body) throws IOException {
@@ -38,7 +44,8 @@ public class ImportService {
             ImportRun run = new ImportRun("JSON");
             run.addError(1, limit(body), "JSON input could not be parsed: " + exception.getMessage());
             run.finish(1, 0, 1);
-            importRunRepository.save(run);
+            ImportRun saved = importRunRepository.save(run);
+            auditService.recordImportRun(saved);
             throw exception;
         }
     }
@@ -182,6 +189,7 @@ public class ImportService {
         }
         run.finish(rows.size() + initialFailed, imported, failed);
         ImportRun saved = importRunRepository.save(run);
+        auditService.recordImportRun(saved);
         return new ImportResult(saved.getImportedRows(), saved.getFailedRows(), saved.getId(), saved.getStatus());
     }
 

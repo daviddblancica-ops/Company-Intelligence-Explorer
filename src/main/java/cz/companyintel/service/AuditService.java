@@ -1,6 +1,7 @@
 package cz.companyintel.service;
 
 import cz.companyintel.domain.ChangeEvent;
+import cz.companyintel.domain.ImportRun;
 import cz.companyintel.repository.ChangeEventRepository;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,17 @@ public class AuditService {
                 .map(ChangeEvent::getType)
                 .distinct()
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ChangeEvent recordImportRun(ImportRun run) {
+        String type = "IMPORT_" + run.getStatus();
+        String description = "Import run #" + run.getId()
+                + " (" + run.getSourceType() + ") finished with status " + run.getStatus()
+                + ": imported " + run.getImportedRows()
+                + ", failed " + run.getFailedRows()
+                + ", total " + run.getTotalRows() + ".";
+        return changeEventRepository.save(new ChangeEvent(run, type, description));
     }
 
     @Transactional

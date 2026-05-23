@@ -14,6 +14,7 @@ import javax.persistence.Table;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_change_company_created", columnList = "company_id, createdAt"),
+        @Index(name = "idx_change_import_run_created", columnList = "import_run_id, createdAt"),
         @Index(name = "idx_change_type_created", columnList = "type, createdAt"),
         @Index(name = "idx_change_archived_created", columnList = "archived, createdAt")
 })
@@ -23,9 +24,13 @@ public class ChangeEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
+
+    @ManyToOne
+    @JoinColumn(name = "import_run_id")
+    private ImportRun importRun;
 
     @Column(nullable = false)
     private String type;
@@ -49,12 +54,23 @@ public class ChangeEvent {
         this.createdAt = LocalDateTime.now();
     }
 
+    public ChangeEvent(ImportRun importRun, String type, String description) {
+        this.importRun = importRun;
+        this.type = type;
+        this.description = description;
+        this.createdAt = LocalDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }
 
     public Company getCompany() {
         return company;
+    }
+
+    public ImportRun getImportRun() {
+        return importRun;
     }
 
     public String getType() {

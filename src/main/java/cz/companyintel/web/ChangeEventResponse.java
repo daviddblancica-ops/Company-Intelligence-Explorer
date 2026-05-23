@@ -7,6 +7,7 @@ public class ChangeEventResponse {
 
     private Long id;
     private Long companyId;
+    private Long importRunId;
     private String companyName;
     private String registrationNumber;
     private String type;
@@ -18,9 +19,14 @@ public class ChangeEventResponse {
     public static ChangeEventResponse from(ChangeEvent event) {
         ChangeEventResponse response = new ChangeEventResponse();
         response.id = event.getId();
-        response.companyId = event.getCompany().getId();
-        response.companyName = event.getCompany().getName();
-        response.registrationNumber = event.getCompany().getRegistrationNumber();
+        if (event.getCompany() != null) {
+            response.companyId = event.getCompany().getId();
+            response.companyName = event.getCompany().getName();
+            response.registrationNumber = event.getCompany().getRegistrationNumber();
+        }
+        if (event.getImportRun() != null) {
+            response.importRunId = event.getImportRun().getId();
+        }
         response.type = event.getType();
         response.severity = severity(event.getType());
         response.description = event.getDescription();
@@ -36,7 +42,7 @@ public class ChangeEventResponse {
         if (type.contains("FAILED") || type.contains("ERROR")) {
             return "CRITICAL";
         }
-        if (type.contains("WATCHLIST") || type.contains("PERSON")) {
+        if (type.contains("WATCHLIST") || type.contains("PERSON") || type.contains("PARTIAL")) {
             return "WARNING";
         }
         return "INFO";
@@ -48,6 +54,10 @@ public class ChangeEventResponse {
 
     public Long getCompanyId() {
         return companyId;
+    }
+
+    public Long getImportRunId() {
+        return importRunId;
     }
 
     public String getCompanyName() {
