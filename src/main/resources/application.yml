@@ -32,6 +32,15 @@ app:
       read-timeout: 10s
   security:
     csrf-enabled: true
+    rate-limit:
+      enabled: true
+      max-keys: 10000
+      login:
+        max-requests: 10
+        window: 5m
+      ares:
+        max-requests: 30
+        window: 1m
     users:
       admin:
         username: ${APP_ADMIN_USERNAME:admin}

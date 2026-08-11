@@ -1,6 +1,7 @@
 package cz.companyintel.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.companyintel.security.RequestRateLimitFilter;
 import cz.companyintel.web.AuthSessionResponse;
 import java.io.IOException;
 import java.util.HashSet;
@@ -21,6 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
@@ -52,6 +54,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             ObjectMapper objectMapper,
+            RequestRateLimitFilter rateLimitFilter,
             @Value("${app.security.csrf-enabled:true}") boolean csrfEnabled,
             @Value("${app.security.require-https:false}") boolean requireHttps) throws Exception {
         if (requireHttps) {
@@ -70,7 +73,8 @@ public class SecurityConfiguration {
             http.csrf().disable();
         }
 
-        http.authorizeRequests()
+        http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .authorizeRequests()
                 .antMatchers("/", "/index.html", "/styles.css", "/app.js", "/js/**").permitAll()
                 .antMatchers("/api/auth/session", "/api/auth/login", "/api/auth/logout").permitAll()
                 .antMatchers("/h2-console/**").hasRole("ADMIN")

@@ -75,6 +75,11 @@ $env:APP_VIEWER_USERNAME="ctenar"
 $env:APP_VIEWER_PASSWORD="TRETI_DLOUHE_NAHODNE_HESLO"
 $env:SESSION_COOKIE_SECURE="true"
 $env:REQUIRE_HTTPS="true"
+$env:RATE_LIMIT_ENABLED="true"
+$env:RATE_LIMIT_LOGIN_MAX_REQUESTS="10"
+$env:RATE_LIMIT_LOGIN_WINDOW="5m"
+$env:RATE_LIMIT_ARES_MAX_REQUESTS="30"
+$env:RATE_LIMIT_ARES_WINDOW="1m"
 ```
 
 Při lokálním ověřování produkčního profilu přes obyčejné HTTP nastavte obě poslední

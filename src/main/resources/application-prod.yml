@@ -39,6 +39,15 @@ app:
   security:
     csrf-enabled: true
     require-https: ${REQUIRE_HTTPS:true}
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      max-keys: ${RATE_LIMIT_MAX_KEYS:10000}
+      login:
+        max-requests: ${RATE_LIMIT_LOGIN_MAX_REQUESTS:10}
+        window: ${RATE_LIMIT_LOGIN_WINDOW:5m}
+      ares:
+        max-requests: ${RATE_LIMIT_ARES_MAX_REQUESTS:30}
+        window: ${RATE_LIMIT_ARES_WINDOW:1m}
     users:
       admin:
         username: ${APP_ADMIN_USERNAME}

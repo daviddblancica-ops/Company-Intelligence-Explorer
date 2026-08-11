@@ -46,6 +46,12 @@ export SESSION_COOKIE_SECURE="true"
 export REQUIRE_HTTPS="true"
 export ARES_CONNECT_TIMEOUT="3s"
 export ARES_READ_TIMEOUT="10s"
+export RATE_LIMIT_ENABLED="true"
+export RATE_LIMIT_MAX_KEYS="10000"
+export RATE_LIMIT_LOGIN_MAX_REQUESTS="10"
+export RATE_LIMIT_LOGIN_WINDOW="5m"
+export RATE_LIMIT_ARES_MAX_REQUESTS="30"
+export RATE_LIMIT_ARES_WINDOW="1m"
 ```
 
 Hodnoty `DB_HOST`, `DB_NAME`, `DB_USER` a `DB_PASSWORD` vezmi z Webglobe administrace databáze. Hesla nepatří do Gitu ani do dokumentace. Všechna tři uživatelská jména musí být odlišná a každé heslo musí mít alespoň deset znaků.
