@@ -82,6 +82,15 @@ Postup pro Webglobe, SFTP/SCP a databázové proměnné je v:
 docs/webglobe-deploy.md
 ```
 
+Lokální spuštění s proměnnými z ignorovaného `.env.local`:
+
+```powershell
+.\scripts\run-with-env.ps1
+```
+
+Skutečná hesla patří pouze do `.env.local` nebo do správy proměnných hostingu.
+Soubor `.env.example` obsahuje jen seznam požadovaných klíčů a je bezpečný pro Git.
+
 ## Příklady API
 
 Vytvoření nebo aktualizace firmy:
