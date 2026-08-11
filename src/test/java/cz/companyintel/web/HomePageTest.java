@@ -6,6 +6,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -408,6 +410,11 @@ class HomePageTest {
         update.setLegalForm("a.s.");
         update.setAddress("Praha 2");
         update.setDataSource("MANUAL");
+        update.setRegistryFileNumber("B 7654/MSPH");
+        update.setRegistryRegistrationDate(LocalDate.of(2021, 4, 15));
+        update.setIncorporationDate(LocalDate.of(2021, 4, 12));
+        update.setShareCapital(new BigDecimal("500000"));
+        update.setShareCapitalCurrency("CZK");
         ResponseEntity<CompanyResponse> updated = restTemplate.exchange(
                 "/api/companies/" + created.getBody().getId(),
                 HttpMethod.PUT,
@@ -426,6 +433,11 @@ class HomePageTest {
         assertThat(updated.getStatusCodeValue()).isEqualTo(200);
         assertThat(updated.getBody().getName()).isEqualTo("Company CRUD API a.s.");
         assertThat(updated.getBody().getRegistrationNumber()).isEqualTo("12345022");
+        assertThat(updated.getBody().getRegistryFileNumber()).isEqualTo("B 7654/MSPH");
+        assertThat(updated.getBody().getRegistryRegistrationDate()).isEqualTo(LocalDate.of(2021, 4, 15));
+        assertThat(updated.getBody().getIncorporationDate()).isEqualTo(LocalDate.of(2021, 4, 12));
+        assertThat(updated.getBody().getShareCapital()).isEqualByComparingTo("500000");
+        assertThat(updated.getBody().getShareCapitalCurrency()).isEqualTo("CZK");
         assertThat(deleted.getStatusCodeValue()).isEqualTo(204);
         assertThat(missing.getStatusCodeValue()).isEqualTo(404);
         assertThat(audit.getBody()).contains("COMPANY_DELETED");

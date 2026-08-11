@@ -8,8 +8,10 @@ import cz.companyintel.repository.CompanyRepository;
 import cz.companyintel.repository.PersonRepository;
 import cz.companyintel.web.CompanyRequest;
 import cz.companyintel.web.CompanyUpdateRequest;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import javax.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,7 @@ public class CompanyService {
                 request.getLegalForm(),
                 request.getAddress(),
                 request.getDataSource());
+        updateRegistryDataFromImport(company, request);
 
         if (request.getPeople() != null) {
             company.clearRoles();
@@ -91,6 +94,12 @@ public class CompanyService {
                 clean(request.getLegalForm()),
                 clean(request.getAddress()),
                 clean(request.getDataSource()));
+        company.updateRegistryData(
+                clean(request.getRegistryFileNumber()),
+                request.getRegistryRegistrationDate(),
+                request.getIncorporationDate(),
+                validCapital(request.getShareCapital()),
+                currency(request.getShareCapital(), request.getShareCapitalCurrency()));
         company.addChange("UPDATED", "Profil firmy byl ručně upraven");
         return companyRepository.save(company);
     }
@@ -183,5 +192,37 @@ public class CompanyService {
             return null;
         }
         return value.trim();
+    }
+
+    private BigDecimal validCapital(BigDecimal value) {
+        if (value != null && value.signum() < 0) {
+            throw new IllegalArgumentException("Základní kapitál nesmí být záporný");
+        }
+        return value;
+    }
+
+    private String currency(BigDecimal capital, String value) {
+        if (capital == null) {
+            return null;
+        }
+        String cleaned = clean(value);
+        return cleaned == null ? "CZK" : cleaned.toUpperCase(Locale.ROOT);
+    }
+
+    private void updateRegistryDataFromImport(Company company, CompanyRequest request) {
+        boolean ares = "ARES".equalsIgnoreCase(clean(request.getDataSource()));
+        String fileNumber = clean(request.getRegistryFileNumber());
+        BigDecimal requestedCapital = request.getShareCapital();
+        company.updateRegistryData(
+                ares || fileNumber != null ? fileNumber : company.getRegistryFileNumber(),
+                ares || request.getRegistryRegistrationDate() != null
+                        ? request.getRegistryRegistrationDate() : company.getRegistryRegistrationDate(),
+                ares || request.getIncorporationDate() != null
+                        ? request.getIncorporationDate() : company.getIncorporationDate(),
+                ares || requestedCapital != null
+                        ? validCapital(requestedCapital) : company.getShareCapital(),
+                ares || requestedCapital != null
+                        ? currency(requestedCapital, request.getShareCapitalCurrency())
+                        : company.getShareCapitalCurrency());
     }
 }

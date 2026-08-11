@@ -1,5 +1,8 @@
 package cz.companyintel.web;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 public class CompanyUpdateRequest {
 
     private String name;
@@ -8,6 +11,11 @@ public class CompanyUpdateRequest {
     private String legalForm;
     private String address;
     private String dataSource;
+    private String registryFileNumber;
+    private LocalDate registryRegistrationDate;
+    private LocalDate incorporationDate;
+    private BigDecimal shareCapital;
+    private String shareCapitalCurrency;
 
     public String getName() {
         return name;
@@ -55,5 +63,45 @@ public class CompanyUpdateRequest {
 
     public void setDataSource(String dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public String getRegistryFileNumber() {
+        return registryFileNumber;
+    }
+
+    public void setRegistryFileNumber(String registryFileNumber) {
+        this.registryFileNumber = registryFileNumber;
+    }
+
+    public LocalDate getRegistryRegistrationDate() {
+        return registryRegistrationDate;
+    }
+
+    public void setRegistryRegistrationDate(LocalDate registryRegistrationDate) {
+        this.registryRegistrationDate = registryRegistrationDate;
+    }
+
+    public LocalDate getIncorporationDate() {
+        return incorporationDate;
+    }
+
+    public void setIncorporationDate(LocalDate incorporationDate) {
+        this.incorporationDate = incorporationDate;
+    }
+
+    public BigDecimal getShareCapital() {
+        return shareCapital;
+    }
+
+    public void setShareCapital(BigDecimal shareCapital) {
+        this.shareCapital = shareCapital;
+    }
+
+    public String getShareCapitalCurrency() {
+        return shareCapitalCurrency;
+    }
+
+    public void setShareCapitalCurrency(String shareCapitalCurrency) {
+        this.shareCapitalCurrency = shareCapitalCurrency;
     }
 }

@@ -187,7 +187,7 @@
       <section class="panel view" id="search" data-view="search">
           <div class="panel-header">
             <h2>Rejstřík firem</h2>
-            <p>Najdi konkrétní firmu podle názvu, IČO, osoby nebo role. Výsledkem je detail, vazby osob, historie změn a watchlist.</p>
+            <p>Najdi konkrétní firmu podle názvu, IČO, osoby nebo role. Detail obsahuje rejstříkové údaje, vazby osob, historii změn a watchlist.</p>
           </div>
           <div class="panel-body">
             <form class="toolbar" id="search-form">
@@ -260,6 +260,21 @@
             <label>Stát<input name="country" maxlength="80"></label>
           </div>
           <label>Právní forma<input name="legalForm" maxlength="255"></label>
+          <div class="form-columns">
+            <label>Spisová značka<input name="registryFileNumber" maxlength="120" placeholder="C 53832/KSUL"></label>
+            <label>Datum zápisu<input name="registryRegistrationDate" type="date"></label>
+          </div>
+          <div class="form-columns company-finance-fields">
+            <label>Datum vzniku<input name="incorporationDate" type="date"></label>
+            <label>Základní kapitál<input name="shareCapital" type="number" min="0" step="0.01" inputmode="decimal"></label>
+            <label>Měna
+              <select name="shareCapitalCurrency">
+                <option value="CZK">CZK</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </select>
+            </label>
+          </div>
           <label>Adresa<textarea name="address" maxlength="600"></textarea></label>
           <label>Zdroj dat<input name="dataSource" maxlength="255"></label>
           <div class="dialog-actions">

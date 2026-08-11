@@ -1,6 +1,8 @@
 package cz.companyintel.web;
 
 import cz.companyintel.domain.Company;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,6 +16,11 @@ public class CompanyResponse {
     private String legalForm;
     private String address;
     private String dataSource;
+    private String registryFileNumber;
+    private LocalDate registryRegistrationDate;
+    private LocalDate incorporationDate;
+    private BigDecimal shareCapital;
+    private String shareCapitalCurrency;
     private boolean watchlisted;
     private List<PersonRoleResponse> people;
     private List<ChangeEventResponse> changes;
@@ -28,6 +35,11 @@ public class CompanyResponse {
         response.legalForm = company.getLegalForm();
         response.address = company.getAddress();
         response.dataSource = company.getDataSource();
+        response.registryFileNumber = company.getRegistryFileNumber();
+        response.registryRegistrationDate = company.getRegistryRegistrationDate();
+        response.incorporationDate = company.getIncorporationDate();
+        response.shareCapital = company.getShareCapital();
+        response.shareCapitalCurrency = company.getShareCapitalCurrency();
         response.watchlisted = company.isWatchlisted();
         response.people = company.getPeople().stream()
                 .map(PersonRoleResponse::from)
@@ -68,6 +80,26 @@ public class CompanyResponse {
 
     public String getDataSource() {
         return dataSource;
+    }
+
+    public String getRegistryFileNumber() {
+        return registryFileNumber;
+    }
+
+    public LocalDate getRegistryRegistrationDate() {
+        return registryRegistrationDate;
+    }
+
+    public LocalDate getIncorporationDate() {
+        return incorporationDate;
+    }
+
+    public BigDecimal getShareCapital() {
+        return shareCapital;
+    }
+
+    public String getShareCapitalCurrency() {
+        return shareCapitalCurrency;
     }
 
     public boolean isWatchlisted() {

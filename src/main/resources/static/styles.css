@@ -1791,7 +1791,8 @@
     }
 
     .record-form input,
-    .record-form textarea {
+    .record-form textarea,
+    .record-form select {
       width: 100%;
       min-height: 42px;
       border: 1px solid var(--line);
@@ -1809,7 +1810,8 @@
     }
 
     .record-form input:focus,
-    .record-form textarea:focus {
+    .record-form textarea:focus,
+    .record-form select:focus {
       outline: 3px solid rgba(23, 105, 224, .14);
       border-color: var(--accent);
     }
@@ -1981,6 +1983,16 @@
 
     .detail-row strong {
       color: var(--ink);
+    }
+
+    .company-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 24px;
+    }
+
+    .company-finance-fields {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(100px, .55fr);
     }
 
     .compact-company,
@@ -2209,6 +2221,11 @@
       }
 
       .form-columns {
+        grid-template-columns: 1fr;
+      }
+
+      .company-detail-grid,
+      .company-finance-fields {
         grid-template-columns: 1fr;
       }
 

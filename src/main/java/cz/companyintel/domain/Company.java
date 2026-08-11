@@ -1,5 +1,7 @@
 package cz.companyintel.domain;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -44,6 +46,19 @@ public class Company {
 
     private String dataSource;
 
+    @Column(length = 120)
+    private String registryFileNumber;
+
+    private LocalDate registryRegistrationDate;
+
+    private LocalDate incorporationDate;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal shareCapital;
+
+    @Column(length = 12)
+    private String shareCapitalCurrency;
+
     @Column(nullable = false)
     private boolean watchlisted;
 
@@ -85,6 +100,20 @@ public class Company {
         updateProfile(name, normalizedName, country, legalForm);
         this.address = address;
         this.dataSource = dataSource;
+    }
+
+    public void updateRegistryData(
+            String registryFileNumber,
+            LocalDate registryRegistrationDate,
+            LocalDate incorporationDate,
+            BigDecimal shareCapital,
+            String shareCapitalCurrency) {
+        this.registryFileNumber = registryFileNumber;
+        this.registryRegistrationDate = registryRegistrationDate;
+        this.incorporationDate = incorporationDate;
+        this.shareCapital = shareCapital;
+        this.shareCapitalCurrency = shareCapitalCurrency;
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateProfile(
@@ -173,6 +202,26 @@ public class Company {
 
     public String getDataSource() {
         return dataSource;
+    }
+
+    public String getRegistryFileNumber() {
+        return registryFileNumber;
+    }
+
+    public LocalDate getRegistryRegistrationDate() {
+        return registryRegistrationDate;
+    }
+
+    public LocalDate getIncorporationDate() {
+        return incorporationDate;
+    }
+
+    public BigDecimal getShareCapital() {
+        return shareCapital;
+    }
+
+    public String getShareCapitalCurrency() {
+        return shareCapitalCurrency;
     }
 
     public boolean isWatchlisted() {

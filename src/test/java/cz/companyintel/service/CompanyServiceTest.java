@@ -10,6 +10,8 @@ import cz.companyintel.repository.CompanyRepository;
 import cz.companyintel.repository.PersonRepository;
 import cz.companyintel.web.CompanyRequest;
 import cz.companyintel.web.CompanyUpdateRequest;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -186,12 +188,22 @@ class CompanyServiceTest {
         update.setLegalForm("a.s.");
         update.setAddress("Testovaci 10, Praha");
         update.setDataSource("MANUAL");
+        update.setRegistryFileNumber("B 12345/MSPH");
+        update.setRegistryRegistrationDate(LocalDate.of(2020, 2, 3));
+        update.setIncorporationDate(LocalDate.of(2020, 2, 1));
+        update.setShareCapital(new BigDecimal("2000000"));
+        update.setShareCapitalCurrency("czk");
 
         Company updated = companyService.updateCompany(saved.getId(), update);
 
         assertThat(updated.getName()).isEqualTo("Editable Company a.s.");
         assertThat(updated.getRegistrationNumber()).isEqualTo("81122335");
         assertThat(updated.getAddress()).isEqualTo("Testovaci 10, Praha");
+        assertThat(updated.getRegistryFileNumber()).isEqualTo("B 12345/MSPH");
+        assertThat(updated.getRegistryRegistrationDate()).isEqualTo(LocalDate.of(2020, 2, 3));
+        assertThat(updated.getIncorporationDate()).isEqualTo(LocalDate.of(2020, 2, 1));
+        assertThat(updated.getShareCapital()).isEqualByComparingTo("2000000");
+        assertThat(updated.getShareCapitalCurrency()).isEqualTo("CZK");
         assertThat(updated.getPeople()).hasSize(1);
         assertThat(updated.getChanges()).extracting("type").contains("UPDATED");
     }
@@ -203,6 +215,10 @@ class CompanyServiceTest {
         original.setRegistrationNumber("81122337");
         original.setCountry("CZ");
         original.setLegalForm("s.r.o.");
+        original.setRegistryFileNumber("C 11111/MSPH");
+        original.setIncorporationDate(LocalDate.of(2019, 6, 1));
+        original.setShareCapital(new BigDecimal("100000"));
+        original.setShareCapitalCurrency("CZK");
         Company saved = companyService.saveCompany(original);
         companyService.assignPerson(saved.getId(), "Manualni Vazba", "jednatel");
 
@@ -211,12 +227,15 @@ class CompanyServiceTest {
         reimport.setRegistrationNumber("81122337");
         reimport.setCountry("CZ");
         reimport.setLegalForm("s.r.o.");
-        reimport.setDataSource("ARES");
+        reimport.setDataSource("CSV");
 
         Company updated = companyService.saveCompany(reimport);
 
         assertThat(updated.getPeople()).hasSize(1);
         assertThat(updated.getPeople()).extracting("role").containsExactly("jednatel");
+        assertThat(updated.getRegistryFileNumber()).isEqualTo("C 11111/MSPH");
+        assertThat(updated.getIncorporationDate()).isEqualTo(LocalDate.of(2019, 6, 1));
+        assertThat(updated.getShareCapital()).isEqualByComparingTo("100000");
     }
 
     @Test

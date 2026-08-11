@@ -192,6 +192,11 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     editForm.elements.registrationNumber.value = company.registrationNumber || '';
     editForm.elements.country.value = company.country || '';
     editForm.elements.legalForm.value = company.legalForm || '';
+    editForm.elements.registryFileNumber.value = company.registryFileNumber || '';
+    editForm.elements.registryRegistrationDate.value = company.registryRegistrationDate || '';
+    editForm.elements.incorporationDate.value = company.incorporationDate || '';
+    editForm.elements.shareCapital.value = company.shareCapital ?? '';
+    editForm.elements.shareCapitalCurrency.value = company.shareCapitalCurrency || 'CZK';
     editForm.elements.address.value = company.address || '';
     editForm.elements.dataSource.value = company.dataSource || '';
     editDialog.showModal();
@@ -207,6 +212,11 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
       registrationNumber: String(data.get('registrationNumber') || '').trim(),
       country: String(data.get('country') || '').trim(),
       legalForm: String(data.get('legalForm') || '').trim(),
+      registryFileNumber: String(data.get('registryFileNumber') || '').trim(),
+      registryRegistrationDate: String(data.get('registryRegistrationDate') || '').trim() || null,
+      incorporationDate: String(data.get('incorporationDate') || '').trim() || null,
+      shareCapital: String(data.get('shareCapital') || '').trim() || null,
+      shareCapitalCurrency: String(data.get('shareCapitalCurrency') || '').trim(),
       address: String(data.get('address') || '').trim(),
       dataSource: String(data.get('dataSource') || '').trim()
     };
@@ -232,7 +242,7 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
       companies = companies.filter(item => item.id !== id);
       selectedId = null;
       renderList();
-      showToast('Firma byla smazana z registru.');
+      showToast('Firma byla smazána z registru.');
       audit.addActivity('Smazání firmy', `${company.name} byla smazána z registru.`, 'critical');
       await Promise.allSettled([onChanged(), onPeopleChanged()]);
     } catch (error) {
@@ -282,9 +292,12 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
           </div>
         </div>
         <div class="meta">
-          <span>${escapeHtml(company.legalForm || '-')}</span>
-          <span>${(company.people || []).length} osob</span>
-          <span>${(company.changes || []).length} změn</span>
+          <span><strong>Forma</strong> ${escapeHtml(company.legalForm || '-')}</span>
+          <span><strong>Vznik</strong> ${escapeHtml(formatRegistryDate(company.incorporationDate))}</span>
+          <span><strong>Kapitál</strong> ${escapeHtml(formatCapital(company))}</span>
+          <span><strong>Spis</strong> ${escapeHtml(company.registryFileNumber || '-')}</span>
+          <span><strong>Vazby</strong> ${(company.people || []).length} osob</span>
+          <span><strong>Historie</strong> ${(company.changes || []).length} změn</span>
           <span class="badge ${company.watchlisted ? 'watchlisted' : ''}">${company.watchlisted ? 'WATCHLIST' : escapeHtml(company.dataSource || 'LOCAL')}</span>
         </div>
       </article>
@@ -298,7 +311,11 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
         <div class="record-actions"><button class="secondary" type="button" data-edit-company-id="${company.id}">Upravit firmu</button>
           <button class="danger" type="button" data-delete-company-id="${company.id}">Smazat firmu</button></div></div>
       <div class="detail-section"><h4>Základní údaje</h4>
-        ${detailRow('IČO', company.registrationNumber)}${detailRow('Stát', company.country || '-')}${detailRow('Právní forma', company.legalForm || '-')}${detailRow('Zdroj', company.dataSource || '-')}
+        <div class="company-detail-grid">
+          ${detailRow('IČO', company.registrationNumber)}${detailRow('Stát', company.country || '-')}${detailRow('Právní forma', company.legalForm || '-')}${detailRow('Zdroj', company.dataSource || '-')}
+          ${detailRow('Spisová značka', company.registryFileNumber || '-')}${detailRow('Datum zápisu', formatRegistryDate(company.registryRegistrationDate))}
+          ${detailRow('Datum vzniku', formatRegistryDate(company.incorporationDate))}${detailRow('Základní kapitál', formatCapital(company))}
+        </div>
       </div>
       <div class="detail-section"><div class="section-heading"><h4>Osoby a role</h4><span>${(company.people || []).length}</span></div>
         <div class="relationship-list">${renderCompanyPeople(company.people || [], company.id)}</div>
@@ -334,6 +351,30 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
 
   function detailRow(label, value) {
     return `<div class="detail-row"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value)}</span></div>`;
+  }
+
+  function formatRegistryDate(value) {
+    if (!value) return '-';
+    const parts = String(value).split('-').map(Number);
+    if (parts.length !== 3 || parts.some(part => !Number.isFinite(part))) return String(value);
+    return new Intl.DateTimeFormat('cs-CZ').format(new Date(parts[0], parts[1] - 1, parts[2]));
+  }
+
+  function formatCapital(company) {
+    if (company.shareCapital === null || company.shareCapital === undefined || company.shareCapital === '') return '-';
+    const amount = Number(company.shareCapital);
+    const currency = company.shareCapitalCurrency || 'CZK';
+    if (!Number.isFinite(amount)) return `${company.shareCapital} ${currency}`;
+    try {
+      return new Intl.NumberFormat('cs-CZ', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2
+      }).format(amount);
+    } catch (error) {
+      return `${new Intl.NumberFormat('cs-CZ').format(amount)} ${currency}`;
+    }
   }
 
   function resetPersonForm() {

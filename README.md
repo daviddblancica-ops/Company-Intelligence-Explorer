@@ -97,6 +97,11 @@ Content-Type: application/json
   "registrationNumber": "12345678",
   "country": "CZ",
   "legalForm": "s.r.o.",
+  "registryFileNumber": "C 12345/MSPH",
+  "registryRegistrationDate": "2024-01-15",
+  "incorporationDate": "2024-01-15",
+  "shareCapital": 200000,
+  "shareCapitalCurrency": "CZK",
   "people": [
     {
       "fullName": "Jan Novák",
@@ -144,6 +149,9 @@ Import z ARES podle IČO:
 ```http
 POST /api/import/ares/00006947
 ```
+
+ARES import doplňuje také spisovou značku, datum zápisu, datum vzniku a základní kapitál,
+pokud jsou tyto údaje dostupné ve veřejném rejstříku.
 
 Filtrování audit logu podle typu, závažnosti, firmy, importu a období:
 
