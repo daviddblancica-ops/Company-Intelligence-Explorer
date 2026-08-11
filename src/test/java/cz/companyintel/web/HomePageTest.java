@@ -33,17 +33,24 @@ class HomePageTest {
     @Test
     void servesHomePage() {
         ResponseEntity<String> response = restTemplate.getForEntity("/", String.class);
+        ResponseEntity<String> appScript = restTemplate.getForEntity("/app.js", String.class);
+        ResponseEntity<String> companyScript = restTemplate.getForEntity("/js/companies.js", String.class);
+        ResponseEntity<String> importScript = restTemplate.getForEntity("/js/imports.js", String.class);
+        ResponseEntity<String> styles = restTemplate.getForEntity("/styles.css", String.class);
 
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).contains("Company Intelligence Explorer");
         assertThat(response.getBody()).contains("Nacist z backendu");
-        assertThat(response.getBody()).contains("Priradit");
+        assertThat(response.getBody()).contains("type=\"module\" src=\"/app.js\"");
+        assertThat(response.getBody()).contains("href=\"/styles.css\"");
+        assertThat(response.getBody()).doesNotContain("<script>");
         assertThat(response.getBody()).contains("data-view-target=\"import\"");
+        assertThat(response.getBody()).contains("data-import-tab=\"ares\"");
+        assertThat(response.getBody()).contains("data-import-tab=\"history\"");
         assertThat(response.getBody()).contains("import-runs");
         assertThat(response.getBody()).contains("import-total-saved");
         assertThat(response.getBody()).contains("refresh-import-runs");
         assertThat(response.getBody()).contains("import-run-detail");
-        assertThat(response.getBody()).contains("back-to-import-runs");
         assertThat(response.getBody()).contains("preview-json");
         assertThat(response.getBody()).contains("import-preview");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
@@ -56,6 +63,15 @@ class HomePageTest {
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");
         assertThat(response.getBody()).contains("dashboard-companies");
+        assertThat(appScript.getStatusCodeValue()).isEqualTo(200);
+        assertThat(appScript.getBody()).contains("initCompanies");
+        assertThat(companyScript.getStatusCodeValue()).isEqualTo(200);
+        assertThat(companyScript.getBody()).contains("Priradit");
+        assertThat(companyScript.getBody()).contains("data-edit-person-id");
+        assertThat(importScript.getStatusCodeValue()).isEqualTo(200);
+        assertThat(importScript.getBody()).contains("back-to-import-runs");
+        assertThat(styles.getStatusCodeValue()).isEqualTo(200);
+        assertThat(styles.getBody()).contains(".import-tabs");
     }
 
     @Test

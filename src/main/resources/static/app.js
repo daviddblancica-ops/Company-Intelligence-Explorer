@@ -1,22 +1,69 @@
-import { demoCompanies, sampleCsv, sampleJson } from './js/demo-data.js';
-import { getDomRefs } from './js/dom.js';
-import { createState } from './js/state.js';
-import { createUi } from './js/ui.js';
 import { initAudit } from './js/audit.js';
 import { initCompanies } from './js/companies.js';
+import { initDashboard } from './js/dashboard.js';
+import { demoCompanies, sampleCsv, sampleJson } from './js/demo-data.js';
 import { initImports } from './js/imports.js';
 import { initNavigation } from './js/navigation.js';
+import { initPeople } from './js/people.js';
+import { initTasks } from './js/tasks.js';
 
-const dom = getDomRefs();
-const state = createState();
-const ui = createUi(dom);
-const audit = initAudit({ dom, state, ui });
-const companies = initCompanies({ dom, state, ui, audit });
+const features = {};
+const audit = initAudit();
+audit.init();
 
-initNavigation({ dom, ui });
-initImports({ dom, state, ui, audit, companies, demoCompanies, sampleCsv, sampleJson });
+const dashboard = initDashboard({ onError: audit.addActivity });
+const navigation = initNavigation({
+  onViewChange(view) {
+    if (view === 'audit') audit.load(false);
+    if (view === 'import' && features.imports) features.imports.loadRuns(false);
+    if (view === 'tasks' && features.tasks) features.tasks.load(false);
+  }
+});
 
-ui.showCurrentPage();
-audit.renderAuditLog();
-audit.loadBackendAudit(false);
-companies.search('');
+features.people = initPeople({
+  audit,
+  openCompany: registrationNumber => features.companies.openByRegistration(registrationNumber)
+});
+features.companies = initCompanies({
+  audit,
+  navigation,
+  onChanged: refreshOverview,
+  onPeopleChanged: () => features.people.load(document.getElementById('people-query').value)
+});
+features.imports = initImports({
+  audit,
+  demoCompanies,
+  sampleCsv,
+  sampleJson,
+  onChanged: refreshRecords
+});
+features.tasks = initTasks({ audit, onChanged: refreshOverview });
+
+features.people.init();
+features.companies.init();
+features.imports.init();
+features.tasks.init();
+dashboard.start();
+
+await Promise.allSettled([
+  audit.loadTypes(),
+  audit.load(false),
+  features.imports.loadRuns(false),
+  features.tasks.load(false),
+  features.people.load(''),
+  features.companies.search('')
+]);
+
+window.addEventListener('beforeunload', dashboard.stop);
+
+async function refreshOverview() {
+  await Promise.allSettled([dashboard.loadHealth(), dashboard.loadMetrics(), audit.load(false)]);
+}
+
+async function refreshRecords() {
+  await Promise.allSettled([
+    refreshOverview(),
+    features.companies.search(document.getElementById('query').value),
+    features.people.load(document.getElementById('people-query').value)
+  ]);
+}
