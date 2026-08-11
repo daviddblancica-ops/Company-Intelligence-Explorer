@@ -9,6 +9,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import cz.companyintel.domain.Company;
+import cz.companyintel.service.CompanyService;
+import cz.companyintel.service.PersonService;
+import java.time.LocalDate;
 import javax.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -25,6 +30,12 @@ class SecurityAccessTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private CompanyService companyService;
+
+    @Autowired
+    private PersonService personService;
 
     @Test
     void exposesHomeAndAnonymousSessionWithoutLogin() throws Exception {
@@ -128,5 +139,50 @@ class SecurityAccessTest {
                         .with(httpBasic("admin", "admin-local-2026"))
                         .with(csrf()))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    @Transactional
+    void viewerCannotReadSensitivePersonDetails() throws Exception {
+        CompanyRequest companyRequest = new CompanyRequest();
+        companyRequest.setName("Oprávnění osob s.r.o.");
+        companyRequest.setRegistrationNumber("11223344");
+        companyRequest.setCountry("CZ");
+        companyRequest.setLegalForm("s.r.o.");
+        Company company = companyService.saveCompany(companyRequest);
+        Company assigned = companyService.assignPerson(company.getId(), "Citlivá Osoba", "jednatel");
+        Long personId = assigned.getPeople().iterator().next().getPerson().getId();
+
+        PersonUpdateRequest personRequest = new PersonUpdateRequest();
+        personRequest.setFullName("Citlivá Osoba");
+        personRequest.setDateOfBirth(LocalDate.of(1985, 6, 15));
+        personRequest.setResidenceAddress("Soukromá 12, Praha");
+        personRequest.setNote("Interní poznámka");
+        personService.updatePerson(personId, personRequest);
+
+        mockMvc.perform(get("/api/people/" + personId)
+                        .with(httpBasic("viewer", "viewer-local-2026")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sensitiveDetailsVisible").value(false))
+                .andExpect(jsonPath("$.dateOfBirth").doesNotExist())
+                .andExpect(jsonPath("$.residenceAddress").doesNotExist())
+                .andExpect(jsonPath("$.note").doesNotExist());
+
+        mockMvc.perform(get("/api/people")
+                        .param("q", "Citlivá")
+                        .with(httpBasic("viewer", "viewer-local-2026")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].sensitiveDetailsVisible").value(false))
+                .andExpect(jsonPath("$[0].dateOfBirth").doesNotExist())
+                .andExpect(jsonPath("$[0].residenceAddress").doesNotExist())
+                .andExpect(jsonPath("$[0].note").doesNotExist());
+
+        mockMvc.perform(get("/api/people/" + personId)
+                        .with(httpBasic("editor", "editor-local-2026")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sensitiveDetailsVisible").value(true))
+                .andExpect(jsonPath("$.dateOfBirth").value("1985-06-15"))
+                .andExpect(jsonPath("$.residenceAddress").value("Soukromá 12, Praha"))
+                .andExpect(jsonPath("$.note").value("Interní poznámka"));
     }
 }

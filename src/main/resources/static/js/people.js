@@ -140,15 +140,18 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
   }
 
   function renderDetail(person) {
+    const personalDetails = person.sensitiveDetailsVisible
+      ? `${detailRow('Datum narození', formatBirthDate(person.dateOfBirth) || '-')}
+          ${detailRow('Bydliště', person.residenceAddress || '-')}
+          ${detailRow('Poznámka', person.note || '-')}`
+      : '<p class="muted">Citlivé osobní údaje jsou dostupné pouze editorům a administrátorům.</p>';
     return `<section class="inline-detail" aria-label="Detail osoby ${escapeHtml(person.fullName)}">
       <div class="detail-heading"><div><h3>${escapeHtml(person.fullName)}</h3><p>${escapeHtml(person.normalizedName || '')}</p></div>
         <div class="record-actions"><button class="secondary" type="button" data-edit-record-id="${person.id}">Upravit osobu</button>
           <button class="danger" type="button" data-delete-record-id="${person.id}">Smazat osobu</button></div></div>
       <div class="person-profile-grid">
         <div class="detail-section"><h4>Osobní údaje</h4>
-          ${detailRow('Datum narození', formatBirthDate(person.dateOfBirth) || '-')}
-          ${detailRow('Bydliště', person.residenceAddress || '-')}
-          ${detailRow('Poznámka', person.note || '-')}
+          ${personalDetails}
         </div>
         <div class="detail-section"><h4>Souhrn vazeb</h4>
           ${detailRow('Firmy', person.companyCount || 0)}${detailRow('Role', person.roleCount || 0)}

@@ -14,18 +14,25 @@ public class PersonResponse {
     private LocalDate dateOfBirth;
     private String residenceAddress;
     private String note;
+    private boolean sensitiveDetailsVisible;
     private int companyCount;
     private int roleCount;
     private List<PersonCompanyResponse> companies;
 
-    public static PersonResponse from(Person person, List<CompanyPersonRole> relationships) {
+    public static PersonResponse from(
+            Person person,
+            List<CompanyPersonRole> relationships,
+            boolean includeSensitiveDetails) {
         PersonResponse response = new PersonResponse();
         response.id = person.getId();
         response.fullName = person.getFullName();
         response.normalizedName = person.getNormalizedName();
-        response.dateOfBirth = person.getDateOfBirth();
-        response.residenceAddress = person.getResidenceAddress();
-        response.note = person.getNote();
+        response.sensitiveDetailsVisible = includeSensitiveDetails;
+        if (includeSensitiveDetails) {
+            response.dateOfBirth = person.getDateOfBirth();
+            response.residenceAddress = person.getResidenceAddress();
+            response.note = person.getNote();
+        }
         response.roleCount = relationships.size();
         response.companyCount = (int) relationships.stream()
                 .map(relationship -> relationship.getCompany().getId())
@@ -59,6 +66,10 @@ public class PersonResponse {
 
     public String getNote() {
         return note;
+    }
+
+    public boolean isSensitiveDetailsVisible() {
+        return sensitiveDetailsVisible;
     }
 
     public int getCompanyCount() {
