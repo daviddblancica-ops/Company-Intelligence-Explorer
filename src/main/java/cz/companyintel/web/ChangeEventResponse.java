@@ -28,24 +28,11 @@ public class ChangeEventResponse {
             response.importRunId = event.getImportRun().getId();
         }
         response.type = event.getType();
-        response.severity = severity(event.getType());
+        response.severity = event.getSeverity();
         response.description = event.getDescription();
         response.createdAt = event.getCreatedAt();
         response.archived = event.isArchived();
         return response;
-    }
-
-    private static String severity(String type) {
-        if (type == null) {
-            return "INFO";
-        }
-        if (type.contains("FAILED") || type.contains("ERROR")) {
-            return "CRITICAL";
-        }
-        if (type.contains("WATCHLIST") || type.contains("PERSON") || type.contains("PARTIAL")) {
-            return "WARNING";
-        }
-        return "INFO";
     }
 
     public Long getId() {

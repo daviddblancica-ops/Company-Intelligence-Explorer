@@ -33,5 +33,7 @@ class ProductionConfigurationTest {
                 "db/migration/mariadb/V1__baseline_schema.sql").exists()).isTrue();
         assertThat(new ClassPathResource(
                 "db/migration/mariadb/V2__link_import_runs_to_audit.sql").exists()).isTrue();
+        assertThat(new ClassPathResource(
+                "db/migration/mariadb/V3__add_audit_severity.sql").exists()).isTrue();
     }
 }

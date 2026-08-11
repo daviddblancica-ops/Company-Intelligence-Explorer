@@ -16,6 +16,7 @@ import javax.persistence.Table;
         @Index(name = "idx_change_company_created", columnList = "company_id, createdAt"),
         @Index(name = "idx_change_import_run_created", columnList = "import_run_id, createdAt"),
         @Index(name = "idx_change_type_created", columnList = "type, createdAt"),
+        @Index(name = "idx_change_severity_created", columnList = "severity, createdAt"),
         @Index(name = "idx_change_archived_created", columnList = "archived, createdAt")
 })
 public class ChangeEvent {
@@ -35,6 +36,9 @@ public class ChangeEvent {
     @Column(nullable = false)
     private String type;
 
+    @Column(nullable = false, length = 20)
+    private String severity;
+
     @Column(nullable = false, length = 1200)
     private String description;
 
@@ -50,6 +54,7 @@ public class ChangeEvent {
     public ChangeEvent(Company company, String type, String description) {
         this.company = company;
         this.type = type;
+        this.severity = severity(type);
         this.description = description;
         this.createdAt = LocalDateTime.now();
     }
@@ -57,6 +62,7 @@ public class ChangeEvent {
     public ChangeEvent(ImportRun importRun, String type, String description) {
         this.importRun = importRun;
         this.type = type;
+        this.severity = severity(type);
         this.description = description;
         this.createdAt = LocalDateTime.now();
     }
@@ -77,6 +83,10 @@ public class ChangeEvent {
         return type;
     }
 
+    public String getSeverity() {
+        return severity;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -91,5 +101,18 @@ public class ChangeEvent {
 
     public void setArchived(boolean archived) {
         this.archived = archived;
+    }
+
+    private static String severity(String type) {
+        if (type == null) {
+            return "INFO";
+        }
+        if (type.contains("FAILED") || type.contains("ERROR")) {
+            return "CRITICAL";
+        }
+        if (type.contains("WATCHLIST") || type.contains("PERSON") || type.contains("PARTIAL")) {
+            return "WARNING";
+        }
+        return "INFO";
     }
 }

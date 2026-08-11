@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <title>Company Intelligence Explorer</title>
   <style>
     :root {
@@ -607,7 +608,16 @@
       margin-bottom: 14px;
     }
 
-    .audit-toolbar select {
+    .audit-filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .audit-filter-bar select,
+    .audit-filter-bar input {
       min-height: 42px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -615,6 +625,34 @@
       background: #fff;
       color: var(--ink);
       font: inherit;
+      font-weight: 700;
+    }
+
+    .audit-filter-bar input[type="search"] {
+      flex: 1 1 220px;
+      min-width: 180px;
+    }
+
+    .audit-filter-bar input[type="number"] {
+      width: 130px;
+    }
+
+    .audit-filter-bar input[type="date"] {
+      width: 155px;
+    }
+
+    .audit-date-range {
+      display: flex;
+      flex: 0 0 auto;
+      gap: 10px;
+    }
+
+    .audit-date-field {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
       font-weight: 700;
     }
 
@@ -656,8 +694,9 @@
 
     .audit-entry {
       display: grid;
-      grid-template-columns: 150px minmax(0, 1fr);
+      grid-template-columns: 170px minmax(0, 1fr) auto;
       gap: 14px;
+      align-items: center;
       padding: 10px 12px;
       border: 1px solid var(--line);
       border-radius: 8px;
@@ -1051,6 +1090,12 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
+    }
+
+    .audit-entry .audit-action {
+      min-height: 34px;
+      padding: 7px 10px;
+      font-size: 12px;
     }
 
     .import-summary {
@@ -1651,6 +1696,16 @@
       .person-head {
         display: grid;
       }
+
+      .audit-date-range {
+        width: 100%;
+      }
+
+      .audit-date-range input[type="date"] {
+        flex: 1 1 0;
+        min-width: 0;
+        width: auto;
+      }
     }
 
     @media print {
@@ -1663,7 +1718,9 @@
       body.print-audit #system,
       body.print-audit .workspace,
       body.print-audit .legend-panel,
-      body.print-audit .audit-toolbar {
+      body.print-audit .audit-filter-bar,
+      body.print-audit .audit-toolbar,
+      body.print-audit .audit-action {
         display: none !important;
       }
 
@@ -2036,7 +2093,7 @@
           <p>Samostatna stranka pro udalosti aplikace: importy, vyhledavani, chyby, watchlist, archiv a tiskovy vypis.</p>
         </div>
         <div class="panel-body">
-          <div class="audit-toolbar">
+          <div class="audit-filter-bar">
             <select id="audit-type-filter" aria-label="Filtr typu audit logu">
               <option value="">Vsechny typy udalosti</option>
             </select>
@@ -2047,8 +2104,18 @@
               <option value="info">Informacni</option>
               <option value="low">Nizke</option>
             </select>
+            <input id="audit-query-filter" type="search" placeholder="Firma, ICO nebo text" aria-label="Hledat v audit logu">
+            <input id="audit-import-filter" type="number" min="1" placeholder="Import ID" aria-label="Filtrovat podle importu">
+            <div class="audit-date-range">
+              <label class="audit-date-field">Od <input id="audit-from-filter" type="date" aria-label="Audit od data"></label>
+              <label class="audit-date-field">Do <input id="audit-to-filter" type="date" aria-label="Audit do data"></label>
+            </div>
+          </div>
+          <div class="audit-toolbar">
             <button class="secondary" type="button" id="refresh-audit">Nacist z backendu</button>
+            <button class="secondary" type="button" id="clear-audit-filters">Zrusit filtry</button>
             <button class="secondary" type="button" id="archive-audit">Archivovat aktivni</button>
+            <button class="secondary" type="button" id="export-audit">Export CSV</button>
             <button type="button" id="print-audit">Tisk audit logu</button>
             <div class="spacer"></div>
             <button class="secondary" type="button" id="show-archive">Zobrazit archiv</button>
@@ -2220,8 +2287,14 @@
     const archiveBox = document.getElementById('archive-box');
     const auditTypeFilter = document.getElementById('audit-type-filter');
     const auditFilter = document.getElementById('audit-filter');
+    const auditQueryFilter = document.getElementById('audit-query-filter');
+    const auditImportFilter = document.getElementById('audit-import-filter');
+    const auditFromFilter = document.getElementById('audit-from-filter');
+    const auditToFilter = document.getElementById('audit-to-filter');
     const refreshAudit = document.getElementById('refresh-audit');
+    const clearAuditFilters = document.getElementById('clear-audit-filters');
     const archiveAudit = document.getElementById('archive-audit');
+    const exportAudit = document.getElementById('export-audit');
     const printAudit = document.getElementById('print-audit');
     const showArchive = document.getElementById('show-archive');
     const taskForm = document.getElementById('task-form');
@@ -2423,10 +2496,40 @@
       await loadBackendAudit(false);
     });
 
-    auditFilter.addEventListener('change', renderAuditLog);
+    auditFilter.addEventListener('change', async () => {
+      await loadBackendAudit(false);
+    });
+
+    auditQueryFilter.addEventListener('keydown', async event => {
+      if (event.key !== 'Enter') {
+        return;
+      }
+      event.preventDefault();
+      await loadBackendAudit(false);
+    });
+
+    [auditImportFilter, auditFromFilter, auditToFilter].forEach(control => {
+      control.addEventListener('change', async () => {
+        await loadBackendAudit(false);
+      });
+    });
 
     refreshAudit.addEventListener('click', async () => {
       await loadBackendAudit();
+    });
+
+    clearAuditFilters.addEventListener('click', async () => {
+      auditTypeFilter.value = '';
+      auditFilter.value = 'all';
+      auditQueryFilter.value = '';
+      auditImportFilter.value = '';
+      auditFromFilter.value = '';
+      auditToFilter.value = '';
+      await loadBackendAudit(false);
+    });
+
+    exportAudit.addEventListener('click', () => {
+      window.location.assign(`/api/audit/export.csv?${buildAuditQuery(false, false)}`);
     });
 
     refreshImportRuns.addEventListener('click', async () => {
@@ -2450,16 +2553,13 @@
     });
 
     archiveAudit.addEventListener('click', async () => {
-      const filter = auditFilter.value;
-      const visibleEntries = auditEntries.filter(entry => filter === 'all' || entry.level === filter);
-      if (!visibleEntries.length) {
+      const ids = auditEntries.map(entry => entry.id).filter(id => Number.isFinite(id));
+      if (!ids.length) {
         showToast('Audit log nema zadne aktivni zaznamy.');
         return;
       }
       try {
-        for (const entry of visibleEntries) {
-          await setAuditArchived(entry.id, true);
-        }
+        await setAuditEventsArchived(ids, true);
       } catch (error) {
         showToast('Archivace audit logu selhala.');
         addActivity('Audit archiv', 'Backend neulozil archivaci vybranych udalosti.', 'warning');
@@ -2471,6 +2571,25 @@
       showToast('Aktivni audit log byl presunut do archivu.');
       await loadBackendAudit(false);
     });
+
+    async function handleAuditAction(event) {
+      const archiveButton = event.target.closest('button[data-audit-archive]');
+      const restoreButton = event.target.closest('button[data-audit-restore]');
+      const button = archiveButton || restoreButton;
+      if (!button) {
+        return;
+      }
+      try {
+        await setAuditArchived(Number(button.dataset.auditArchive || button.dataset.auditRestore), Boolean(archiveButton));
+        await loadBackendAudit(false);
+        showToast(archiveButton ? 'Udalost byla archivovana.' : 'Udalost byla obnovena.');
+      } catch (error) {
+        showToast('Stav auditni udalosti se nepodarilo ulozit.');
+      }
+    }
+
+    auditList.addEventListener('click', handleAuditAction);
+    archiveList.addEventListener('click', handleAuditAction);
 
     showArchive.addEventListener('click', () => {
       auditArchiveVisible = !auditArchiveVisible;
@@ -3085,10 +3204,8 @@
 
     async function loadBackendAudit(showMessage = true) {
       try {
-        const selectedType = auditTypeFilter.value || '';
-        const query = `type=${encodeURIComponent(selectedType)}&limit=100`;
-        const response = await fetch(`/api/audit?archived=false&${query}`);
-        const archiveResponse = await fetch(`/api/audit?archived=true&${query}`);
+        const response = await fetch(`/api/audit?${buildAuditQuery(false, true)}`);
+        const archiveResponse = await fetch(`/api/audit?${buildAuditQuery(true, true)}`);
         if (!response.ok) {
           throw new Error('Audit endpoint failed');
         }
@@ -3126,6 +3243,33 @@
         importRuns.innerHTML = '<div class="empty">Historii importu se nepodarilo nacist.</div>';
         updateImportSummary([]);
       }
+    }
+
+    function buildAuditQuery(archived, includeLimit) {
+      const params = new URLSearchParams();
+      params.set('archived', String(archived));
+      if (includeLimit) {
+        params.set('limit', '200');
+      }
+      if (auditTypeFilter.value) {
+        params.set('type', auditTypeFilter.value);
+      }
+      if (auditFilter.value && auditFilter.value !== 'all') {
+        params.set('severity', auditFilter.value);
+      }
+      if (auditQueryFilter.value.trim()) {
+        params.set('query', auditQueryFilter.value.trim());
+      }
+      if (auditImportFilter.value) {
+        params.set('importRunId', auditImportFilter.value);
+      }
+      if (auditFromFilter.value) {
+        params.set('from', auditFromFilter.value);
+      }
+      if (auditToFilter.value) {
+        params.set('to', auditToFilter.value);
+      }
+      return params.toString();
     }
 
     async function loadImportRunDetail(id) {
@@ -3253,6 +3397,18 @@
       return response.json();
     }
 
+    async function setAuditEventsArchived(ids, archived) {
+      const response = await fetch('/api/audit/archive', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids, archived })
+      });
+      if (!response.ok) {
+        throw new Error('Audit bulk archive failed');
+      }
+      return response.json();
+    }
+
     function toAuditEntry(event) {
       const subject = event.importRunId
         ? `Import #${event.importRunId}`
@@ -3269,16 +3425,14 @@
     }
 
     function renderAuditLog() {
-      const filter = auditFilter.value;
-      const visibleEntries = auditEntries.filter(entry => filter === 'all' || entry.level === filter);
       const recentEntries = auditEntries.slice(0, 2);
 
       activityLog.innerHTML = recentEntries.length
         ? recentEntries.map(entry => renderPreviewEntry(entry)).join('')
         : '<div class="activity-item"><strong>Audit zatim prazdny</strong><span>Aktivni log je prazdny.</span></div>';
 
-      auditList.innerHTML = visibleEntries.length
-        ? visibleEntries.map(entry => renderAuditEntry(entry)).join('')
+      auditList.innerHTML = auditEntries.length
+        ? auditEntries.map(entry => renderAuditEntry(entry)).join('')
         : '<div class="empty">Pro zvoleny filtr nejsou zadne aktivni udalosti.</div>';
 
       archiveList.innerHTML = archivedAuditEntries.length
@@ -3301,6 +3455,9 @@
     }
 
     function renderAuditEntry(entry) {
+      const action = entry.archived
+        ? `<button class="secondary audit-action" type="button" data-audit-restore="${entry.id}">Obnovit</button>`
+        : `<button class="secondary audit-action" type="button" data-audit-archive="${entry.id}">Archivovat</button>`;
       return `
         <div class="audit-entry ${escapeHtml(entry.level)}">
           <div>
@@ -3309,6 +3466,7 @@
             <small>${escapeHtml(levelLabel(entry.level))}</small>
           </div>
           <span>${escapeHtml(entry.message)}</span>
+          ${Number.isFinite(entry.id) ? action : ''}
         </div>
       `;
     }
@@ -3330,6 +3488,9 @@
       }
       if (normalized === 'warning') {
         return 'warning';
+      }
+      if (normalized === 'low') {
+        return 'low';
       }
       return 'info';
     }

@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,8 @@ class HomePageTest {
         assertThat(response.getBody()).contains("data-view=\"audit\"");
         assertThat(response.getBody()).contains("data-view=\"notes\"");
         assertThat(response.getBody()).contains("audit-type-filter");
+        assertThat(response.getBody()).contains("audit-query-filter");
+        assertThat(response.getBody()).contains("export-audit");
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");
         assertThat(response.getBody()).contains("dashboard-companies");
@@ -104,6 +107,62 @@ class HomePageTest {
         assertThat(archived.getStatusCodeValue()).isEqualTo(200);
         assertThat(archived.getBody()).contains("\"archived\":true");
         assertThat(archive.getBody()).contains("\"id\":" + eventId);
+    }
+
+    @Test
+    void filtersExportsAndBulkArchivesAuditEvents() {
+        CompanyRequest company = new CompanyRequest();
+        company.setName("Filtered Audit Systems s.r.o.");
+        company.setRegistrationNumber("12345009");
+        company.setCountry("CZ");
+        company.setLegalForm("s.r.o.");
+        ResponseEntity<CompanyResponse> created = restTemplate.postForEntity(
+                "/api/companies", company, CompanyResponse.class);
+        Long companyId = created.getBody().getId();
+
+        String filterUrl = "/api/audit?companyId=" + companyId
+                + "&type=CREATED&severity=INFO&query=12345009"
+                + "&from=2020-01-01&to=2099-12-31&limit=20";
+        ResponseEntity<String> filtered = restTemplate.getForEntity(filterUrl, String.class);
+        ResponseEntity<String> future = restTemplate.getForEntity(
+                "/api/audit?companyId=" + companyId + "&from=2999-01-01", String.class);
+        ResponseEntity<String> export = restTemplate.getForEntity(
+                "/api/audit/export.csv?companyId=" + companyId, String.class);
+
+        assertThat(filtered.getStatusCodeValue()).isEqualTo(200);
+        assertThat(filtered.getBody()).contains("Filtered Audit Systems s.r.o.");
+        assertThat(filtered.getBody()).contains("\"severity\":\"INFO\"");
+        assertThat(future.getBody()).isEqualTo("[]");
+        assertThat(export.getStatusCodeValue()).isEqualTo(200);
+        assertThat(export.getHeaders().getContentType().toString()).startsWith("text/csv");
+        assertThat(export.getHeaders().getFirst("Content-Disposition")).contains("company-intelligence-audit.csv");
+        assertThat(export.getBody()).contains("createdAt,severity,type,subject");
+        assertThat(export.getBody()).contains("Filtered Audit Systems s.r.o.");
+
+        Long eventId = firstId(filtered.getBody());
+        AuditBulkArchiveRequest archiveRequest = new AuditBulkArchiveRequest();
+        archiveRequest.setIds(Collections.singletonList(eventId));
+        archiveRequest.setArchived(true);
+        ResponseEntity<String> archived = restTemplate.postForEntity(
+                "/api/audit/archive", archiveRequest, String.class);
+        ResponseEntity<String> archive = restTemplate.getForEntity(
+                "/api/audit?companyId=" + companyId + "&archived=true", String.class);
+
+        assertThat(archived.getStatusCodeValue()).isEqualTo(200);
+        assertThat(archived.getBody()).contains("\"archived\":true");
+        assertThat(archive.getBody()).contains("\"id\":" + eventId);
+
+        archiveRequest.setArchived(false);
+        restTemplate.postForEntity("/api/audit/archive", archiveRequest, String.class);
+    }
+
+    @Test
+    void rejectsUnsupportedAuditSeverity() {
+        ResponseEntity<String> response = restTemplate.getForEntity(
+                "/api/audit?severity=urgent", String.class);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(400);
+        assertThat(response.getBody()).contains("Unsupported audit severity");
     }
 
     @Test

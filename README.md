@@ -120,6 +120,32 @@ Import z ARES podle ICO:
 POST /api/import/ares/00006947
 ```
 
+Filtrovani audit logu podle typu, zavaznosti, firmy, importu a obdobi:
+
+```http
+GET /api/audit?type=IMPORT_PARTIAL&severity=WARNING&query=Atlas&importRunId=12&from=2026-01-01&to=2026-12-31
+```
+
+CSV export pouziva stejne filtry:
+
+```http
+GET /api/audit/export.csv?severity=WARNING&from=2026-01-01
+```
+
+Hromadna archivace nebo obnoveni udalosti:
+
+```http
+POST /api/audit/archive
+Content-Type: application/json
+```
+
+```json
+{
+  "ids": [15, 16],
+  "archived": true
+}
+```
+
 ## Jak projekt popsat u obhajoby
 
 Jde o navrzene MVP backendoveho systemu pro praci s firemnimi daty. Smyslem je ukazat cisty navrh Java aplikace pro datove orientovany use-case: import dat, sjednoceni nazvu, vazby mezi firmami a osobami, historii zmen a API rozhrani pro rychle hledani.
