@@ -296,7 +296,7 @@
             <button class="secondary" type="button" id="clear-audit-filters">Zrusit filtry</button>
             <button class="secondary" type="button" id="archive-audit">Archivovat aktivni</button>
             <button class="secondary" type="button" id="export-audit">Export CSV</button>
-            <button type="button" id="print-audit">Tisk audit logu</button>
+            <button type="button" id="print-audit">Tisk A4 na sirku</button>
             <div class="spacer"></div>
             <button class="secondary" type="button" id="show-archive">Zobrazit archiv</button>
           </div>
@@ -311,6 +311,29 @@
             <h3>Archivovane udalosti</h3>
             <div class="audit-list" id="archive-list"></div>
           </div>
+          <section class="audit-print-sheet" id="audit-print-sheet" aria-label="Tiskovy auditni vypis">
+            <div class="audit-print-heading">
+              <div>
+                <h1>Company Intelligence Explorer</h1>
+                <p>Audit log</p>
+              </div>
+              <div id="audit-print-meta"></div>
+            </div>
+            <table class="audit-print-table" id="audit-print-table">
+              <thead>
+                <tr>
+                  <th>Cas</th>
+                  <th>Dulezitost</th>
+                  <th>Typ</th>
+                  <th>Subjekt</th>
+                  <th>Popis</th>
+                  <th>Stav</th>
+                </tr>
+              </thead>
+              <tbody id="audit-print-body"></tbody>
+            </table>
+            <p class="audit-print-footer" id="audit-print-footer"></p>
+          </section>
         </div>
       </section>
 

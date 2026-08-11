@@ -1,6 +1,8 @@
 import { api } from './api.js';
 import { byId, escapeHtml, formatDate, showToast, updateText } from './ui.js';
 
+const PRINT_ROW_LIMIT = 20;
+
 export function initAudit() {
   const controls = {
     type: byId('audit-type-filter'),
@@ -15,6 +17,9 @@ export function initAudit() {
   const archiveBox = byId('archive-box');
   const showArchive = byId('show-archive');
   const activityLog = byId('activity-log');
+  const printBody = byId('audit-print-body');
+  const printMeta = byId('audit-print-meta');
+  const printFooter = byId('audit-print-footer');
   let backendEntries = [];
   let archivedEntries = [];
   let localEntries = [{
@@ -172,13 +177,11 @@ export function initAudit() {
   }
 
   function print() {
-    const wasHidden = archiveBox.hidden;
-    archiveBox.hidden = false;
+    render();
     document.body.classList.add('print-audit');
     window.print();
     window.setTimeout(() => {
       document.body.classList.remove('print-audit');
-      archiveBox.hidden = wasHidden;
     }, 300);
   }
 
@@ -190,6 +193,8 @@ export function initAudit() {
       id: event.id,
       title: event.type || 'AUDIT',
       type: event.type || 'AUDIT',
+      subject,
+      description: event.description || '',
       message: `${subject} - ${event.description || ''}`,
       level: mapSeverity(event.severity),
       time: formatDate(event.createdAt) || 'bez data',
@@ -213,6 +218,31 @@ export function initAudit() {
     updateText('audit-critical', activeEntries.filter(entry => entry.level === 'critical').length);
     updateText('audit-warning', activeEntries.filter(entry => entry.level === 'warning').length);
     updateText('audit-archived', archivedEntries.length);
+    renderPrintTable(activeEntries, archivedEntries);
+  }
+
+  function renderPrintTable(activeEntries, archiveEntries) {
+    const allEntries = [...activeEntries, ...archiveEntries];
+    const printable = allEntries.slice(0, PRINT_ROW_LIMIT);
+    printMeta.innerHTML = `<strong>${escapeHtml(new Date().toLocaleString('cs-CZ'))}</strong>
+      <span>${printable.length} z ${allEntries.length} zaznamu</span>`;
+    printBody.innerHTML = printable.length ? printable.map(entry => `
+      <tr class="severity-${escapeHtml(entry.level)}">
+        <td>${escapeHtml(entry.time)}</td>
+        <td>${escapeHtml(levelLabel(entry.level))}</td>
+        <td>${escapeHtml(entry.type || entry.title)}</td>
+        <td>${escapeHtml(shorten(entry.subject || 'Aplikace', 60))}</td>
+        <td>${escapeHtml(shorten(entry.description || entry.message, 120))}</td>
+        <td>${entry.archived ? 'Archiv' : 'Aktivni'}</td>
+      </tr>`).join('') : '<tr><td colspan="6">Pro zvolene filtry nejsou zadne udalosti.</td></tr>';
+    printFooter.textContent = allEntries.length > PRINT_ROW_LIMIT
+      ? `Vytisteno prvnich ${PRINT_ROW_LIMIT} zaznamu. Uplny vypis je dostupny pres Export CSV.`
+      : 'Vypis obsahuje vsechny aktualne filtrovane zaznamy.';
+  }
+
+  function shorten(value, limit) {
+    const text = String(value || '');
+    return text.length > limit ? `${text.slice(0, limit - 3)}...` : text;
   }
 
   function renderPreviewEntry(entry) {

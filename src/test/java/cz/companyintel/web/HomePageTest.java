@@ -60,6 +60,8 @@ class HomePageTest {
         assertThat(response.getBody()).contains("audit-type-filter");
         assertThat(response.getBody()).contains("audit-query-filter");
         assertThat(response.getBody()).contains("export-audit");
+        assertThat(response.getBody()).contains("audit-print-table");
+        assertThat(response.getBody()).contains("Tisk A4 na sirku");
         assertThat(response.getBody()).contains("TODO list projektu");
         assertThat(response.getBody()).contains("Stav jadra");
         assertThat(response.getBody()).contains("dashboard-companies");
@@ -72,6 +74,8 @@ class HomePageTest {
         assertThat(importScript.getBody()).contains("back-to-import-runs");
         assertThat(styles.getStatusCodeValue()).isEqualTo(200);
         assertThat(styles.getBody()).contains(".import-tabs");
+        assertThat(styles.getBody()).contains("size: A4 landscape");
+        assertThat(appScript.getBody()).contains("initAudit");
     }
 
     @Test
