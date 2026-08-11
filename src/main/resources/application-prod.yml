@@ -23,3 +23,23 @@ spring:
 
 server:
   port: ${PORT:8080}
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:false}
+        http-only: true
+        same-site: lax
+
+app:
+  security:
+    csrf-enabled: true
+    users:
+      admin:
+        username: ${APP_ADMIN_USERNAME}
+        password: ${APP_ADMIN_PASSWORD}
+      editor:
+        username: ${APP_EDITOR_USERNAME}
+        password: ${APP_EDITOR_PASSWORD}
+      viewer:
+        username: ${APP_VIEWER_USERNAME}
+        password: ${APP_VIEWER_PASSWORD}

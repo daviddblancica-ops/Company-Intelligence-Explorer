@@ -29,6 +29,7 @@ export function initImports({ audit, onChanged = async () => {} }) {
       runDetail.hidden = true;
       runs.hidden = false;
     });
+    if (document.body.dataset.access === 'viewer') showTab('history');
   }
 
   function initTabs() {

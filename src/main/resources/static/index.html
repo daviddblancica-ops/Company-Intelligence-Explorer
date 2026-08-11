@@ -7,7 +7,7 @@
   <title>Company Intelligence Explorer</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body class="auth-pending">
   <div class="shell" id="app-shell">
     <aside>
       <div class="brand">
@@ -28,7 +28,7 @@
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="#tasks" data-view-target="tasks" title="TODO list"><span class="nav-icon">T</span><span class="nav-label">TODO list</span></a>
         <a href="#notes" data-view-target="notes" title="Technické poznámky"><span class="nav-icon">N</span><span class="nav-label">Poznámky</span></a>
-        <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
+        <a href="/h2-console" title="H2 konzole" data-role-required="admin"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
 
@@ -38,9 +38,15 @@
           <h1>Company Intelligence Explorer</h1>
           <p>Backendový systém pro import firemních dat, sjednocení názvů, vazby osob, historii změn a rychlé vyhledávání.</p>
         </div>
-        <div class="status online" id="server-status">
-          <span class="status-dot" aria-hidden="true"></span>
-          <strong id="status-title">Server běží</strong>
+        <div class="topbar-actions">
+          <div class="status online" id="server-status">
+            <span class="status-dot" aria-hidden="true"></span>
+            <strong id="status-title">Server běží</strong>
+          </div>
+          <div class="account-menu" aria-label="Přihlášený uživatel">
+            <div><strong id="current-user-name"></strong><span id="current-user-role"></span></div>
+            <button class="secondary compact-button" type="button" id="logout-button">Odhlásit</button>
+          </div>
         </div>
       </div>
 
@@ -121,12 +127,12 @@
               <div class="import-summary-card"><span>Poslední stav</span><strong id="import-last-status">-</strong></div>
             </div>
             <div class="import-tabs" id="import-tabs" role="tablist" aria-label="Způsob importu">
-              <button class="active" type="button" role="tab" aria-selected="true" data-import-tab="ares">ARES</button>
-              <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="json">JSON</button>
-              <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="csv">CSV</button>
+              <button class="active" type="button" role="tab" aria-selected="true" data-import-tab="ares" data-role-required="editor">ARES</button>
+              <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="json" data-role-required="editor">JSON</button>
+              <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="csv" data-role-required="editor">CSV</button>
               <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="history">Historie</button>
             </div>
-            <div class="import-block import-pane" data-import-pane="json" hidden>
+            <div class="import-block import-pane" data-import-pane="json" data-role-required="editor" hidden>
               <h3>JSON import s lidmi</h3>
               <p>Ukazuje data z jiného zdroje včetně vazeb mezi firmou a osobami.</p>
               <textarea id="json-input" aria-label="JSON import"></textarea>
@@ -136,7 +142,7 @@
               </div>
             </div>
 
-          <div class="import-block import-pane" data-import-pane="csv" hidden>
+          <div class="import-block import-pane" data-import-pane="csv" data-role-required="editor" hidden>
             <h3>CSV import</h3>
             <p>Jednoduchý hromadný vstup pro tabulková data.</p>
             <textarea id="csv-input" aria-label="CSV import"></textarea>
@@ -146,7 +152,7 @@
             </div>
           </div>
 
-          <div class="import-block import-preview-block" id="import-preview-block" hidden>
+          <div class="import-block import-preview-block" id="import-preview-block" data-role-required="editor" hidden>
             <h3>Předimportní kontrola</h3>
             <p>Náhled ukáže, které řádky jsou připravené k uložení a které je potřeba opravit ještě před importem.</p>
             <div class="import-preview" id="import-preview">
@@ -154,7 +160,7 @@
             </div>
           </div>
 
-          <div class="import-block import-pane" data-import-pane="ares">
+          <div class="import-block import-pane" data-import-pane="ares" data-role-required="editor">
             <h3>ARES podle IČO</h3>
             <p>Doplňkový import reálných firemních dat z českého registru.</p>
             <form class="form-row" id="ares-form">
@@ -241,7 +247,7 @@
         </div>
       </section>
 
-      <dialog class="record-dialog" id="company-edit-dialog" aria-labelledby="company-dialog-title">
+      <dialog class="record-dialog" id="company-edit-dialog" aria-labelledby="company-dialog-title" data-role-required="editor">
         <form class="record-form" id="company-edit-form">
           <div class="dialog-heading">
             <div><span>Firemní záznam</span><h2 id="company-dialog-title">Upravit firmu</h2></div>
@@ -263,7 +269,7 @@
         </form>
       </dialog>
 
-      <dialog class="record-dialog" id="person-edit-dialog" aria-labelledby="person-dialog-title">
+      <dialog class="record-dialog" id="person-edit-dialog" aria-labelledby="person-dialog-title" data-role-required="editor">
         <form class="record-form" id="person-edit-form">
           <div class="dialog-heading">
             <div><span>Osobní záznam</span><h2 id="person-dialog-title">Upravit osobu</h2></div>
@@ -314,7 +320,7 @@
           <div class="audit-toolbar">
             <button class="secondary" type="button" id="refresh-audit">Načíst z backendu</button>
             <button class="secondary" type="button" id="clear-audit-filters">Zrušit filtry</button>
-            <button class="secondary" type="button" id="archive-audit">Archivovat aktivní</button>
+            <button class="secondary" type="button" id="archive-audit" data-role-required="admin">Archivovat aktivní</button>
             <button class="secondary" type="button" id="export-audit">Export CSV</button>
             <button type="button" id="print-audit">Tisk A4 na šířku</button>
             <div class="spacer"></div>
@@ -363,7 +369,7 @@
           <p>Postup práce na Company Intelligence Exploreru po jasných bodech.</p>
         </div>
         <div class="panel-body">
-          <form class="task-form" id="task-form">
+          <form class="task-form" id="task-form" data-role-required="editor">
             <input id="task-title" name="title" autocomplete="off" placeholder="Nový úkol" aria-label="Název úkolu">
             <select id="task-segment" name="segment" aria-label="Segment úkolu">
               <option value="Import">Import</option>
@@ -450,6 +456,17 @@
       </section>
     </main>
   </div>
+
+  <dialog class="login-dialog" id="login-dialog" aria-labelledby="login-title">
+    <form class="login-form" id="login-form">
+      <div class="login-brand"><span>CI</span><div><strong>Company Intelligence Explorer</strong><small>Zabezpečený přístup k firemním datům</small></div></div>
+      <div class="login-heading"><h1 id="login-title">Přihlášení</h1><p>Zadejte svůj uživatelský účet a heslo.</p></div>
+      <label>Uživatelské jméno<input name="username" autocomplete="username" required></label>
+      <label>Heslo<input name="password" type="password" autocomplete="current-password" required></label>
+      <p class="login-error" id="login-error" role="alert" aria-live="polite"></p>
+      <button type="submit">Přihlásit se</button>
+    </form>
+  </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script type="module" src="/app.js"></script>

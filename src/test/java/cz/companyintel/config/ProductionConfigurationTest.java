@@ -25,6 +25,14 @@ class ProductionConfigurationTest {
         assertThat(production.getProperty("spring.flyway.locations"))
                 .isEqualTo("classpath:db/migration/mariadb");
         assertThat(production.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
+        assertThat(production.getProperty("app.security.users.admin.username"))
+                .isEqualTo("${APP_ADMIN_USERNAME}");
+        assertThat(production.getProperty("app.security.users.admin.password"))
+                .isEqualTo("${APP_ADMIN_PASSWORD}");
+        assertThat(production.getProperty("app.security.users.editor.password"))
+                .isEqualTo("${APP_EDITOR_PASSWORD}");
+        assertThat(production.getProperty("app.security.users.viewer.password"))
+                .isEqualTo("${APP_VIEWER_PASSWORD}");
     }
 
     @Test

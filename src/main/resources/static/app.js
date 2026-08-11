@@ -1,10 +1,14 @@
 import { initAudit } from './js/audit.js';
+import { initAuth } from './js/auth.js';
 import { initCompanies } from './js/companies.js';
 import { initDashboard } from './js/dashboard.js';
 import { initImports } from './js/imports.js';
 import { initNavigation } from './js/navigation.js';
 import { initPeople } from './js/people.js';
 import { initTasks } from './js/tasks.js';
+
+const auth = initAuth();
+await auth.requireLogin();
 
 const features = {};
 const audit = initAudit();

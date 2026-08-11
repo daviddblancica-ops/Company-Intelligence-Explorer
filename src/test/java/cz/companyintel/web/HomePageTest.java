@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Collections;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,7 +22,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = "app.security.csrf-enabled=false")
 @AutoConfigureMockMvc
 class HomePageTest {
 
@@ -30,6 +33,11 @@ class HomePageTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @BeforeEach
+    void authenticateApiClient() {
+        restTemplate = restTemplate.withBasicAuth("admin", "admin-local-2026");
+    }
 
     @Test
     void servesHomePage() {
@@ -56,6 +64,9 @@ class HomePageTest {
         assertThat(response.getBody()).contains("import-preview");
         assertThat(response.getBody()).contains("company-edit-dialog");
         assertThat(response.getBody()).contains("person-edit-dialog");
+        assertThat(response.getBody()).contains("login-dialog");
+        assertThat(response.getBody()).contains("logout-button");
+        assertThat(response.getBody()).contains("data-role-required=\"admin\"");
         assertThat(response.getBody()).contains("value=\"23143614\"");
         assertThat(response.getBody()).doesNotContain("seed-demo");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
@@ -71,6 +82,7 @@ class HomePageTest {
         assertThat(response.getBody()).contains("Stav jádra");
         assertThat(response.getBody()).contains("dashboard-companies");
         assertThat(appScript.getStatusCodeValue()).isEqualTo(200);
+        assertThat(appScript.getBody()).contains("initAuth");
         assertThat(appScript.getBody()).contains("initCompanies");
         assertThat(companyScript.getStatusCodeValue()).isEqualTo(200);
         assertThat(companyScript.getBody()).contains("Přiřadit");

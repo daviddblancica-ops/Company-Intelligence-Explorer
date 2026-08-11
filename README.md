@@ -13,6 +13,7 @@ Firemní data bývají často roztříštěná, nejednotná a špatně dohledate
 - sjednocení názvů pro spolehlivé vyhledávání
 - uložení firem, osob a jejich rolí
 - historie vytvoření a aktualizací firmy
+- přihlášení a role administrátor, editor a uživatel pouze pro čtení
 - REST API pro založení, detail a hledání firmy
 - H2 databáze pro jednoduché lokální spuštění
 
@@ -20,8 +21,8 @@ Firemní data bývají často roztříštěná, nejednotná a špatně dohledate
 
 Projekt je připravený pro Windows a nevyžaduje globálně nainstalovaný Maven. Maven se při prvním spuštění stáhne do složky `.mvn-local`.
 
-```bat
-mvnw.cmd spring-boot:run
+```powershell
+.\mvnw.cmd spring-boot:run
 ```
 
 Aplikace běží na:
@@ -42,15 +43,39 @@ JDBC URL:
 jdbc:h2:mem:companyintel
 ```
 
+### Lokální přihlášení
+
+Vývojový profil obsahuje pouze lokální účty určené pro práci na vlastním počítači:
+
+| Role | Uživatel | Heslo | Oprávnění |
+|---|---|---|---|
+| `ADMIN` | `admin` | `admin-local-2026` | čtení, úpravy, mazání a archivace auditu |
+| `EDITOR` | `editor` | `editor-local-2026` | čtení, importy a běžné úpravy |
+| `VIEWER` | `viewer` | `viewer-local-2026` | pouze čtení |
+
+Tyto údaje se nesmí použít na veřejném serveru. Produkční profil vyžaduje vlastní účty z proměnných prostředí.
+
 ## Testy
 
-```bat
-mvnw.cmd test
+```powershell
+.\mvnw.cmd test
 ```
 
 ## Produkční profil a hosting
 
 Pro nasazení s externí MariaDB/MySQL databází je připravený profil `prod`.
+Před spuštěním musí být kromě databáze nastavené také bezpečnostní proměnné:
+
+```powershell
+$env:APP_ADMIN_USERNAME="spravce"
+$env:APP_ADMIN_PASSWORD="DLOUHE_NAHODNE_HESLO"
+$env:APP_EDITOR_USERNAME="editor"
+$env:APP_EDITOR_PASSWORD="JINE_DLOUHE_NAHODNE_HESLO"
+$env:APP_VIEWER_USERNAME="ctenar"
+$env:APP_VIEWER_PASSWORD="TRETI_DLOUHE_NAHODNE_HESLO"
+$env:SESSION_COOKIE_SECURE="false" # na HTTPS serveru nastavte true
+```
+
 Postup pro Webglobe, SFTP/SCP a databázové proměnné je v:
 
 ```text
