@@ -44,6 +44,8 @@ export APP_VIEWER_USERNAME="ctenar"
 export APP_VIEWER_PASSWORD="treti-dlouhe-nahodne-heslo"
 export SESSION_COOKIE_SECURE="true"
 export REQUIRE_HTTPS="true"
+export ARES_CONNECT_TIMEOUT="3s"
+export ARES_READ_TIMEOUT="10s"
 ```
 
 Hodnoty `DB_HOST`, `DB_NAME`, `DB_USER` a `DB_PASSWORD` vezmi z Webglobe administrace databáze. Hesla nepatří do Gitu ani do dokumentace. Všechna tři uživatelská jména musí být odlišná a každé heslo musí mít alespoň deset znaků.

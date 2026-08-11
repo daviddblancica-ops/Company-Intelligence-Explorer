@@ -1,6 +1,8 @@
 package cz.companyintel.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -17,6 +19,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.ResourceAccessException;
 
 @ExtendWith(MockitoExtension.class)
 class AresImportServiceTest {
@@ -71,5 +74,26 @@ class AresImportServiceTest {
         assertThat(request.getValue().getIncorporationDate()).isEqualTo(LocalDate.of(2025, 4, 3));
         assertThat(request.getValue().getShareCapital()).isEqualByComparingTo(new BigDecimal("3000"));
         assertThat(request.getValue().getShareCapitalCurrency()).isEqualTo("CZK");
+    }
+
+    @Test
+    void rejectsInvalidIcoBeforeCallingAres() {
+        assertThatThrownBy(() -> service.importByIco("123"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("IČO musí obsahovat přesně 8 číslic");
+
+        verifyNoInteractions(restTemplate, companyService);
+    }
+
+    @Test
+    void reportsAresTimeoutAsUnavailableService() {
+        when(restTemplate.getForObject(DETAIL_URL, JsonNode.class, "23143614"))
+                .thenThrow(new ResourceAccessException("timeout"));
+
+        assertThatThrownBy(() -> service.importByIco("23143614"))
+                .isInstanceOf(ExternalServiceUnavailableException.class)
+                .hasMessage("ARES nyní neodpovídá. Zkuste import zopakovat později.");
+
+        verifyNoInteractions(companyService);
     }
 }

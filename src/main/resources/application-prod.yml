@@ -32,6 +32,10 @@ server:
         same-site: lax
 
 app:
+  integrations:
+    ares:
+      connect-timeout: ${ARES_CONNECT_TIMEOUT:3s}
+      read-timeout: ${ARES_READ_TIMEOUT:10s}
   security:
     csrf-enabled: true
     require-https: ${REQUIRE_HTTPS:true}

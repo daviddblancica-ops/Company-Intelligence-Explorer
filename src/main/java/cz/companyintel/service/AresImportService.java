@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -33,6 +34,8 @@ public class AresImportService {
             payload = restTemplate.getForObject(ARES_DETAIL_URL, JsonNode.class, normalizedIco);
         } catch (HttpClientErrorException.NotFound exception) {
             throw new ResourceNotFoundException("Subjekt v ARES nebyl nalezen: " + normalizedIco);
+        } catch (RestClientException exception) {
+            throw unavailable(exception);
         }
 
         CompanyRequest request = new CompanyRequest();
@@ -62,6 +65,8 @@ public class AresImportService {
             return restTemplate.getForObject(ARES_PUBLIC_REGISTER_URL, JsonNode.class, ico);
         } catch (HttpClientErrorException.NotFound exception) {
             return null;
+        } catch (RestClientException exception) {
+            throw unavailable(exception);
         }
     }
 
@@ -149,7 +154,16 @@ public class AresImportService {
     }
 
     private String normalizeIco(String ico) {
-        return ico == null ? "" : ico.replaceAll("[^0-9]", "");
+        String normalized = ico == null ? "" : ico.replaceAll("[^0-9]", "");
+        if (!normalized.matches("[0-9]{8}")) {
+            throw new IllegalArgumentException("IČO musí obsahovat přesně 8 číslic");
+        }
+        return normalized;
+    }
+
+    private ExternalServiceUnavailableException unavailable(RestClientException cause) {
+        return new ExternalServiceUnavailableException(
+                "ARES nyní neodpovídá. Zkuste import zopakovat později.", cause);
     }
 
     private String text(JsonNode node, String field) {

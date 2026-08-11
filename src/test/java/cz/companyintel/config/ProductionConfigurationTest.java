@@ -30,6 +30,10 @@ class ProductionConfigurationTest {
                 .isEqualTo("${SESSION_COOKIE_SECURE:true}");
         assertThat(production.getProperty("app.security.require-https"))
                 .isEqualTo("${REQUIRE_HTTPS:true}");
+        assertThat(production.getProperty("app.integrations.ares.connect-timeout"))
+                .isEqualTo("${ARES_CONNECT_TIMEOUT:3s}");
+        assertThat(production.getProperty("app.integrations.ares.read-timeout"))
+                .isEqualTo("${ARES_READ_TIMEOUT:10s}");
         assertThat(production.getProperty("app.security.users.admin.username"))
                 .isEqualTo("${APP_ADMIN_USERNAME}");
         assertThat(production.getProperty("app.security.users.admin.password"))

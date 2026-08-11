@@ -26,6 +26,10 @@ server:
         same-site: lax
 
 app:
+  integrations:
+    ares:
+      connect-timeout: 3s
+      read-timeout: 10s
   security:
     csrf-enabled: true
     users:

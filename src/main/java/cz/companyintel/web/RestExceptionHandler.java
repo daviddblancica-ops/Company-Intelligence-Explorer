@@ -1,5 +1,6 @@
 package cz.companyintel.web;
 
+import cz.companyintel.service.ExternalServiceUnavailableException;
 import cz.companyintel.service.ResourceNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,18 @@ public class RestExceptionHandler {
         return new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                exception.getMessage(),
+                request.getRequestURI());
+    }
+
+    @ExceptionHandler(ExternalServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public ErrorResponse serviceUnavailable(
+            ExternalServiceUnavailableException exception,
+            HttpServletRequest request) {
+        return new ErrorResponse(
+                HttpStatus.SERVICE_UNAVAILABLE.value(),
+                HttpStatus.SERVICE_UNAVAILABLE.getReasonPhrase(),
                 exception.getMessage(),
                 request.getRequestURI());
     }
