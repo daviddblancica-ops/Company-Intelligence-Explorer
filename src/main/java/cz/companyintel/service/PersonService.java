@@ -50,7 +50,7 @@ public class PersonService {
 
     public Person getPerson(Long id) {
         return personRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Osoba nebyla nalezena: " + id));
     }
 
     public List<CompanyPersonRole> findRelationships(Long personId) {
@@ -60,15 +60,15 @@ public class PersonService {
     @Transactional
     public Person updatePerson(Long id, PersonUpdateRequest request) {
         Person person = getPerson(id);
-        String fullName = required(request.getFullName(), "Person full name is required");
+        String fullName = required(request.getFullName(), "Jméno osoby je povinné");
         if (request.getDateOfBirth() != null && request.getDateOfBirth().isAfter(LocalDate.now())) {
-            throw new IllegalArgumentException("Date of birth cannot be in the future");
+            throw new IllegalArgumentException("Datum narození nemůže být v budoucnosti");
         }
         String normalizedName = normalizationService.normalizeName(fullName);
         personRepository.findByNormalizedName(normalizedName)
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException("A person with this name already exists");
+                    throw new IllegalArgumentException("Osoba s tímto jménem již existuje");
                 });
 
         String previousName = person.getFullName();
@@ -81,14 +81,14 @@ public class PersonService {
         Person saved = personRepository.save(person);
         Set<Company> companies = companiesFor(id);
         for (Company company : companies) {
-            company.addChange("PERSON_UPDATED", previousName + " updated to " + fullName);
+            company.addChange("PERSON_UPDATED", previousName + " změněn na " + fullName);
         }
         companyRepository.saveAll(companies);
         changeEventRepository.save(new ChangeEvent(
                 null,
                 null,
                 "PERSON_UPDATED",
-                "Person profile updated: " + previousName + " -> " + fullName));
+                "Profil osoby byl upraven: " + previousName + " -> " + fullName));
         return saved;
     }
 
@@ -101,7 +101,7 @@ public class PersonService {
         for (CompanyPersonRole relationship : relationships) {
             Company company = relationship.getCompany();
             company.removeRole(id);
-            company.addChange("PERSON_DELETED", fullName + " deleted from person registry");
+            company.addChange("PERSON_DELETED", fullName + " smazán z registru osob");
             companies.add(company);
         }
         companyRepository.saveAll(companies);
@@ -112,7 +112,7 @@ public class PersonService {
                 null,
                 null,
                 "PERSON_DELETED",
-                "Person deleted from registry: " + fullName + " (removed relationships: "
+                "Osoba byla smazána z registru: " + fullName + " (odstraněné vazby: "
                         + relationships.size() + ")"));
     }
 

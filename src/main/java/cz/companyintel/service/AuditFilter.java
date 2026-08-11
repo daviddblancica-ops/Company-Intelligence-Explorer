@@ -34,14 +34,14 @@ public class AuditFilter {
         this.type = normalizeUppercase(type);
         this.severity = normalizeSeverity(severity);
         this.archived = archived;
-        this.companyId = positiveId(companyId, "Company id");
-        this.importRunId = positiveId(importRunId, "Import run id");
+        this.companyId = positiveId(companyId, "ID firmy");
+        this.importRunId = positiveId(importRunId, "ID importního běhu");
         this.query = normalize(query);
         this.from = from;
         this.to = to;
         this.limit = Math.max(1, Math.min(limit, 5000));
         if (from != null && to != null && from.isAfter(to)) {
-            throw new IllegalArgumentException("Audit date range is invalid");
+            throw new IllegalArgumentException("Rozsah dat auditu není platný");
         }
     }
 
@@ -96,14 +96,14 @@ public class AuditFilter {
     private static String normalizeSeverity(String value) {
         String normalized = normalizeUppercase(value);
         if (normalized != null && !SEVERITIES.contains(normalized)) {
-            throw new IllegalArgumentException("Unsupported audit severity: " + value);
+            throw new IllegalArgumentException("Nepodporovaná důležitost auditu: " + value);
         }
         return normalized;
     }
 
     private static Long positiveId(Long value, String label) {
         if (value != null && value.longValue() < 1L) {
-            throw new IllegalArgumentException(label + " must be positive");
+            throw new IllegalArgumentException(label + " musí být kladné");
         }
         return value;
     }

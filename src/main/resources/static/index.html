@@ -19,15 +19,15 @@
       </div>
       <button class="sidebar-toggle" type="button" id="sidebar-toggle" aria-label="Zasunout menu" title="Zasunout menu">‹</button>
       <nav aria-label="Navigace">
-        <span class="nav-section">Prace s daty</span>
+        <span class="nav-section">Práce s daty</span>
         <a class="active" href="#system" data-view-target="system" title="Dashboard"><span class="nav-icon">D</span><span class="nav-label">Dashboard</span></a>
         <a href="#import" data-view-target="import" title="Import dat"><span class="nav-icon">I</span><span class="nav-label">Import dat</span></a>
-        <a href="#search" data-view-target="search" title="Rejstrik firem"><span class="nav-icon">R</span><span class="nav-label">Rejstrik firem</span></a>
-        <a href="#people" data-view-target="people" title="Registr lidi"><span class="nav-icon">L</span><span class="nav-label">Registr lidi</span></a>
-        <span class="nav-section">Sprava</span>
+        <a href="#search" data-view-target="search" title="Rejstřík firem"><span class="nav-icon">R</span><span class="nav-label">Rejstřík firem</span></a>
+        <a href="#people" data-view-target="people" title="Registr lidí"><span class="nav-icon">L</span><span class="nav-label">Registr lidí</span></a>
+        <span class="nav-section">Správa</span>
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="#tasks" data-view-target="tasks" title="TODO list"><span class="nav-icon">T</span><span class="nav-label">TODO list</span></a>
-        <a href="#notes" data-view-target="notes" title="Technicke poznamky"><span class="nav-icon">N</span><span class="nav-label">Poznamky</span></a>
+        <a href="#notes" data-view-target="notes" title="Technické poznámky"><span class="nav-icon">N</span><span class="nav-label">Poznámky</span></a>
         <a href="/h2-console" title="H2 konzole"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
@@ -36,61 +36,61 @@
       <div class="topbar">
         <div>
           <h1>Company Intelligence Explorer</h1>
-          <p>Backendovy system pro import firemnich dat, sjednoceni nazvu, vazby osob, historii zmen a rychle vyhledavani.</p>
+          <p>Backendový systém pro import firemních dat, sjednocení názvů, vazby osob, historii změn a rychlé vyhledávání.</p>
         </div>
         <div class="status online" id="server-status">
           <span class="status-dot" aria-hidden="true"></span>
-          <strong id="status-title">Server bezi</strong>
+          <strong id="status-title">Server běží</strong>
         </div>
       </div>
 
       <section class="ops-grid view active" id="system" data-view="system" aria-label="Dashboard">
         <div class="ops-panel">
           <div class="dashboard-intro">
-            <div><h2>Pracovni prehled</h2><p>Vyber cinnost nebo zkontroluj aktualni stav dat.</p></div>
+            <div><h2>Pracovní přehled</h2><p>Vyber činnost nebo zkontroluj aktuální stav dat.</p></div>
             <a class="primary-link" href="#search" data-view-target="search">Hledat firmu</a>
           </div>
-          <h2 class="section-title">Nejcastejsi cinnosti</h2>
-          <div class="module-links" aria-label="Hlavni moduly aplikace">
+          <h2 class="section-title">Nejčastější činnosti</h2>
+          <div class="module-links" aria-label="Hlavní moduly aplikace">
             <a href="#import" data-view-target="import">
               <strong>Importy</strong>
-              <span>JSON, CSV, ARES a historie behu</span>
+              <span>JSON, CSV, ARES a historie běhů</span>
             </a>
             <a href="#search" data-view-target="search">
-              <strong>Rejstrik firem</strong>
-              <span>rychle hledani a detail firmy</span>
+              <strong>Rejstřík firem</strong>
+              <span>rychlé hledání a detail firmy</span>
             </a>
             <a href="#people" data-view-target="people">
-              <strong>Registr lidi</strong>
+              <strong>Registr lidí</strong>
               <span>osoby, role a vazby na firmy</span>
             </a>
             <a href="#audit" data-view-target="audit">
               <strong>Audit log</strong>
-              <span>udalosti, archiv a tisk</span>
+              <span>události, archiv a tisk</span>
             </a>
             <a href="#tasks" data-view-target="tasks">
               <strong>TODO list</strong>
-              <span>postup prace po bodech</span>
+              <span>postup práce po bodech</span>
             </a>
           </div>
           <div class="legend-panel">
             <h2>Dashboard dat</h2>
             <div class="dashboard-grid" id="dashboard-grid">
-              <div class="dashboard-card"><span>Firmy</span><strong id="dashboard-companies">0</strong><small>firemni zaznamy</small></div>
-              <div class="dashboard-card"><span>Osoby</span><strong id="dashboard-people">0</strong><small>napojene osoby</small></div>
-              <div class="dashboard-card"><span>Vazby</span><strong id="dashboard-relationships">0</strong><small>role ve firmach</small></div>
-              <div class="dashboard-card"><span>Watchlist</span><strong id="dashboard-watchlisted">0</strong><small>sledovane firmy</small></div>
-              <div class="dashboard-card"><span>Audit</span><strong id="dashboard-audit">0</strong><small>udalosti historie</small></div>
-              <div class="dashboard-card"><span>Importy</span><strong id="dashboard-imports">0</strong><small>behy zdroju</small></div>
+              <div class="dashboard-card"><span>Firmy</span><strong id="dashboard-companies">0</strong><small>firemní záznamy</small></div>
+              <div class="dashboard-card"><span>Osoby</span><strong id="dashboard-people">0</strong><small>napojené osoby</small></div>
+              <div class="dashboard-card"><span>Vazby</span><strong id="dashboard-relationships">0</strong><small>role ve firmách</small></div>
+              <div class="dashboard-card"><span>Watchlist</span><strong id="dashboard-watchlisted">0</strong><small>sledované firmy</small></div>
+              <div class="dashboard-card"><span>Audit</span><strong id="dashboard-audit">0</strong><small>události historie</small></div>
+              <div class="dashboard-card"><span>Importy</span><strong id="dashboard-imports">0</strong><small>běhy zdrojů</small></div>
             </div>
           </div>
           <div class="legend-panel">
-            <h2>Stav jadra</h2>
+            <h2>Stav jádra</h2>
             <div class="health-grid" id="health-grid">
-              <div class="health-card"><span>API</span><strong id="health-api">cekam</strong></div>
-              <div class="health-card"><span>Databaze</span><strong id="health-db">cekam</strong></div>
+              <div class="health-card"><span>API</span><strong id="health-api">čekám</strong></div>
+              <div class="health-card"><span>Databáze</span><strong id="health-db">čekám</strong></div>
               <div class="health-card"><span>Firmy</span><strong id="health-companies">0</strong></div>
-              <div class="health-card"><span>Ukoly</span><strong id="health-tasks">0</strong></div>
+              <div class="health-card"><span>Úkoly</span><strong id="health-tasks">0</strong></div>
             </div>
           </div>
           <div class="legend-panel">
@@ -98,11 +98,11 @@
             <div class="activity-preview">
               <div class="activity-log" id="activity-log">
                 <div class="activity-item">
-                  <strong>System pripraven</strong>
-                  <span>Ceka na import nebo vyhledavani firemnich dat.</span>
+                  <strong>Systém připraven</strong>
+                  <span>Čeká na import nebo vyhledávání firemních dat.</span>
                 </div>
               </div>
-              <a class="audit-link" href="#audit" data-view-target="audit">Otevrit</a>
+              <a class="audit-link" href="#audit" data-view-target="audit">Otevřít</a>
             </div>
           </div>
         </div>
@@ -110,17 +110,17 @@
 
       <section class="panel view" id="import" data-view="import">
           <div class="panel-header">
-            <h2>Import datovych zdroju</h2>
-            <p>Nahraj data z ruznych vstupu. Backend je zkontroluje, sjednoti a ulozi do databaze.</p>
+            <h2>Import datových zdrojů</h2>
+            <p>Nahraj data z různých vstupů. Backend je zkontroluje, sjednotí a uloží do databáze.</p>
           </div>
           <div class="panel-body">
             <div class="import-summary" aria-label="Souhrn importu">
-              <div class="import-summary-card"><span>Behu celkem</span><strong id="import-total-runs">0</strong></div>
-              <div class="import-summary-card"><span>Ulozeno radku</span><strong id="import-total-saved">0</strong></div>
-              <div class="import-summary-card"><span>Chybne radky</span><strong id="import-total-failed">0</strong></div>
-              <div class="import-summary-card"><span>Posledni stav</span><strong id="import-last-status">-</strong></div>
+              <div class="import-summary-card"><span>Běhů celkem</span><strong id="import-total-runs">0</strong></div>
+              <div class="import-summary-card"><span>Uloženo řádků</span><strong id="import-total-saved">0</strong></div>
+              <div class="import-summary-card"><span>Chybné řádky</span><strong id="import-total-failed">0</strong></div>
+              <div class="import-summary-card"><span>Poslední stav</span><strong id="import-last-status">-</strong></div>
             </div>
-            <div class="import-tabs" id="import-tabs" role="tablist" aria-label="Zpusob importu">
+            <div class="import-tabs" id="import-tabs" role="tablist" aria-label="Způsob importu">
               <button class="active" type="button" role="tab" aria-selected="true" data-import-tab="ares">ARES</button>
               <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="json">JSON</button>
               <button class="secondary" type="button" role="tab" aria-selected="false" data-import-tab="csv">CSV</button>
@@ -128,7 +128,7 @@
             </div>
             <div class="import-block import-pane" data-import-pane="json" hidden>
               <h3>JSON import s lidmi</h3>
-              <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
+              <p>Ukazuje data z jiného zdroje včetně vazeb mezi firmou a osobami.</p>
               <textarea id="json-input" aria-label="JSON import"></textarea>
               <div class="import-actions">
                 <button class="secondary" type="button" id="preview-json">Zkontrolovat JSON</button>
@@ -138,7 +138,7 @@
 
           <div class="import-block import-pane" data-import-pane="csv" hidden>
             <h3>CSV import</h3>
-            <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
+            <p>Jednoduchý hromadný vstup pro tabulková data.</p>
             <textarea id="csv-input" aria-label="CSV import"></textarea>
             <div class="import-actions">
               <button class="secondary" type="button" id="preview-csv">Zkontrolovat CSV</button>
@@ -147,32 +147,32 @@
           </div>
 
           <div class="import-block import-preview-block" id="import-preview-block" hidden>
-            <h3>Predimportni kontrola</h3>
-            <p>Nahled ukaze, ktere radky jsou pripravene k ulozeni a ktere je potreba opravit jeste pred importem.</p>
+            <h3>Předimportní kontrola</h3>
+            <p>Náhled ukáže, které řádky jsou připravené k uložení a které je potřeba opravit ještě před importem.</p>
             <div class="import-preview" id="import-preview">
-              <div class="empty">Spust kontrolu JSON nebo CSV vstupu.</div>
+              <div class="empty">Spusť kontrolu JSON nebo CSV vstupu.</div>
             </div>
           </div>
 
           <div class="import-block import-pane" data-import-pane="ares">
-            <h3>ARES podle ICO</h3>
-            <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
+            <h3>ARES podle IČO</h3>
+            <p>Doplňkový import reálných firemních dat z českého registru.</p>
             <form class="form-row" id="ares-form">
-              <input id="ico" name="ico" value="23143614" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
+              <input id="ico" name="ico" value="23143614" inputmode="numeric" autocomplete="off" aria-label="IČO pro ARES import">
               <button type="submit">Importovat</button>
             </form>
           </div>
             <div class="import-block import-pane" data-import-pane="history" hidden>
               <h3>Historie importu</h3>
-              <p>Posledni behy importu vcetne stavu a chybovych radku.</p>
+              <p>Poslední běhy importu včetně stavu a chybných řádků.</p>
               <div class="import-actions">
                 <button class="secondary" type="button" id="refresh-import-runs">Obnovit historii</button>
               </div>
               <div class="import-runs" id="import-runs">
-                <div class="empty">Historie importu se nacte z backendu.</div>
+                <div class="empty">Historie importu se načte z backendu.</div>
               </div>
               <div class="import-run-detail" id="import-run-detail" hidden>
-                <div class="empty">Vyber importni beh ze seznamu.</div>
+                <div class="empty">Vyber importní běh ze seznamu.</div>
               </div>
             </div>
           </div>
@@ -180,28 +180,28 @@
 
       <section class="panel view" id="search" data-view="search">
           <div class="panel-header">
-            <h2>Rejstrik firem</h2>
-            <p>Najdi konkretni firmu podle nazvu, ICO, osoby nebo role. Vysledkem je detail, vazby osob, historie zmen a watchlist.</p>
+            <h2>Rejstřík firem</h2>
+            <p>Najdi konkrétní firmu podle názvu, IČO, osoby nebo role. Výsledkem je detail, vazby osob, historie změn a watchlist.</p>
           </div>
           <div class="panel-body">
             <form class="toolbar" id="search-form">
-              <input id="query" name="q" value="" autocomplete="off" aria-label="Hledany text" placeholder="Firma, ICO, osoba nebo role">
+              <input id="query" name="q" value="" autocomplete="off" aria-label="Hledaný text" placeholder="Firma, IČO, osoba nebo role">
               <button type="submit">Hledat</button>
-              <button class="secondary" type="button" id="show-all">Zobrazit vse</button>
+              <button class="secondary" type="button" id="show-all">Zobrazit vše</button>
               <button class="watch" type="button" id="show-watchlist">Watchlist</button>
             </form>
             <div class="summary">
               <div class="metric">
                 <strong id="count">0</strong>
-                <span>nalezenych firem</span>
+                <span>nalezených firem</span>
               </div>
               <div class="metric">
                 <strong id="ares-count">0</strong>
-                <span>zaznamu z ARES</span>
+                <span>záznamů z ARES</span>
               </div>
               <div class="metric">
                 <strong id="change-count">0</strong>
-                <span>udalosti historie</span>
+                <span>událostí historie</span>
               </div>
               <div class="metric">
                 <strong id="watch-count">0</strong>
@@ -209,26 +209,26 @@
               </div>
             </div>
             <div class="results" id="results">
-              <div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>
+              <div class="empty">Žádné firmy nebyly nalezeny. Načti data z ARES, JSON nebo CSV, případně uprav vyhledávání.</div>
             </div>
           </div>
       </section>
 
       <section class="panel view" id="people" data-view="people">
         <div class="panel-header">
-          <h2>Registr lidi</h2>
-          <p>Samostatny prehled osob, jejich roli a firem, kde se v datech vyskytuji.</p>
+          <h2>Registr lidí</h2>
+          <p>Samostatný přehled osob, jejich rolí a firem, kde se v datech vyskytují.</p>
         </div>
         <div class="panel-body">
           <form class="toolbar people-toolbar" id="people-form">
-            <input id="people-query" name="q" value="" autocomplete="off" aria-label="Hledana osoba" placeholder="Jmeno osoby nebo cast jmena">
+            <input id="people-query" name="q" value="" autocomplete="off" aria-label="Hledaná osoba" placeholder="Jméno osoby nebo část jména">
             <button type="submit">Hledat</button>
-            <button class="secondary" type="button" id="people-show-all">Zobrazit vse</button>
+            <button class="secondary" type="button" id="people-show-all">Zobrazit vše</button>
           </form>
           <div class="summary people-summary">
             <div class="metric">
               <strong id="people-total">0</strong>
-              <span>nalezenych osob</span>
+              <span>nalezených osob</span>
             </div>
             <div class="metric">
               <strong id="relationship-total">0</strong>
@@ -236,7 +236,7 @@
             </div>
           </div>
           <div class="results" id="people-results">
-            <div class="empty">Registr lidi se nacte z backendu podle importovanych nebo rucne prirazenych osob.</div>
+            <div class="empty">Registr lidí se načte z backendu podle importovaných nebo ručně přiřazených osob.</div>
           </div>
         </div>
       </section>
@@ -244,21 +244,21 @@
       <dialog class="record-dialog" id="company-edit-dialog" aria-labelledby="company-dialog-title">
         <form class="record-form" id="company-edit-form">
           <div class="dialog-heading">
-            <div><span>Firemni zaznam</span><h2 id="company-dialog-title">Upravit firmu</h2></div>
-            <button class="dialog-close" type="button" data-close-dialog="company-edit-dialog" aria-label="Zavrit">&times;</button>
+            <div><span>Firemní záznam</span><h2 id="company-dialog-title">Upravit firmu</h2></div>
+            <button class="dialog-close" type="button" data-close-dialog="company-edit-dialog" aria-label="Zavřít">&times;</button>
           </div>
           <input type="hidden" name="id">
-          <label>Nazev firmy<input name="name" required maxlength="255"></label>
+          <label>Název firmy<input name="name" required maxlength="255"></label>
           <div class="form-columns">
-            <label>ICO<input name="registrationNumber" required maxlength="30"></label>
-            <label>Stat<input name="country" maxlength="80"></label>
+            <label>IČO<input name="registrationNumber" required maxlength="30"></label>
+            <label>Stát<input name="country" maxlength="80"></label>
           </div>
-          <label>Pravni forma<input name="legalForm" maxlength="255"></label>
+          <label>Právní forma<input name="legalForm" maxlength="255"></label>
           <label>Adresa<textarea name="address" maxlength="600"></textarea></label>
           <label>Zdroj dat<input name="dataSource" maxlength="255"></label>
           <div class="dialog-actions">
-            <button class="secondary" type="button" data-close-dialog="company-edit-dialog">Zrusit</button>
-            <button type="submit">Ulozit firmu</button>
+            <button class="secondary" type="button" data-close-dialog="company-edit-dialog">Zrušit</button>
+            <button type="submit">Uložit firmu</button>
           </div>
         </form>
       </dialog>
@@ -266,18 +266,18 @@
       <dialog class="record-dialog" id="person-edit-dialog" aria-labelledby="person-dialog-title">
         <form class="record-form" id="person-edit-form">
           <div class="dialog-heading">
-            <div><span>Osobni zaznam</span><h2 id="person-dialog-title">Upravit osobu</h2></div>
-            <button class="dialog-close" type="button" data-close-dialog="person-edit-dialog" aria-label="Zavrit">&times;</button>
+            <div><span>Osobní záznam</span><h2 id="person-dialog-title">Upravit osobu</h2></div>
+            <button class="dialog-close" type="button" data-close-dialog="person-edit-dialog" aria-label="Zavřít">&times;</button>
           </div>
           <input type="hidden" name="id">
-          <label>Jmeno a prijmeni<input name="fullName" required maxlength="255"></label>
-          <label>Datum narozeni<input name="dateOfBirth" type="date"></label>
-          <label>Bydliste<textarea name="residenceAddress" maxlength="600"></textarea></label>
-          <label>Poznamka<textarea name="note" maxlength="1200"></textarea></label>
-          <p class="privacy-note">Citlive identifikatory, jako rodne cislo, se bez prihlaseni a sifrovani neukladaji.</p>
+          <label>Jméno a příjmení<input name="fullName" required maxlength="255"></label>
+          <label>Datum narození<input name="dateOfBirth" type="date"></label>
+          <label>Bydliště<textarea name="residenceAddress" maxlength="600"></textarea></label>
+          <label>Poznámka<textarea name="note" maxlength="1200"></textarea></label>
+          <p class="privacy-note">Citlivé identifikátory, jako rodné číslo, se bez přihlášení a šifrování neukládají.</p>
           <div class="dialog-actions">
-            <button class="secondary" type="button" data-close-dialog="person-edit-dialog">Zrusit</button>
-            <button type="submit">Ulozit osobu</button>
+            <button class="secondary" type="button" data-close-dialog="person-edit-dialog">Zrušit</button>
+            <button type="submit">Uložit osobu</button>
           </div>
         </form>
       </dialog>
@@ -285,23 +285,23 @@
       <section class="audit-panel view" id="audit" data-view="audit">
         <div class="panel-header">
           <h2>Audit log</h2>
-          <p>Samostatna stranka pro udalosti aplikace: importy, vyhledavani, chyby, watchlist, archiv a tiskovy vypis.</p>
+          <p>Samostatná stránka pro události aplikace: importy, vyhledávání, chyby, watchlist, archiv a tiskový výpis.</p>
         </div>
         <div class="panel-body">
           <div class="audit-filter-bar">
             <select id="audit-type-filter" aria-label="Filtr typu audit logu">
-              <option value="">Vsechny typy udalosti</option>
+              <option value="">Všechny typy událostí</option>
             </select>
             <select id="audit-filter" aria-label="Filtr audit logu">
-              <option value="all">Vsechny dulezitosti</option>
-              <option value="critical">Kriticke</option>
-              <option value="warning">Upozorneni</option>
-              <option value="info">Informacni</option>
-              <option value="low">Nizke</option>
+              <option value="all">Všechny důležitosti</option>
+              <option value="critical">Kritické</option>
+              <option value="warning">Upozornění</option>
+              <option value="info">Informační</option>
+              <option value="low">Nízké</option>
             </select>
-            <input id="audit-query-filter" type="search" placeholder="Firma, ICO nebo text" aria-label="Hledat v audit logu">
+            <input id="audit-query-filter" type="search" placeholder="Firma, IČO nebo text" aria-label="Hledat v audit logu">
             <details class="audit-advanced">
-              <summary>Dalsi filtry</summary>
+              <summary>Další filtry</summary>
               <div class="audit-advanced-fields">
                 <input id="audit-import-filter" type="number" min="1" placeholder="Import ID" aria-label="Filtrovat podle importu">
                 <div class="audit-date-range">
@@ -312,26 +312,26 @@
             </details>
           </div>
           <div class="audit-toolbar">
-            <button class="secondary" type="button" id="refresh-audit">Nacist z backendu</button>
-            <button class="secondary" type="button" id="clear-audit-filters">Zrusit filtry</button>
-            <button class="secondary" type="button" id="archive-audit">Archivovat aktivni</button>
+            <button class="secondary" type="button" id="refresh-audit">Načíst z backendu</button>
+            <button class="secondary" type="button" id="clear-audit-filters">Zrušit filtry</button>
+            <button class="secondary" type="button" id="archive-audit">Archivovat aktivní</button>
             <button class="secondary" type="button" id="export-audit">Export CSV</button>
-            <button type="button" id="print-audit">Tisk A4 na sirku</button>
+            <button type="button" id="print-audit">Tisk A4 na šířku</button>
             <div class="spacer"></div>
             <button class="secondary" type="button" id="show-archive">Zobrazit archiv</button>
           </div>
           <div class="audit-stats">
-            <div class="audit-stat"><strong id="audit-total">0</strong><span>aktivnich udalosti</span></div>
-            <div class="audit-stat"><strong id="audit-critical">0</strong><span>kriticke</span></div>
-            <div class="audit-stat"><strong id="audit-warning">0</strong><span>upozorneni</span></div>
+            <div class="audit-stat"><strong id="audit-total">0</strong><span>aktivních událostí</span></div>
+            <div class="audit-stat"><strong id="audit-critical">0</strong><span>kritické</span></div>
+            <div class="audit-stat"><strong id="audit-warning">0</strong><span>upozornění</span></div>
             <div class="audit-stat"><strong id="audit-archived">0</strong><span>v archivu</span></div>
           </div>
           <div class="audit-list" id="audit-list"></div>
           <div class="archive-box" id="archive-box" hidden>
-            <h3>Archivovane udalosti</h3>
+            <h3>Archivované události</h3>
             <div class="audit-list" id="archive-list"></div>
           </div>
-          <section class="audit-print-sheet" id="audit-print-sheet" aria-label="Tiskovy auditni vypis">
+          <section class="audit-print-sheet" id="audit-print-sheet" aria-label="Tiskový auditní výpis">
             <div class="audit-print-heading">
               <div>
                 <h1>Company Intelligence Explorer</h1>
@@ -342,8 +342,8 @@
             <table class="audit-print-table" id="audit-print-table">
               <thead>
                 <tr>
-                  <th>Cas</th>
-                  <th>Dulezitost</th>
+                  <th>Čas</th>
+                  <th>Důležitost</th>
                   <th>Typ</th>
                   <th>Subjekt</th>
                   <th>Popis</th>
@@ -360,79 +360,79 @@
       <section class="audit-panel view" id="tasks" data-view="tasks">
         <div class="panel-header">
           <h2>TODO list projektu</h2>
-          <p>Postup prace na Company Intelligence Exploreru po jasnych bodech.</p>
+          <p>Postup práce na Company Intelligence Exploreru po jasných bodech.</p>
         </div>
         <div class="panel-body">
           <form class="task-form" id="task-form">
-            <input id="task-title" name="title" autocomplete="off" placeholder="Novy ukol" aria-label="Nazev ukolu">
-            <select id="task-segment" name="segment" aria-label="Segment ukolu">
+            <input id="task-title" name="title" autocomplete="off" placeholder="Nový úkol" aria-label="Název úkolu">
+            <select id="task-segment" name="segment" aria-label="Segment úkolu">
               <option value="Import">Import</option>
-              <option value="Vyhledavani">Vyhledavani</option>
+              <option value="Vyhledávání">Vyhledávání</option>
               <option value="Audit">Audit</option>
-              <option value="Lide">Lide</option>
+              <option value="Lidé">Lidé</option>
               <option value="UI">UI</option>
               <option value="Projekt">Projekt</option>
             </select>
-            <select id="task-priority" name="priority" aria-label="Priorita ukolu">
-              <option value="HIGH">Vysoka</option>
-              <option value="MEDIUM" selected>Stredni</option>
-              <option value="LOW">Nizka</option>
+            <select id="task-priority" name="priority" aria-label="Priorita úkolu">
+              <option value="HIGH">Vysoká</option>
+              <option value="MEDIUM" selected>Střední</option>
+              <option value="LOW">Nízká</option>
             </select>
-            <button type="submit">Pridat</button>
+            <button type="submit">Přidat</button>
           </form>
           <div class="task-summary">
-            <div class="audit-stat"><strong id="task-total">0</strong><span>aktivnich ukolu</span></div>
+            <div class="audit-stat"><strong id="task-total">0</strong><span>aktivních úkolů</span></div>
             <div class="audit-stat"><strong id="task-done">0</strong><span>hotovo</span></div>
-            <div class="audit-stat"><strong id="task-open">0</strong><span>zbyva</span></div>
+            <div class="audit-stat"><strong id="task-open">0</strong><span>zbývá</span></div>
           </div>
           <div class="audit-toolbar">
-            <button class="secondary" type="button" id="refresh-tasks">Nacist ukoly</button>
+            <button class="secondary" type="button" id="refresh-tasks">Načíst úkoly</button>
             <button class="secondary" type="button" id="toggle-task-archive">Zobrazit archiv</button>
           </div>
           <div class="task-list" id="task-list"></div>
           <div class="archive-box" id="task-archive-box" hidden>
-            <h3>Archivovane ukoly</h3>
+            <h3>Archivované úkoly</h3>
             <div class="task-list" id="task-archive-list"></div>
           </div>
         </div>
       </section>
 
-      <section class="legend-panel view" id="notes" data-view="notes" aria-label="Technicke poznamky">
-        <h2>Technicke poznamky</h2>
+      <section class="legend-panel view" id="notes" data-view="notes" aria-label="Technické poznámky">
+        <h2>Technické poznámky</h2>
         <section class="flow" aria-label="Tok dat">
           <div class="flow-card">
             <h2>Vstup</h2>
             <ul>
-              <li>CSV nebo JSON soubory s daty o firmach</li>
+              <li>CSV nebo JSON soubory s daty o firmách</li>
               <li>informace o lidech</li>
-              <li>role lidi ve firmach</li>
+              <li>role lidí ve firmách</li>
             </ul>
           </div>
           <div class="flow-card">
             <h2>Uvnitř</h2>
             <ul>
-              <li>kontrola a sjednoceni dat</li>
-              <li>ulozeni vazeb mezi lidmi a firmami</li>
-              <li>historie zmen a priprava pro hledani</li>
+              <li>kontrola a sjednocení dat</li>
+              <li>uložení vazeb mezi lidmi a firmami</li>
+              <li>historie změn a příprava pro hledání</li>
             </ul>
           </div>
           <div class="flow-card">
             <h2>Výstup</h2>
             <ul>
-              <li>vyhledavani a detail firmy</li>
-              <li>prehled napojenych lidi</li>
-              <li>historie zmen a watchlist</li>
+              <li>vyhledávání a detail firmy</li>
+              <li>přehled napojených lidí</li>
+              <li>historie změn a watchlist</li>
             </ul>
           </div>
         </section>
         <div class="module-list">
           <div class="module-item"><strong>ImportController</strong><span>vstupy dat</span></div>
           <div class="module-item"><strong>CompanyService</strong><span>logika a historie</span></div>
-          <div class="module-item"><strong>NormalizationService</strong><span>sjednoceni nazvu</span></div>
-          <div class="module-item"><strong>JPA + H2</strong><span>databaze</span></div>
+          <div class="module-item"><strong>NormalizationService</strong><span>sjednocení názvů</span></div>
+          <div class="module-item"><strong>JPA + H2</strong><span>databáze</span></div>
         </div>
         <details class="api-reference">
-          <summary>Technicky vypis REST API</summary>
+          <summary>Technický výpis REST API</summary>
           <code>
             POST /api/import/json<br>
             POST /api/import/csv<br>

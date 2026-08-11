@@ -37,7 +37,7 @@ export function setServerStatus(online) {
   const status = byId('server-status');
   status.classList.toggle('online', online);
   status.classList.toggle('offline', !online);
-  byId('status-title').textContent = online ? 'Server bezi' : 'Server offline';
+  byId('status-title').textContent = online ? 'Server běží' : 'Server offline';
 }
 
 export function updateText(id, value) {

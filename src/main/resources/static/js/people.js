@@ -31,13 +31,13 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
     try {
       people = await api.get(`/api/people?q=${encodeURIComponent(term)}`);
       setServerStatus(true);
-      audit.addActivity('Registr lidi', `${people.length} osob odpovida dotazu "${term || 'vse'}".`, 'low');
+      audit.addActivity('Registr lidí', `${people.length} osob odpovídá dotazu "${term || 'vše'}".`, 'low');
       if (selectedId && !people.some(person => person.id === selectedId)) selectedId = null;
       render();
     } catch (error) {
       setServerStatus(false);
-      showToast(error.status === 0 ? 'Server je offline.' : 'Registr lidi se nepodarilo nacist.');
-      audit.addActivity('Chyba registru lidi', 'API vratilo chybu pri nacitani osob a vazeb.', 'critical');
+      showToast(error.status === 0 ? 'Server je offline.' : 'Registr lidí se nepodařilo načíst.');
+      audit.addActivity('Chyba registru lidí', 'API vrátilo chybu při načítání osob a vazeb.', 'critical');
     }
   }
 
@@ -93,27 +93,27 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
       selectedId = updated.id;
       editDialog.close();
       render();
-      showToast('Osobni zaznam byl upraven.');
-      audit.addActivity('Uprava osoby', `${updated.fullName} byl upraven.`, 'warning');
+      showToast('Osobní záznam byl upraven.');
+      audit.addActivity('Úprava osoby', `${updated.fullName} byl upraven.`, 'warning');
       await onChanged();
     } catch (error) {
-      showToast(error.message || 'Osobu se nepodarilo ulozit.');
+      showToast(error.message || 'Osobu se nepodařilo uložit.');
     }
   }
 
   async function deletePerson(id) {
     const person = people.find(item => item.id === id);
-    if (!person || !window.confirm(`Opravdu smazat osobu ${person.fullName}? Odstrani se i vsechny jeji vazby na firmy.`)) return;
+    if (!person || !window.confirm(`Opravdu smazat osobu ${person.fullName}? Odstraní se i všechny její vazby na firmy.`)) return;
     try {
       await api.delete(`/api/people/${id}`);
       people = people.filter(item => item.id !== id);
       selectedId = null;
       render();
       showToast('Osoba byla smazana z registru.');
-      audit.addActivity('Smazani osoby', `${person.fullName} byl smazan z registru.`, 'critical');
+      audit.addActivity('Smazání osoby', `${person.fullName} byl smazán z registru.`, 'critical');
       await onChanged();
     } catch (error) {
-      showToast(error.message || 'Osobu se nepodarilo smazat.');
+      showToast(error.message || 'Osobu se nepodařilo smazat.');
     }
   }
 
@@ -121,7 +121,7 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
     updateText('people-total', people.length);
     updateText('relationship-total', people.reduce((sum, person) => sum + (person.roleCount || 0), 0));
     if (!people.length) {
-      results.innerHTML = '<div class="empty">Zadne osoby nebyly nalezeny. Prirad osobu v detailu firmy nebo importuj data s lidmi.</div>';
+      results.innerHTML = '<div class="empty">Žádné osoby nebyly nalezeny. Přiřaď osobu v detailu firmy nebo importuj data s lidmi.</div>';
       return;
     }
     results.innerHTML = people.map(person => renderPersonEntry(person)).join('');
@@ -132,8 +132,8 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
     return `<div class="registry-entry">
       <article class="person-card compact-person ${expanded ? 'selected expanded' : ''}">
         <div class="person-head"><div><h3>${escapeHtml(person.fullName)}</h3>
-          <p>${person.companyCount || 0} firem · ${person.roleCount || 0} roli</p></div>
-          <button class="secondary" type="button" data-person-id="${person.id}" aria-expanded="${expanded}">${expanded ? 'Skryt' : 'Detail'}</button></div>
+          <p>${person.companyCount || 0} firem · ${person.roleCount || 0} rolí</p></div>
+          <button class="secondary" type="button" data-person-id="${person.id}" aria-expanded="${expanded}">${expanded ? 'Skrýt' : 'Detail'}</button></div>
       </article>
       ${expanded ? renderDetail(person) : ''}
     </div>`;
@@ -145,10 +145,10 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
         <div class="record-actions"><button class="secondary" type="button" data-edit-record-id="${person.id}">Upravit osobu</button>
           <button class="danger" type="button" data-delete-record-id="${person.id}">Smazat osobu</button></div></div>
       <div class="person-profile-grid">
-        <div class="detail-section"><h4>Osobni udaje</h4>
-          ${detailRow('Datum narozeni', formatBirthDate(person.dateOfBirth) || '-')}
-          ${detailRow('Bydliste', person.residenceAddress || '-')}
-          ${detailRow('Poznamka', person.note || '-')}
+        <div class="detail-section"><h4>Osobní údaje</h4>
+          ${detailRow('Datum narození', formatBirthDate(person.dateOfBirth) || '-')}
+          ${detailRow('Bydliště', person.residenceAddress || '-')}
+          ${detailRow('Poznámka', person.note || '-')}
         </div>
         <div class="detail-section"><h4>Souhrn vazeb</h4>
           ${detailRow('Firmy', person.companyCount || 0)}${detailRow('Role', person.roleCount || 0)}
@@ -161,11 +161,11 @@ export function initPeople({ audit, openCompany, onChanged = async () => {} }) {
   }
 
   function renderCompanies(companies) {
-    if (!companies.length) return '<div class="history-item">Osoba zatim nema vazbu na zadnou firmu.</div>';
+    if (!companies.length) return '<div class="history-item">Osoba zatím nemá vazbu na žádnou firmu.</div>';
     return companies.map(company => `
       <div class="relationship-item"><div><strong>${escapeHtml(company.companyName || 'Firma')}</strong>
-        <span>${escapeHtml(company.role || 'role neuvedena')} · ICO ${escapeHtml(company.registrationNumber || '-')}</span></div>
-        <button class="secondary" type="button" data-company-registration="${escapeHtml(company.registrationNumber || '')}">Otevrit firmu</button>
+        <span>${escapeHtml(company.role || 'role neuvedena')} · IČO ${escapeHtml(company.registrationNumber || '-')}</span></div>
+        <button class="secondary" type="button" data-company-registration="${escapeHtml(company.registrationNumber || '')}">Otevřít firmu</button>
       </div>`).join('');
   }
 

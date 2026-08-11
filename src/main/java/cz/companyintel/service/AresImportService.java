@@ -27,7 +27,7 @@ public class AresImportService {
         try {
             payload = restTemplate.getForObject(ARES_DETAIL_URL, JsonNode.class, normalizedIco);
         } catch (HttpClientErrorException.NotFound exception) {
-            throw new ResourceNotFoundException("ARES subject not found: " + normalizedIco);
+            throw new ResourceNotFoundException("Subjekt v ARES nebyl nalezen: " + normalizedIco);
         }
 
         CompanyRequest request = new CompanyRequest();

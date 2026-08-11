@@ -13,8 +13,8 @@ export function initImports({ audit, onChanged = async () => {} }) {
     initTabs();
     byId('preview-json').addEventListener('click', event => previewPayload(event.currentTarget, '/api/import/preview/json', jsonInput.value, 'application/json'));
     byId('preview-csv').addEventListener('click', event => previewPayload(event.currentTarget, '/api/import/preview/csv', csvInput.value, 'text/csv'));
-    byId('import-json').addEventListener('click', event => importPayload(event.currentTarget, '/api/import/json', jsonInput.value, 'application/json', 'JSON import dokoncen.'));
-    byId('import-csv').addEventListener('click', event => importPayload(event.currentTarget, '/api/import/csv', csvInput.value, 'text/csv', 'CSV import dokoncen.'));
+    byId('import-json').addEventListener('click', event => importPayload(event.currentTarget, '/api/import/json', jsonInput.value, 'application/json', 'JSON import dokončen.'));
+    byId('import-csv').addEventListener('click', event => importPayload(event.currentTarget, '/api/import/csv', csvInput.value, 'text/csv', 'CSV import dokončen.'));
     byId('ares-form').addEventListener('submit', event => {
       event.preventDefault();
       importAres(byId('ico').value, event.submitter);
@@ -50,20 +50,20 @@ export function initImports({ audit, onChanged = async () => {} }) {
   async function importAres(value, button) {
     const normalized = String(value || '').replace(/\D/g, '');
     if (!normalized) {
-      showToast('Zadej platne ICO.');
-      audit.addActivity('Neplatny vstup', 'ARES import byl zastaven, protoze ICO nebylo vyplneno.', 'warning');
+      showToast('Zadej platné IČO.');
+      audit.addActivity('Neplatný vstup', 'Import z ARES byl zastaven, protože IČO nebylo vyplněno.', 'warning');
       return;
     }
     if (button) setButtonBusy(button, true, 'Importuji...');
     try {
       const company = await api.send(`/api/import/ares/${encodeURIComponent(normalized)}`, 'POST', null, 'application/json');
-      showToast(`Nahrano: ${company.name}`);
-      audit.addActivity('Import z ARES', `ICO ${normalized} ulozeno jako ${company.name}.`, 'info');
+      showToast(`Nahráno: ${company.name}`);
+      audit.addActivity('Import z ARES', `IČO ${normalized} uloženo jako ${company.name}.`, 'info');
       await onChanged();
       await loadRuns(false);
     } catch (error) {
-      showToast(`ARES import selhal pro ICO ${normalized}.`);
-      audit.addActivity('ARES chyba', `Import ICO ${normalized} selhal.`, 'critical');
+      showToast(`Import z ARES selhal pro IČO ${normalized}.`);
+      audit.addActivity('Chyba ARES', `Import IČO ${normalized} selhal.`, 'critical');
       await audit.load(false);
     } finally {
       if (button) setButtonBusy(button, false);
@@ -72,20 +72,20 @@ export function initImports({ audit, onChanged = async () => {} }) {
 
   async function importPayload(button, url, body, contentType, successMessage) {
     if (!String(body || '').trim()) {
-      showToast('Nejdrive vloz data pro import.');
+      showToast('Nejdříve vlož data pro import.');
       return;
     }
     setButtonBusy(button, true, 'Importuji...');
     try {
       const result = await api.send(url, 'POST', body, contentType);
-      showToast(`${successMessage} Ulozeno: ${result.imported || 0}, chyby: ${result.failed || 0}.`);
-      audit.addActivity('Import dat', `${result.imported || 0} zaznamu ulozeno do databaze.`, result.failed ? 'warning' : 'info');
+      showToast(`${successMessage} Uloženo: ${result.imported || 0}, chyby: ${result.failed || 0}.`);
+      audit.addActivity('Import dat', `${result.imported || 0} záznamů uloženo do databáze.`, result.failed ? 'warning' : 'info');
       await onChanged();
       await loadRuns(false);
       showTab('history');
     } catch (error) {
-      showToast('Import selhal. Zkontroluj format vstupu.');
-      audit.addActivity('Chyba importu', 'Import selhal pri kontrole formatu vstupnich dat.', 'critical');
+      showToast('Import selhal. Zkontroluj formát vstupu.');
+      audit.addActivity('Chyba importu', 'Import selhal při kontrole formátu vstupních dat.', 'critical');
       await audit.load(false);
     } finally {
       setButtonBusy(button, false);
@@ -94,17 +94,17 @@ export function initImports({ audit, onChanged = async () => {} }) {
 
   async function previewPayload(button, url, body, contentType) {
     if (!String(body || '').trim()) {
-      showToast('Nejdrive vloz data pro kontrolu.');
+      showToast('Nejdříve vlož data pro kontrolu.');
       return;
     }
     setButtonBusy(button, true, 'Kontroluji...');
     try {
       const result = await api.send(url, 'POST', body, contentType);
       renderPreview(result);
-      showToast(result.invalidRows ? 'Kontrola nasla chyby ve vstupu.' : 'Vstup je pripraveny k importu.');
+      showToast(result.invalidRows ? 'Kontrola našla chyby ve vstupu.' : 'Vstup je připravený k importu.');
     } catch (error) {
       showToast('Kontrola vstupu selhala.');
-      audit.addActivity('Kontrola importu', 'Backend nevratil validacni nahled importu.', 'warning');
+      audit.addActivity('Kontrola importu', 'Backend nevrátil validační náhled importu.', 'warning');
     } finally {
       setButtonBusy(button, false);
     }
@@ -122,9 +122,9 @@ export function initImports({ audit, onChanged = async () => {} }) {
       updateSummary(importRuns);
       runDetail.hidden = true;
       runs.hidden = false;
-      if (showMessage) showToast('Historie importu nactena z backendu.');
+      if (showMessage) showToast('Historie importu načtena z backendu.');
     } catch (error) {
-      runs.innerHTML = '<div class="empty">Historii importu se nepodarilo nacist.</div>';
+      runs.innerHTML = '<div class="empty">Historii importu se nepodařilo načíst.</div>';
       updateSummary([]);
     }
   }
@@ -136,7 +136,7 @@ export function initImports({ audit, onChanged = async () => {} }) {
       runs.hidden = true;
       runDetail.hidden = false;
     } catch (error) {
-      showToast('Detail importu se nepodarilo nacist.');
+      showToast('Detail importu se nepodařilo načíst.');
     }
   }
 
@@ -144,26 +144,26 @@ export function initImports({ audit, onChanged = async () => {} }) {
     runs.innerHTML = importRuns.length ? importRuns.map(run => `
       <article class="import-run"><div class="import-run-summary">
         <strong>${escapeHtml(run.sourceType || 'IMPORT')} · ${escapeHtml(run.status || 'UNKNOWN')}</strong>
-        <span>${formatDate(run.startedAt)}</span><div class="meta"><span>${run.importedRows || 0} ulozeno</span><span>${run.failedRows || 0} chyb</span></div>
+        <span>${formatDate(run.startedAt)}</span><div class="meta"><span>${run.importedRows || 0} uloženo</span><span>${run.failedRows || 0} chyb</span></div>
       </div><button class="secondary" type="button" data-import-run-id="${run.id}">Detail</button></article>`).join('')
-      : '<div class="empty">Zatim neprobehly zadne importy.</div>';
+      : '<div class="empty">Zatím neproběhly žádné importy.</div>';
   }
 
   function renderRunDetail(run) {
     const errors = run.errors || [];
     runDetail.innerHTML = `
       <div class="import-run-detail-head"><div><h3>${escapeHtml(run.sourceType || 'IMPORT')} · ${escapeHtml(run.status || 'UNKNOWN')}</h3>
-        <p>Beh #${run.id || '-'} · ${formatDate(run.startedAt)}</p></div>
-        <button class="secondary" type="button" id="back-to-import-runs">Zpet na historii</button></div>
+        <p>Běh #${run.id || '-'} · ${formatDate(run.startedAt)}</p></div>
+        <button class="secondary" type="button" id="back-to-import-runs">Zpět na historii</button></div>
       <div class="import-run-detail-grid">
-        <div class="import-run-detail-card"><span>Radku celkem</span><strong>${run.totalRows || 0}</strong></div>
-        <div class="import-run-detail-card"><span>Ulozeno</span><strong>${run.importedRows || 0}</strong></div>
-        <div class="import-run-detail-card"><span>Chybne</span><strong>${run.failedRows || 0}</strong></div>
+        <div class="import-run-detail-card"><span>Řádků celkem</span><strong>${run.totalRows || 0}</strong></div>
+        <div class="import-run-detail-card"><span>Uloženo</span><strong>${run.importedRows || 0}</strong></div>
+        <div class="import-run-detail-card"><span>Chybné</span><strong>${run.failedRows || 0}</strong></div>
         <div class="import-run-detail-card"><span>Zdroj</span><strong>${escapeHtml(run.sourceType || '-')}</strong></div>
       </div><div class="import-run-errors">${errors.length ? errors.map(error => `
-        <div class="import-run-error"><strong>Radek ${error.rowNumber || '-'}</strong><span>${escapeHtml(error.message || '')}</span>
+        <div class="import-run-error"><strong>Řádek ${error.rowNumber || '-'}</strong><span>${escapeHtml(error.message || '')}</span>
           ${error.rawValue ? `<code>${escapeHtml(error.rawValue)}</code>` : ''}</div>`).join('')
-        : '<div class="empty">Import neobsahuje zadne chybove radky.</div>'}</div>`;
+        : '<div class="empty">Import neobsahuje žádné chybové řádky.</div>'}</div>`;
   }
 
   function renderPreview(result) {
@@ -171,14 +171,14 @@ export function initImports({ audit, onChanged = async () => {} }) {
     preview.innerHTML = `
       <div class="import-preview-header">
         <div class="import-preview-stat"><span>Zdroj</span><strong>${escapeHtml(result.sourceType || 'IMPORT')}</strong></div>
-        <div class="import-preview-stat"><span>Radku</span><strong>${result.totalRows || 0}</strong></div>
-        <div class="import-preview-stat"><span>Pripraveno</span><strong>${result.validRows || 0}</strong></div>
+        <div class="import-preview-stat"><span>Řádků</span><strong>${result.totalRows || 0}</strong></div>
+        <div class="import-preview-stat"><span>Připraveno</span><strong>${result.validRows || 0}</strong></div>
         <div class="import-preview-stat"><span>Chyby</span><strong>${result.invalidRows || 0}</strong></div>
       </div>${rows.length ? rows.map(row => `
-        <article class="import-preview-row ${row.valid ? 'valid' : 'invalid'}"><strong>Radek ${row.rowNumber || '-'} · ${row.valid ? 'pripraveno' : 'chyba'}</strong>
-          <span>${escapeHtml(row.name || 'bez nazvu')} ${row.registrationNumber ? `· ICO ${escapeHtml(row.registrationNumber)}` : ''}</span>
+        <article class="import-preview-row ${row.valid ? 'valid' : 'invalid'}"><strong>Řádek ${row.rowNumber || '-'} · ${row.valid ? 'připraveno' : 'chyba'}</strong>
+          <span>${escapeHtml(row.name || 'bez názvu')} ${row.registrationNumber ? `· IČO ${escapeHtml(row.registrationNumber)}` : ''}</span>
           <span>${escapeHtml(row.message || '')}</span>${!row.valid && row.rawValue ? `<code>${escapeHtml(row.rawValue)}</code>` : ''}</article>`).join('')
-        : '<div class="empty">Kontrola neobsahuje zadne datove radky.</div>'}`;
+        : '<div class="empty">Kontrola neobsahuje žádné datové řádky.</div>'}`;
   }
 
   function updateSummary(importRuns) {

@@ -24,9 +24,9 @@ export function initAudit() {
   let archivedEntries = [];
   let localEntries = [{
     id: null,
-    title: 'System pripraven',
+    title: 'Systém připraven',
     type: 'CLIENT',
-    message: 'Ceka na import nebo vyhledavani firemnich dat.',
+    message: 'Čeká na import nebo vyhledávání firemních dat.',
     level: 'info',
     time: 'po startu',
     archived: false
@@ -82,10 +82,10 @@ export function initAudit() {
       archivedEntries = archived.map(toEntry);
       render();
       if (showMessage) {
-        showToast('Audit log nacten z backendu.');
+        showToast('Audit log načten z backendu.');
       }
     } catch (error) {
-      addActivity('Audit chyba', 'Backendovy audit log se nepodarilo nacist.', 'warning');
+      addActivity('Chyba auditu', 'Backendový audit log se nepodařilo načíst.', 'warning');
     }
   }
 
@@ -93,11 +93,11 @@ export function initAudit() {
     try {
       const current = controls.type.value;
       const types = await api.get('/api/audit/types');
-      controls.type.innerHTML = '<option value="">Vsechny typy udalosti</option>'
+      controls.type.innerHTML = '<option value="">Všechny typy událostí</option>'
         + types.map(type => `<option value="${escapeHtml(type)}">${escapeHtml(type)}</option>`).join('');
       controls.type.value = types.includes(current) ? current : '';
     } catch (error) {
-      addActivity('Audit typy', 'Typy auditnich udalosti se nepodarilo nacist.', 'warning');
+      addActivity('Typy auditu', 'Typy auditních událostí se nepodařilo načíst.', 'warning');
     }
   }
 
@@ -135,18 +135,18 @@ export function initAudit() {
   async function archiveActive() {
     const ids = backendEntries.map(entry => entry.id).filter(Number.isFinite);
     if (!ids.length) {
-      showToast('Audit log nema zadne aktivni zaznamy.');
+      showToast('Audit log nemá žádné aktivní záznamy.');
       return;
     }
     try {
       await api.post('/api/audit/archive', { ids, archived: true });
       archiveVisible = true;
       syncArchiveVisibility();
-      showToast('Aktivni audit log byl presunut do archivu.');
+      showToast('Aktivní audit log byl přesunut do archivu.');
       await load(false);
     } catch (error) {
       showToast('Archivace audit logu selhala.');
-      addActivity('Audit archiv', 'Backend neulozil archivaci vybranych udalosti.', 'warning');
+      addActivity('Archiv auditu', 'Backend neuložil archivaci vybraných událostí.', 'warning');
     }
   }
 
@@ -159,10 +159,10 @@ export function initAudit() {
     const id = Number(button.dataset.auditArchive || button.dataset.auditRestore);
     try {
       await api.post(`/api/audit/${id}/archive`, { archived: Boolean(archiveButton) });
-      showToast(archiveButton ? 'Udalost byla archivovana.' : 'Udalost byla obnovena.');
+      showToast(archiveButton ? 'Událost byla archivována.' : 'Událost byla obnovena.');
       await load(false);
     } catch (error) {
-      showToast('Stav auditni udalosti se nepodarilo ulozit.');
+      showToast('Stav auditní události se nepodařilo uložit.');
     }
   }
 
@@ -173,7 +173,7 @@ export function initAudit() {
 
   function syncArchiveVisibility() {
     archiveBox.hidden = !archiveVisible;
-    showArchive.textContent = archiveVisible ? 'Skryt archiv' : 'Zobrazit archiv';
+    showArchive.textContent = archiveVisible ? 'Skrýt archiv' : 'Zobrazit archiv';
   }
 
   function print() {
@@ -207,13 +207,13 @@ export function initAudit() {
     const recent = activeEntries.slice(0, 2);
     activityLog.innerHTML = recent.length
       ? recent.map(renderPreviewEntry).join('')
-      : '<div class="activity-item"><strong>Audit zatim prazdny</strong><span>Aktivni log je prazdny.</span></div>';
+      : '<div class="activity-item"><strong>Audit je zatím prázdný</strong><span>Aktivní log je prázdný.</span></div>';
     list.innerHTML = activeEntries.length
       ? activeEntries.map(renderEntry).join('')
-      : '<div class="empty">Pro zvoleny filtr nejsou zadne aktivni udalosti.</div>';
+      : '<div class="empty">Pro zvolený filtr nejsou žádné aktivní události.</div>';
     archiveList.innerHTML = archivedEntries.length
       ? archivedEntries.map(renderEntry).join('')
-      : '<div class="empty">Archiv je zatim prazdny.</div>';
+      : '<div class="empty">Archiv je zatím prázdný.</div>';
     updateText('audit-total', activeEntries.length);
     updateText('audit-critical', activeEntries.filter(entry => entry.level === 'critical').length);
     updateText('audit-warning', activeEntries.filter(entry => entry.level === 'warning').length);
@@ -225,7 +225,7 @@ export function initAudit() {
     const allEntries = [...activeEntries, ...archiveEntries];
     const printable = allEntries.slice(0, PRINT_ROW_LIMIT);
     printMeta.innerHTML = `<strong>${escapeHtml(new Date().toLocaleString('cs-CZ'))}</strong>
-      <span>${printable.length} z ${allEntries.length} zaznamu</span>`;
+      <span>${printable.length} z ${allEntries.length} záznamů</span>`;
     printBody.innerHTML = printable.length ? printable.map(entry => `
       <tr class="severity-${escapeHtml(entry.level)}">
         <td>${escapeHtml(entry.time)}</td>
@@ -233,11 +233,11 @@ export function initAudit() {
         <td>${escapeHtml(entry.type || entry.title)}</td>
         <td>${escapeHtml(shorten(entry.subject || 'Aplikace', 60))}</td>
         <td>${escapeHtml(shorten(entry.description || entry.message, 120))}</td>
-        <td>${entry.archived ? 'Archiv' : 'Aktivni'}</td>
-      </tr>`).join('') : '<tr><td colspan="6">Pro zvolene filtry nejsou zadne udalosti.</td></tr>';
+        <td>${entry.archived ? 'Archiv' : 'Aktivní'}</td>
+      </tr>`).join('') : '<tr><td colspan="6">Pro zvolené filtry nejsou žádné události.</td></tr>';
     printFooter.textContent = allEntries.length > PRINT_ROW_LIMIT
-      ? `Vytisteno prvnich ${PRINT_ROW_LIMIT} zaznamu. Uplny vypis je dostupny pres Export CSV.`
-      : 'Vypis obsahuje vsechny aktualne filtrovane zaznamy.';
+      ? `Vytištěno prvních ${PRINT_ROW_LIMIT} záznamů. Úplný výpis je dostupný přes Export CSV.`
+      : 'Výpis obsahuje všechny aktuálně filtrované záznamy.';
   }
 
   function shorten(value, limit) {
@@ -263,8 +263,8 @@ export function initAudit() {
   }
 
   function levelLabel(level) {
-    return ({ low: 'nizke', info: 'informacni', warning: 'upozorneni', critical: 'kriticke' })[level]
-      || 'informacni';
+    return ({ low: 'nízké', info: 'informační', warning: 'upozornění', critical: 'kritické' })[level]
+      || 'informační';
   }
 
   function mapSeverity(value) {

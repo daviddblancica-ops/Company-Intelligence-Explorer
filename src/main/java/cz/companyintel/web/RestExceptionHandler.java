@@ -36,7 +36,7 @@ public class RestExceptionHandler {
         return new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                "Unexpected server error",
+                "Neočekávaná chyba serveru",
                 request.getRequestURI());
     }
 }

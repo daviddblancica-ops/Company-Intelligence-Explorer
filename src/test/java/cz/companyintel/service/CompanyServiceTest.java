@@ -165,7 +165,7 @@ class CompanyServiceTest {
 
         assertThatThrownBy(() -> companyService.assignPerson(saved.getId(), "   ", "kontrolor"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Person full name is required");
+                .hasMessage("Jméno osoby je povinné");
         assertThat(personRepository.count()).isEqualTo(peopleBefore);
     }
 

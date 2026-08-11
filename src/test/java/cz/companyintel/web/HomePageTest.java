@@ -41,7 +41,7 @@ class HomePageTest {
 
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).contains("Company Intelligence Explorer");
-        assertThat(response.getBody()).contains("Nacist z backendu");
+        assertThat(response.getBody()).contains("Načíst z backendu");
         assertThat(response.getBody()).contains("type=\"module\" src=\"/app.js\"");
         assertThat(response.getBody()).contains("href=\"/styles.css\"");
         assertThat(response.getBody()).doesNotContain("<script>");
@@ -66,14 +66,14 @@ class HomePageTest {
         assertThat(response.getBody()).contains("audit-query-filter");
         assertThat(response.getBody()).contains("export-audit");
         assertThat(response.getBody()).contains("audit-print-table");
-        assertThat(response.getBody()).contains("Tisk A4 na sirku");
+        assertThat(response.getBody()).contains("Tisk A4 na šířku");
         assertThat(response.getBody()).contains("TODO list projektu");
-        assertThat(response.getBody()).contains("Stav jadra");
+        assertThat(response.getBody()).contains("Stav jádra");
         assertThat(response.getBody()).contains("dashboard-companies");
         assertThat(appScript.getStatusCodeValue()).isEqualTo(200);
         assertThat(appScript.getBody()).contains("initCompanies");
         assertThat(companyScript.getStatusCodeValue()).isEqualTo(200);
-        assertThat(companyScript.getBody()).contains("Priradit");
+        assertThat(companyScript.getBody()).contains("Přiřadit");
         assertThat(companyScript.getBody()).contains("data-edit-person-id");
         assertThat(importScript.getStatusCodeValue()).isEqualTo(200);
         assertThat(importScript.getBody()).contains("back-to-import-runs");
@@ -168,7 +168,7 @@ class HomePageTest {
         assertThat(export.getStatusCodeValue()).isEqualTo(200);
         assertThat(export.getHeaders().getContentType().toString()).startsWith("text/csv");
         assertThat(export.getHeaders().getFirst("Content-Disposition")).contains("company-intelligence-audit.csv");
-        assertThat(export.getBody()).contains("createdAt,severity,type,subject");
+        assertThat(export.getBody()).contains("čas,důležitost,typ,subjekt");
         assertThat(export.getBody()).contains("Filtered Audit Systems s.r.o.");
 
         Long eventId = firstId(filtered.getBody());
@@ -194,7 +194,7 @@ class HomePageTest {
                 "/api/audit?severity=urgent", String.class);
 
         assertThat(response.getStatusCodeValue()).isEqualTo(400);
-        assertThat(response.getBody()).contains("Unsupported audit severity");
+        assertThat(response.getBody()).contains("Nepodporovaná důležitost auditu");
     }
 
     @Test
@@ -218,7 +218,7 @@ class HomePageTest {
         assertThat(runs.getBody()).contains("\"sourceType\":\"CSV\"");
         assertThat(runs.getBody()).contains("\"status\":\"PARTIAL\"");
         assertThat(runs.getBody()).contains("\"rowNumber\":3");
-        assertThat(runs.getBody()).contains("Expected 5 CSV columns");
+        assertThat(runs.getBody()).contains("Očekáváno 5 sloupců CSV");
     }
 
     @Test
@@ -266,9 +266,9 @@ class HomePageTest {
         assertThat(audit.getBody()).contains("\"type\":\"IMPORT_PARTIAL\"");
         assertThat(audit.getBody()).contains("\"severity\":\"WARNING\"");
         assertThat(audit.getBody()).contains("\"importRunId\":" + runId);
-        assertThat(audit.getBody()).contains("Import run #" + runId);
-        assertThat(audit.getBody()).contains("imported 1");
-        assertThat(audit.getBody()).contains("failed 1");
+        assertThat(audit.getBody()).contains("Importní běh #" + runId);
+        assertThat(audit.getBody()).contains("importováno 1");
+        assertThat(audit.getBody()).contains("chybně 1");
     }
 
     @Test
@@ -289,7 +289,7 @@ class HomePageTest {
         assertThat(preview.getBody()).contains("\"sourceType\":\"CSV\"");
         assertThat(preview.getBody()).contains("\"validRows\":1");
         assertThat(preview.getBody()).contains("\"invalidRows\":1");
-        assertThat(preview.getBody()).contains("Expected 5 CSV columns");
+        assertThat(preview.getBody()).contains("Očekáváno 5 sloupců CSV");
         assertThat(companies.getBody()).doesNotContain("Preview API s.r.o.");
     }
 
@@ -298,14 +298,14 @@ class HomePageTest {
         ResponseEntity<String> tasks = restTemplate.getForEntity("/api/tasks", String.class);
 
         assertThat(tasks.getStatusCodeValue()).isEqualTo(200);
-        assertThat(tasks.getBody()).contains("Stabilizovat jadro");
-        assertThat(tasks.getBody()).contains("Rozsirit rychle vyhledavani");
-        assertThat(tasks.getBody()).contains("\"title\":\"1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze\"");
-        assertThat(tasks.getBody()).contains("\"title\":\"2. Overit import realne firmy z ARES podle ICO\"");
-        assertThat(tasks.getBody()).contains("\"title\":\"3. Dodelat registr lidi a detail osoby s vazbami na firmy\"");
-        assertThat(tasks.getBody()).contains("\"title\":\"4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role\"");
-        assertThat(tasks.getBody()).contains("\"title\":\"5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis\"");
-        assertThat(tasks.getBody()).contains("\"title\":\"6. Pridat historii importnich behu vcetne chybovych radku\"");
+        assertThat(tasks.getBody()).contains("Stabilizovat jádro");
+        assertThat(tasks.getBody()).contains("Rozšířit rychlé vyhledávání");
+        assertThat(tasks.getBody()).contains("\"title\":\"1. Stabilizovat jádro: health endpoint, chybové odpovědi, stav databáze\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"2. Ověřit import reálné firmy z ARES podle IČO\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"3. Dodělat registr lidí a detail osoby s vazbami na firmy\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"4. Rozšířit rychlé vyhledávání podle firmy, IČO, osoby a role\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"5. Posílit audit: filtry, typy událostí, archiv a tiskový výpis\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"6. Přidat historii importních běhů včetně chybných řádků\"");
         assertThat(tasks.getBody()).contains("\"done\":true");
     }
 

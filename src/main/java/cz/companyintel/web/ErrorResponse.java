@@ -11,7 +11,7 @@ public class ErrorResponse {
     private final String path;
 
     public ErrorResponse(String message) {
-        this(500, "Internal Server Error", message, "");
+        this(500, "Chyba serveru", message, "");
     }
 
     public ErrorResponse(int status, String error, String message, String path) {

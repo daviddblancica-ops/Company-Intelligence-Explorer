@@ -61,25 +61,26 @@ public class CompanyService {
             }
         }
 
-        company.addChange(existing ? "UPDATED" : "CREATED", existing ? "Company profile updated" : "Company imported");
+        company.addChange(existing ? "UPDATED" : "CREATED",
+                existing ? "Profil firmy byl aktualizován" : "Firma byla importována");
         return companyRepository.save(company);
     }
 
     public Company getCompany(Long id) {
         return companyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Company not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Firma nebyla nalezena: " + id));
     }
 
     @Transactional
     public Company updateCompany(Long id, CompanyUpdateRequest request) {
         Company company = getCompany(id);
-        String name = required(request.getName(), "Company name is required");
-        String registrationNumber = required(request.getRegistrationNumber(), "Registration number is required");
+        String name = required(request.getName(), "Název firmy je povinný");
+        String registrationNumber = required(request.getRegistrationNumber(), "IČO je povinné");
         String normalizedName = normalizationService.normalizeName(name);
         companyRepository.findByRegistrationNumber(registrationNumber)
                 .filter(existing -> !existing.getId().equals(id))
                 .ifPresent(existing -> {
-                    throw new IllegalArgumentException("Registration number already belongs to another company");
+                    throw new IllegalArgumentException("IČO již patří jiné firmě");
                 });
 
         company.updateProfile(
@@ -90,7 +91,7 @@ public class CompanyService {
                 clean(request.getLegalForm()),
                 clean(request.getAddress()),
                 clean(request.getDataSource()));
-        company.addChange("UPDATED", "Company profile updated manually");
+        company.addChange("UPDATED", "Profil firmy byl ručně upraven");
         return companyRepository.save(company);
     }
 
@@ -111,7 +112,7 @@ public class CompanyService {
                 name,
                 registrationNumber,
                 "COMPANY_DELETED",
-                "Company deleted from registry: " + name + " (" + registrationNumber + ")"));
+                "Firma byla smazána z registru: " + name + " (" + registrationNumber + ")"));
     }
 
     public List<Company> searchCompanies(String query) {
@@ -125,20 +126,20 @@ public class CompanyService {
         company.setWatchlisted(watchlisted);
         company.addChange(
                 watchlisted ? "WATCHLISTED" : "UNWATCHLISTED",
-                watchlisted ? "Company added to watchlist" : "Company removed from watchlist");
+                watchlisted ? "Firma byla přidána na watchlist" : "Firma byla odebrána z watchlistu");
         return companyRepository.save(company);
     }
 
     @Transactional
     public Company assignPerson(Long companyId, String fullName, String role) {
         if (fullName == null || fullName.trim().isEmpty()) {
-            throw new IllegalArgumentException("Person full name is required");
+            throw new IllegalArgumentException("Jméno osoby je povinné");
         }
         Company company = getCompany(companyId);
         Person person = findOrCreatePerson(fullName.trim());
         String normalizedRole = role == null || role.trim().isEmpty() ? "role neuvedena" : role.trim();
         company.replaceRole(person, normalizedRole);
-        company.addChange("PERSON_ASSIGNED", person.getFullName() + " assigned as " + normalizedRole);
+        company.addChange("PERSON_ASSIGNED", person.getFullName() + " přiřazen jako " + normalizedRole);
         return companyRepository.save(company);
     }
 
@@ -147,9 +148,9 @@ public class CompanyService {
         Company company = getCompany(companyId);
         String normalizedRole = role == null || role.trim().isEmpty() ? "role neuvedena" : role.trim();
         if (!company.updateRole(personId, normalizedRole)) {
-            throw new ResourceNotFoundException("Person assignment not found: " + personId);
+            throw new ResourceNotFoundException("Přiřazení osoby nebylo nalezeno: " + personId);
         }
-        company.addChange("PERSON_ROLE_UPDATED", "Person role updated to " + normalizedRole);
+        company.addChange("PERSON_ROLE_UPDATED", "Role osoby byla změněna na " + normalizedRole);
         return companyRepository.save(company);
     }
 
@@ -157,9 +158,9 @@ public class CompanyService {
     public Company removePerson(Long companyId, Long personId) {
         Company company = getCompany(companyId);
         if (!company.removeRole(personId)) {
-            throw new ResourceNotFoundException("Person assignment not found: " + personId);
+            throw new ResourceNotFoundException("Přiřazení osoby nebylo nalezeno: " + personId);
         }
-        company.addChange("PERSON_REMOVED", "Person removed from company");
+        company.addChange("PERSON_REMOVED", "Osoba byla odebrána od firmy");
         return companyRepository.save(company);
     }
 

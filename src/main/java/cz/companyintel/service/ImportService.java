@@ -42,7 +42,7 @@ public class ImportService {
             return saveAll("JSON", rows);
         } catch (IOException exception) {
             ImportRun run = new ImportRun("JSON");
-            run.addError(1, limit(body), "JSON input could not be parsed: " + exception.getMessage());
+            run.addError(1, limit(body), "Vstup JSON se nepodařilo zpracovat: " + exception.getMessage());
             run.finish(1, 0, 1);
             ImportRun saved = importRunRepository.save(run);
             auditService.recordImportRun(saved);
@@ -68,7 +68,7 @@ public class ImportService {
             }
             String[] columns = line.split(",", -1);
             if (columns.length < 5) {
-                run.addError(rowNumber, limit(line), "Expected 5 CSV columns but found " + columns.length);
+                run.addError(rowNumber, limit(line), "Očekáváno 5 sloupců CSV, nalezeno " + columns.length);
                 continue;
             }
             CompanyRequest request = new CompanyRequest();
@@ -102,7 +102,8 @@ public class ImportService {
             return new ImportPreview("JSON", previewRows.size(), valid, invalid, previewRows);
         } catch (IOException exception) {
             List<ImportPreviewRow> rows = new ArrayList<ImportPreviewRow>();
-            rows.add(new ImportPreviewRow(1, false, "", "", "JSON input could not be parsed: " + exception.getMessage(), limit(body)));
+            rows.add(new ImportPreviewRow(1, false, "", "", "Vstup JSON se nepodařilo zpracovat: "
+                    + exception.getMessage(), limit(body)));
             return new ImportPreview("JSON", 1, 0, 1, rows);
         }
     }
@@ -132,7 +133,7 @@ public class ImportService {
                         false,
                         "",
                         "",
-                        "Expected 5 CSV columns but found " + columns.length,
+                        "Očekáváno 5 sloupců CSV, nalezeno " + columns.length,
                         limit(line)));
                 continue;
             }
@@ -161,7 +162,7 @@ public class ImportService {
 
     public ImportRun findRun(Long id) {
         return importRunRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Import run not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Importní běh nebyl nalezen: " + id));
     }
 
     private ImportResult saveAll(String sourceType, List<ImportRow> rows) {
@@ -213,13 +214,13 @@ public class ImportService {
 
     private String validate(CompanyRequest request) {
         if (request == null) {
-            return "Company row is empty";
+            return "Řádek firmy je prázdný";
         }
         if (request.getName() == null || request.getName().trim().isEmpty()) {
-            return "Company name is required";
+            return "Název firmy je povinný";
         }
         if (request.getRegistrationNumber() == null || request.getRegistrationNumber().trim().isEmpty()) {
-            return "Registration number is required";
+            return "IČO je povinné";
         }
         return null;
     }
@@ -230,7 +231,7 @@ public class ImportService {
                 valid,
                 request == null ? "" : request.getName(),
                 request == null ? "" : request.getRegistrationNumber(),
-                valid ? "Ready for import" : message,
+                valid ? "Připraveno k importu" : message,
                 limit(rawValue));
     }
 

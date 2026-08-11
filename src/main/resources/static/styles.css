@@ -1935,11 +1935,11 @@
 
     @media (max-width: 920px) {
       .shell {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .shell.sidebar-collapsed {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       .shell > aside {
@@ -1997,6 +1997,16 @@
 
       main {
         padding: 22px 16px;
+        min-width: 0;
+        max-width: 100%;
+      }
+
+      .topbar > *,
+      .view,
+      .panel,
+      .audit-panel {
+        min-width: 0;
+        max-width: 100%;
       }
 
       .workspace,
@@ -2040,6 +2050,27 @@
 
       h1 {
         font-size: 27px;
+        overflow-wrap: anywhere;
+      }
+
+      .task-form input,
+      .task-form select {
+        min-width: 0;
+        width: 100%;
+      }
+
+      .task-item {
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .task-item strong {
+        overflow-wrap: anywhere;
+      }
+
+      .task-actions {
+        grid-column: 2;
+        flex-wrap: wrap;
       }
 
       .import-tabs {

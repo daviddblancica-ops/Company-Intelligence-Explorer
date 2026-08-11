@@ -29,7 +29,7 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
       watchlistOnly = !watchlistOnly;
       showWatchlist.classList.toggle('active', watchlistOnly);
       showWatchlist.setAttribute('aria-pressed', String(watchlistOnly));
-      showToast(watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji vsechny vysledky.');
+      showToast(watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji všechny výsledky.');
       if (selectedId && !visibleCompanies().some(company => company.id === selectedId)) selectedId = null;
       renderList();
     });
@@ -46,13 +46,13 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     try {
       companies = await api.get(`/api/companies/search?q=${encodeURIComponent(term)}`);
       setServerStatus(true);
-      audit.addActivity('Vyhledavani', `${companies.length} zaznamu odpovida dotazu "${term || 'vse'}".`, 'low');
+      audit.addActivity('Vyhledávání', `${companies.length} záznamů odpovídá dotazu "${term || 'vše'}".`, 'low');
       if (selectedId && !companies.some(company => company.id === selectedId)) selectedId = null;
       renderList();
     } catch (error) {
       setServerStatus(false);
-      showToast(error.status === 0 ? 'Server je offline.' : 'Vyhledavani selhalo.');
-      audit.addActivity('Chyba vyhledavani', 'API vratilo chybu pri hledani firemnich zaznamu.', 'critical');
+      showToast(error.status === 0 ? 'Server je offline.' : 'Vyhledávání selhalo.');
+      audit.addActivity('Chyba vyhledávání', 'API vrátilo chybu při hledání firemních záznamů.', 'critical');
     }
   }
 
@@ -119,13 +119,13 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     try {
       const updated = await api.patch(`/api/companies/${id}/watchlist`, { watchlisted });
       replaceCompany(updated);
-      showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
-      audit.addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`, 'warning');
+      showToast(watchlisted ? 'Firma přidána na watchlist.' : 'Firma odebrána z watchlistu.');
+      audit.addActivity('Watchlist', `${updated.name} má stav: ${updated.watchlisted ? 'sledováno' : 'nesledováno'}.`, 'warning');
       renderList();
       await onChanged();
     } catch (error) {
-      showToast('Watchlist se nepodarilo ulozit.');
-      audit.addActivity('Watchlist chyba', 'Zmenu watchlistu se nepodarilo ulozit.', 'warning');
+      showToast('Watchlist se nepodařilo uložit.');
+      audit.addActivity('Chyba watchlistu', 'Změnu watchlistu se nepodařilo uložit.', 'warning');
     }
   }
 
@@ -138,7 +138,7 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     const companyId = event.target.dataset.companyId;
     const personId = event.target.dataset.editPersonId;
     if (!fullName) {
-      showToast('Vypln jmeno osoby.');
+      showToast('Vyplň jméno osoby.');
       return;
     }
     try {
@@ -147,15 +147,15 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
         : await api.post(`/api/companies/${companyId}/people`, { fullName, role });
       replaceCompany(updated);
       selectedId = updated.id;
-      showToast(personId ? 'Role osoby byla upravena.' : 'Osoba byla prirazena k firme.');
+      showToast(personId ? 'Role osoby byla upravena.' : 'Osoba byla přiřazena k firmě.');
       audit.addActivity('Vazba osoby', personId
         ? `${fullName}: role upravena u firmy ${updated.name}.`
-        : `${fullName} prirazen k firme ${updated.name}.`, 'warning');
+        : `${fullName} přiřazen k firmě ${updated.name}.`, 'warning');
       renderList();
       await Promise.allSettled([onChanged(), onPeopleChanged()]);
     } catch (error) {
-      showToast(personId ? 'Roli osoby se nepodarilo upravit.' : 'Osobu se nepodarilo priradit.');
-      audit.addActivity('Vazba osoby', 'Ulozeni vazby osoby selhalo.', 'warning');
+      showToast(personId ? 'Roli osoby se nepodařilo upravit.' : 'Osobu se nepodařilo přiřadit.');
+      audit.addActivity('Vazba osoby', 'Uložení vazby osoby selhalo.', 'warning');
     }
   }
 
@@ -165,7 +165,7 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     personForm.querySelector('[name="fullName"]').value = person.fullName || '';
     personForm.querySelector('[name="fullName"]').readOnly = true;
     personForm.querySelector('[name="role"]').value = person.role || '';
-    personForm.querySelector('button[type="submit"]').textContent = 'Ulozit roli';
+    personForm.querySelector('button[type="submit"]').textContent = 'Uložit roli';
     byId('person-cancel-edit').hidden = false;
     personForm.querySelector('[name="role"]').focus();
   }
@@ -173,16 +173,16 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
   async function removePersonRelationship(button) {
     const companyId = button.dataset.companyId;
     const personId = button.dataset.deletePersonId;
-    if (!window.confirm('Odebrat tuto osobu od firmy? Samotny zaznam osoby zustane v registru.')) return;
+    if (!window.confirm('Odebrat tuto osobu od firmy? Samotný záznam osoby zůstane v registru.')) return;
     try {
       const updated = await api.delete(`/api/companies/${companyId}/people/${personId}`);
       replaceCompany(updated);
-      showToast('Vazba osoby byla odstranena.');
-      audit.addActivity('Vazba osoby', `Osoba odebrana od firmy ${updated.name}.`, 'warning');
+      showToast('Vazba osoby byla odstraněna.');
+      audit.addActivity('Vazba osoby', `Osoba odebrána od firmy ${updated.name}.`, 'warning');
       renderList();
       await Promise.allSettled([onChanged(), onPeopleChanged()]);
     } catch (error) {
-      showToast('Vazbu osoby se nepodarilo odstranit.');
+      showToast('Vazbu osoby se nepodařilo odstranit.');
     }
   }
 
@@ -216,27 +216,27 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
       selectedId = updated.id;
       editDialog.close();
       renderList();
-      showToast('Firemni zaznam byl upraven.');
-      audit.addActivity('Uprava firmy', `${updated.name} byla upravena.`, 'warning');
+      showToast('Firemní záznam byl upraven.');
+      audit.addActivity('Úprava firmy', `${updated.name} byla upravena.`, 'warning');
       await onChanged();
     } catch (error) {
-      showToast(error.message || 'Firmu se nepodarilo ulozit.');
+      showToast(error.message || 'Firmu se nepodařilo uložit.');
     }
   }
 
   async function deleteCompany(id) {
     const company = companies.find(item => item.id === id);
-    if (!company || !window.confirm(`Opravdu smazat firmu ${company.name}? Vazby zmizi, audit zustane zachovan.`)) return;
+    if (!company || !window.confirm(`Opravdu smazat firmu ${company.name}? Vazby zmizí, audit zůstane zachován.`)) return;
     try {
       await api.delete(`/api/companies/${id}`);
       companies = companies.filter(item => item.id !== id);
       selectedId = null;
       renderList();
       showToast('Firma byla smazana z registru.');
-      audit.addActivity('Smazani firmy', `${company.name} byla smazana z registru.`, 'critical');
+      audit.addActivity('Smazání firmy', `${company.name} byla smazána z registru.`, 'critical');
       await Promise.allSettled([onChanged(), onPeopleChanged()]);
     } catch (error) {
-      showToast(error.message || 'Firmu se nepodarilo smazat.');
+      showToast(error.message || 'Firmu se nepodařilo smazat.');
     }
   }
 
@@ -261,8 +261,8 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
 
     if (!visible.length) {
       results.innerHTML = `<div class="empty">${watchlistOnly
-        ? 'Watchlist je prazdny. Oznac firmu tlacitkem Sledovat.'
-        : 'Zadne firmy nebyly nalezeny. Nacti data nebo uprav vyhledavani.'}</div>`;
+        ? 'Watchlist je prázdný. Označ firmu tlačítkem Sledovat.'
+        : 'Žádné firmy nebyly nalezeny. Načti data nebo uprav vyhledávání.'}</div>`;
       return;
     }
     results.innerHTML = visible.map(company => renderCompanyEntry(company)).join('');
@@ -273,18 +273,18 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     return `<div class="registry-entry">
       <article class="company compact-company ${expanded ? 'selected expanded' : ''}">
         <div class="company-head">
-          <div><h3>${escapeHtml(company.name)}</h3><p>ICO ${escapeHtml(company.registrationNumber)} · ${escapeHtml(company.address || 'adresa neuvedena')}</p></div>
+          <div><h3>${escapeHtml(company.name)}</h3><p>IČO ${escapeHtml(company.registrationNumber)} · ${escapeHtml(company.address || 'adresa neuvedena')}</p></div>
           <div class="company-actions">
-            <button class="secondary" type="button" data-detail-id="${company.id}" aria-expanded="${expanded}">${expanded ? 'Skryt' : 'Detail'}</button>
+            <button class="secondary" type="button" data-detail-id="${company.id}" aria-expanded="${expanded}">${expanded ? 'Skrýt' : 'Detail'}</button>
             <button class="watch ${company.watchlisted ? 'active' : ''}" type="button"
               data-watch-id="${company.id}" data-watch-state="${company.watchlisted ? 'false' : 'true'}"
-              aria-pressed="${company.watchlisted}">${company.watchlisted ? 'Sledovano' : 'Sledovat'}</button>
+              aria-pressed="${company.watchlisted}">${company.watchlisted ? 'Sledováno' : 'Sledovat'}</button>
           </div>
         </div>
         <div class="meta">
           <span>${escapeHtml(company.legalForm || '-')}</span>
           <span>${(company.people || []).length} osob</span>
-          <span>${(company.changes || []).length} zmen</span>
+          <span>${(company.changes || []).length} změn</span>
           <span class="badge ${company.watchlisted ? 'watchlisted' : ''}">${company.watchlisted ? 'WATCHLIST' : escapeHtml(company.dataSource || 'LOCAL')}</span>
         </div>
       </article>
@@ -294,27 +294,27 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
 
   function renderDetail(company) {
     return `<section class="inline-detail" aria-label="Detail firmy ${escapeHtml(company.name)}">
-      <div class="detail-heading"><div><h3>${escapeHtml(company.name)}</h3><p>${escapeHtml(company.address || 'Adresa neni uvedena')}</p></div>
+      <div class="detail-heading"><div><h3>${escapeHtml(company.name)}</h3><p>${escapeHtml(company.address || 'Adresa není uvedena')}</p></div>
         <div class="record-actions"><button class="secondary" type="button" data-edit-company-id="${company.id}">Upravit firmu</button>
           <button class="danger" type="button" data-delete-company-id="${company.id}">Smazat firmu</button></div></div>
-      <div class="detail-section"><h4>Zakladni udaje</h4>
-        ${detailRow('ICO', company.registrationNumber)}${detailRow('Stat', company.country || '-')}${detailRow('Pravni forma', company.legalForm || '-')}${detailRow('Zdroj', company.dataSource || '-')}
+      <div class="detail-section"><h4>Základní údaje</h4>
+        ${detailRow('IČO', company.registrationNumber)}${detailRow('Stát', company.country || '-')}${detailRow('Právní forma', company.legalForm || '-')}${detailRow('Zdroj', company.dataSource || '-')}
       </div>
       <div class="detail-section"><div class="section-heading"><h4>Osoby a role</h4><span>${(company.people || []).length}</span></div>
         <div class="relationship-list">${renderCompanyPeople(company.people || [], company.id)}</div>
         <form class="person-form" id="person-form" data-company-id="${company.id}">
-          <input name="fullName" autocomplete="off" placeholder="Jmeno osoby" aria-label="Jmeno osoby" required>
-          <input name="role" autocomplete="off" placeholder="Role ve firme" aria-label="Role ve firme">
-          <button type="submit">Priradit</button><button class="secondary" type="button" id="person-cancel-edit" hidden>Zrusit</button>
+          <input name="fullName" autocomplete="off" placeholder="Jméno osoby" aria-label="Jméno osoby" required>
+          <input name="role" autocomplete="off" placeholder="Role ve firmě" aria-label="Role ve firmě">
+          <button type="submit">Přiřadit</button><button class="secondary" type="button" id="person-cancel-edit" hidden>Zrušit</button>
         </form>
       </div>
-      <details class="history"><summary>Historie zmen (${(company.changes || []).length})</summary>
+      <details class="history"><summary>Historie změn (${(company.changes || []).length})</summary>
         <div class="history-list">${renderHistory(company.changes || [])}</div></details>
     </section>`;
   }
 
   function renderCompanyPeople(people, companyId) {
-    if (!people.length) return '<div class="history-item">U teto firmy zatim nejsou ulozene vazby na osoby.</div>';
+    if (!people.length) return '<div class="history-item">U této firmy zatím nejsou uložené vazby na osoby.</div>';
     return people.map(person => `
       <div class="relationship-item">
         <div><strong>${escapeHtml(person.fullName || 'Osoba')}</strong><span>${escapeHtml(person.role || 'role neuvedena')}</span></div>
@@ -327,8 +327,8 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
   }
 
   function renderHistory(changes) {
-    if (!changes.length) return '<div class="history-item">Historie zatim neobsahuje zadne udalosti.</div>';
-    return changes.map(change => `<div class="history-item"><strong>${escapeHtml(change.type || 'Zmena')}</strong>
+    if (!changes.length) return '<div class="history-item">Historie zatím neobsahuje žádné události.</div>';
+    return changes.map(change => `<div class="history-item"><strong>${escapeHtml(change.type || 'Změna')}</strong>
       <span>${escapeHtml(change.description || '')}</span><span>${formatDate(change.createdAt)}</span></div>`).join('');
   }
 
@@ -342,7 +342,7 @@ export function initCompanies({ audit, navigation, onChanged = async () => {}, o
     delete personForm.dataset.editPersonId;
     personForm.reset();
     personForm.querySelector('[name="fullName"]').readOnly = false;
-    personForm.querySelector('button[type="submit"]').textContent = 'Priradit';
+    personForm.querySelector('button[type="submit"]').textContent = 'Přiřadit';
     byId('person-cancel-edit').hidden = true;
   }
 

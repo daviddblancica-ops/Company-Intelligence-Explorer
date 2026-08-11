@@ -33,7 +33,7 @@ export function initDashboard({ onError = () => {} } = {}) {
       ['dashboard-companies', 'dashboard-people', 'dashboard-relationships',
         'dashboard-watchlisted', 'dashboard-audit', 'dashboard-imports']
         .forEach(id => updateText(id, '-'));
-      onError('Dashboard chyba', 'Metriky dashboardu se nepodarilo nacist.', 'warning');
+      onError('Chyba dashboardu', 'Metriky dashboardu se nepodařilo načíst.', 'warning');
     }
   }
 

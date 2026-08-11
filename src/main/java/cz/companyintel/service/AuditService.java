@@ -41,18 +41,18 @@ public class AuditService {
     @Transactional
     public ChangeEvent recordImportRun(ImportRun run) {
         String type = "IMPORT_" + run.getStatus();
-        String description = "Import run #" + run.getId()
-                + " (" + run.getSourceType() + ") finished with status " + run.getStatus()
-                + ": imported " + run.getImportedRows()
-                + ", failed " + run.getFailedRows()
-                + ", total " + run.getTotalRows() + ".";
+        String description = "Importní běh #" + run.getId()
+                + " (" + run.getSourceType() + ") dokončen se stavem " + run.getStatus()
+                + ": importováno " + run.getImportedRows()
+                + ", chybně " + run.getFailedRows()
+                + ", celkem " + run.getTotalRows() + ".";
         return changeEventRepository.save(new ChangeEvent(run, type, description));
     }
 
     @Transactional
     public ChangeEvent setArchived(Long id, boolean archived) {
         ChangeEvent event = changeEventRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Audit event not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Auditní událost nebyla nalezena: " + id));
         event.setArchived(archived);
         return changeEventRepository.save(event);
     }
@@ -60,17 +60,17 @@ public class AuditService {
     @Transactional
     public List<ChangeEvent> setArchived(List<Long> ids, boolean archived) {
         if (ids == null || ids.isEmpty()) {
-            throw new IllegalArgumentException("At least one audit event id is required");
+            throw new IllegalArgumentException("Je vyžadováno alespoň jedno ID auditní události");
         }
         Set<Long> uniqueIds = ids.stream()
                 .filter(id -> id != null)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         if (uniqueIds.isEmpty() || uniqueIds.size() > 500) {
-            throw new IllegalArgumentException("Audit archive request must contain 1 to 500 event ids");
+            throw new IllegalArgumentException("Požadavek na archivaci musí obsahovat 1 až 500 ID událostí");
         }
         List<ChangeEvent> events = changeEventRepository.findAllById(uniqueIds);
         if (events.size() != uniqueIds.size()) {
-            throw new ResourceNotFoundException("One or more audit events were not found");
+            throw new ResourceNotFoundException("Jedna nebo více auditních událostí nebylo nalezeno");
         }
         for (ChangeEvent event : events) {
             event.setArchived(archived);

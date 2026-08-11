@@ -12,7 +12,7 @@ public class AuditCsvExporter {
 
     public String export(List<ChangeEvent> events) {
         StringBuilder csv = new StringBuilder("\uFEFF");
-        csv.append("createdAt,severity,type,subject,registrationNumber,importRunId,description,archived\r\n");
+        csv.append("čas,důležitost,typ,subjekt,IČO,ID importu,popis,archivováno\r\n");
         for (ChangeEvent event : events) {
             append(csv, event.getCreatedAt() == null ? "" : DATE_FORMAT.format(event.getCreatedAt()));
             append(csv, event.getSeverity());
@@ -30,7 +30,7 @@ public class AuditCsvExporter {
         if (event.getImportRun() != null) {
             return "Import #" + event.getImportRun().getId();
         }
-        return event.getCompany() == null ? "System" : event.getCompany().getName();
+        return event.getCompany() == null ? "Systém" : event.getCompany().getName();
     }
 
     private static void append(StringBuilder csv, String value) {

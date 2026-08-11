@@ -70,6 +70,6 @@ class ImportServiceTest {
         assertThat(preview.getTotalRows()).isEqualTo(1);
         assertThat(preview.getValidRows()).isZero();
         assertThat(preview.getInvalidRows()).isEqualTo(1);
-        assertThat(preview.getRows().get(0).getMessage()).contains("JSON input could not be parsed");
+        assertThat(preview.getRows().get(0).getMessage()).contains("Vstup JSON se nepodařilo zpracovat");
     }
 }

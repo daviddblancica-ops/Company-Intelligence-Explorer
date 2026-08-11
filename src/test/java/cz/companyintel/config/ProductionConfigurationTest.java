@@ -35,5 +35,9 @@ class ProductionConfigurationTest {
                 "db/migration/mariadb/V2__link_import_runs_to_audit.sql").exists()).isTrue();
         assertThat(new ClassPathResource(
                 "db/migration/mariadb/V3__add_audit_severity.sql").exists()).isTrue();
+        assertThat(new ClassPathResource(
+                "db/migration/mariadb/V4__preserve_audit_subjects_and_extend_people.sql").exists()).isTrue();
+        assertThat(new ClassPathResource(
+                "db/migration/mariadb/V5__add_czech_diacritics_to_default_tasks.sql").exists()).isTrue();
     }
 }

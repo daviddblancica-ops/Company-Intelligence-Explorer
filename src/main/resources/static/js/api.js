@@ -12,7 +12,7 @@ async function request(url, options = {}) {
   try {
     response = await fetch(url, options);
   } catch (error) {
-    throw new ApiError('Server neodpovida.', 0, error);
+    throw new ApiError('Server neodpovídá.', 0, error);
   }
 
   const contentType = response.headers.get('content-type') || '';
@@ -26,7 +26,7 @@ async function request(url, options = {}) {
     const message = payload && typeof payload === 'object'
       ? payload.message || payload.error
       : payload;
-    throw new ApiError(message || `Pozadavek selhal (${response.status}).`, response.status, payload);
+    throw new ApiError(message || `Požadavek selhal (${response.status}).`, response.status, payload);
   }
   return payload;
 }
