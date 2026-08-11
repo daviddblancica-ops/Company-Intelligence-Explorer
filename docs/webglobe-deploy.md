@@ -43,11 +43,12 @@ export APP_EDITOR_PASSWORD="jine-dlouhe-nahodne-heslo"
 export APP_VIEWER_USERNAME="ctenar"
 export APP_VIEWER_PASSWORD="treti-dlouhe-nahodne-heslo"
 export SESSION_COOKIE_SECURE="true"
+export REQUIRE_HTTPS="true"
 ```
 
 Hodnoty `DB_HOST`, `DB_NAME`, `DB_USER` a `DB_PASSWORD` vezmi z Webglobe administrace databáze. Hesla nepatří do Gitu ani do dokumentace. Všechna tři uživatelská jména musí být odlišná a každé heslo musí mít alespoň deset znaků.
 
-`SESSION_COOKIE_SECURE=true` použij na serveru dostupném přes HTTPS. Pro dočasné lokální spuštění přes obyčejné HTTP nastav `false`, jinak prohlížeč relační cookie správně neodešle.
+`SESSION_COOKIE_SECURE=true` a `REQUIRE_HTTPS=true` použij na serveru dostupném přes HTTPS. Reverzní proxy musí předávat hlavičky `X-Forwarded-For` a `X-Forwarded-Proto`. Pro dočasné lokální spuštění přes obyčejné HTTP nastav obě hodnoty na `false`.
 
 Při prvním startu profilu `prod` Flyway vytvoří tabulku `flyway_schema_history` a provede dosud chybějící migrace. Funguje to pro prázdnou databázi i pro databázi, ve které už Hibernate dříve vytvořil tabulky. Hibernate v produkci schéma pouze ověřuje a sám ho nemění.
 

@@ -52,7 +52,14 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             ObjectMapper objectMapper,
-            @Value("${app.security.csrf-enabled:true}") boolean csrfEnabled) throws Exception {
+            @Value("${app.security.csrf-enabled:true}") boolean csrfEnabled,
+            @Value("${app.security.require-https:false}") boolean requireHttps) throws Exception {
+        if (requireHttps) {
+            http.requiresChannel()
+                    .anyRequest()
+                    .requiresSecure();
+        }
+
         if (csrfEnabled) {
             CookieCsrfTokenRepository csrfRepository = CookieCsrfTokenRepository.withHttpOnlyFalse();
             csrfRepository.setCookiePath("/");
@@ -66,7 +73,6 @@ public class SecurityConfiguration {
         http.authorizeRequests()
                 .antMatchers("/", "/index.html", "/styles.css", "/app.js", "/js/**").permitAll()
                 .antMatchers("/api/auth/session", "/api/auth/login", "/api/auth/logout").permitAll()
-                .antMatchers(HttpMethod.GET, "/api/health").permitAll()
                 .antMatchers("/h2-console/**").hasRole("ADMIN")
                 .antMatchers(HttpMethod.DELETE, "/api/companies/*", "/api/people/*").hasRole("ADMIN")
                 .antMatchers(HttpMethod.POST, "/api/audit/**").hasRole("ADMIN")

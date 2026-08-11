@@ -27,12 +27,10 @@ class SecurityAccessTest {
     private MockMvc mockMvc;
 
     @Test
-    void exposesHomeHealthAndAnonymousSessionWithoutLogin() throws Exception {
+    void exposesHomeAndAnonymousSessionWithoutLogin() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
                 .andExpect(forwardedUrl("index.html"));
-        mockMvc.perform(get("/api/health"))
-                .andExpect(status().isOk());
         mockMvc.perform(get("/api/auth/session"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.authenticated").value(false));
@@ -43,6 +41,8 @@ class SecurityAccessTest {
         mockMvc.perform(get("/api/companies/search"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Pro tuto operaci se musíte přihlásit."));
+        mockMvc.perform(get("/api/health"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -78,6 +78,9 @@ class SecurityAccessTest {
     @Test
     void viewerCanReadButCannotChangeRecords() throws Exception {
         mockMvc.perform(get("/api/companies/search")
+                        .with(httpBasic("viewer", "viewer-local-2026")))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/health")
                         .with(httpBasic("viewer", "viewer-local-2026")))
                 .andExpect(status().isOk());
         mockMvc.perform(post("/api/tasks")

@@ -73,8 +73,13 @@ $env:APP_EDITOR_USERNAME="editor"
 $env:APP_EDITOR_PASSWORD="JINE_DLOUHE_NAHODNE_HESLO"
 $env:APP_VIEWER_USERNAME="ctenar"
 $env:APP_VIEWER_PASSWORD="TRETI_DLOUHE_NAHODNE_HESLO"
-$env:SESSION_COOKIE_SECURE="false" # na HTTPS serveru nastavte true
+$env:SESSION_COOKIE_SECURE="true"
+$env:REQUIRE_HTTPS="true"
 ```
+
+Při lokálním ověřování produkčního profilu přes obyčejné HTTP nastavte obě poslední
+hodnoty na `false`. Na veřejném serveru musí zůstat `true` a reverzní proxy musí
+předávat hlavičky `X-Forwarded-For` a `X-Forwarded-Proto`.
 
 Postup pro Webglobe, SFTP/SCP a databázové proměnné je v:
 

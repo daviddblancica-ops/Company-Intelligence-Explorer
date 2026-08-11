@@ -25,6 +25,11 @@ class ProductionConfigurationTest {
         assertThat(production.getProperty("spring.flyway.locations"))
                 .isEqualTo("classpath:db/migration/mariadb");
         assertThat(production.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
+        assertThat(production.getProperty("server.forward-headers-strategy")).isEqualTo("native");
+        assertThat(production.getProperty("server.servlet.session.cookie.secure"))
+                .isEqualTo("${SESSION_COOKIE_SECURE:true}");
+        assertThat(production.getProperty("app.security.require-https"))
+                .isEqualTo("${REQUIRE_HTTPS:true}");
         assertThat(production.getProperty("app.security.users.admin.username"))
                 .isEqualTo("${APP_ADMIN_USERNAME}");
         assertThat(production.getProperty("app.security.users.admin.password"))
