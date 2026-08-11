@@ -56,7 +56,7 @@ public class Company {
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<CompanyPersonRole> people = new LinkedHashSet<CompanyPersonRole>();
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "company", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private Set<ChangeEvent> changes = new LinkedHashSet<ChangeEvent>();
 
     protected Company() {
@@ -85,6 +85,18 @@ public class Company {
         updateProfile(name, normalizedName, country, legalForm);
         this.address = address;
         this.dataSource = dataSource;
+    }
+
+    public void updateProfile(
+            String name,
+            String normalizedName,
+            String registrationNumber,
+            String country,
+            String legalForm,
+            String address,
+            String dataSource) {
+        this.registrationNumber = registrationNumber;
+        updateProfile(name, normalizedName, country, legalForm, address, dataSource);
     }
 
     public void addRole(Person person, String role) {

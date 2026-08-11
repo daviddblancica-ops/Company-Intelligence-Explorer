@@ -29,6 +29,10 @@ public class ChangeEvent {
     @JoinColumn(name = "company_id")
     private Company company;
 
+    private String companyName;
+
+    private String registrationNumber;
+
     @ManyToOne
     @JoinColumn(name = "import_run_id")
     private ImportRun importRun;
@@ -53,6 +57,8 @@ public class ChangeEvent {
 
     public ChangeEvent(Company company, String type, String description) {
         this.company = company;
+        this.companyName = company.getName();
+        this.registrationNumber = company.getRegistrationNumber();
         this.type = type;
         this.severity = severity(type);
         this.description = description;
@@ -67,12 +73,33 @@ public class ChangeEvent {
         this.createdAt = LocalDateTime.now();
     }
 
+    public ChangeEvent(String companyName, String registrationNumber, String type, String description) {
+        this.companyName = companyName;
+        this.registrationNumber = registrationNumber;
+        this.type = type;
+        this.severity = severity(type);
+        this.description = description;
+        this.createdAt = LocalDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }
 
     public Company getCompany() {
         return company;
+    }
+
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void detachCompany() {
+        this.company = null;
     }
 
     public ImportRun getImportRun() {
@@ -107,7 +134,7 @@ public class ChangeEvent {
         if (type == null) {
             return "INFO";
         }
-        if (type.contains("FAILED") || type.contains("ERROR")) {
+        if (type.contains("FAILED") || type.contains("ERROR") || type.contains("DELETED")) {
             return "CRITICAL";
         }
         if (type.contains("WATCHLIST") || type.contains("PERSON") || type.contains("PARTIAL")) {

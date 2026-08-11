@@ -24,6 +24,8 @@ public interface ChangeEventRepository extends JpaRepository<ChangeEvent, Long> 
             + "and (:query is null "
             + "or lower(company.name) like lower(concat('%', :query, '%')) "
             + "or company.registrationNumber like concat('%', :query, '%') "
+            + "or lower(event.companyName) like lower(concat('%', :query, '%')) "
+            + "or event.registrationNumber like concat('%', :query, '%') "
             + "or lower(event.description) like lower(concat('%', :query, '%'))) "
             + "and (:from is null or event.createdAt >= :from) "
             + "and (:toExclusive is null or event.createdAt < :toExclusive) "

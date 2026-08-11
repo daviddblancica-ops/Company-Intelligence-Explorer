@@ -131,7 +131,6 @@
               <p>Ukazuje data z jineho zdroje vcetne vazeb mezi firmou a osobami.</p>
               <textarea id="json-input" aria-label="JSON import"></textarea>
               <div class="import-actions">
-                <button class="secondary" type="button" id="load-json-demo">Vlozit ukazku</button>
                 <button class="secondary" type="button" id="preview-json">Zkontrolovat JSON</button>
                 <button type="button" id="import-json">Importovat JSON</button>
               </div>
@@ -142,7 +141,6 @@
             <p>Jednoduchy hromadny vstup pro tabulkova data.</p>
             <textarea id="csv-input" aria-label="CSV import"></textarea>
             <div class="import-actions">
-              <button class="secondary" type="button" id="load-csv-demo">Vlozit ukazku</button>
               <button class="secondary" type="button" id="preview-csv">Zkontrolovat CSV</button>
               <button type="button" id="import-csv">Importovat CSV</button>
             </div>
@@ -160,16 +158,9 @@
             <h3>ARES podle ICO</h3>
             <p>Doplnkovy import realnych firemnich dat z ceskeho registru.</p>
             <form class="form-row" id="ares-form">
-              <input id="ico" name="ico" value="00006947" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
+              <input id="ico" name="ico" value="23143614" inputmode="numeric" autocomplete="off" aria-label="ICO pro ARES import">
               <button type="submit">Importovat</button>
             </form>
-          </div>
-
-          <div class="import-block import-pane" data-import-pane="ares">
-            <h3>Demo importy</h3>
-            <p>Rychle nacti ukazkove subjekty nebo jednotlivy zaznam z predpripraveneho seznamu.</p>
-            <button class="secondary" type="button" id="seed-demo">Nahrat demo data z ARES</button>
-            <div class="demo-list" id="demo-list"></div>
           </div>
             <div class="import-block import-pane" data-import-pane="history" hidden>
               <h3>Historie importu</h3>
@@ -217,14 +208,8 @@
                 <span>na watchlistu</span>
               </div>
             </div>
-            <div class="content-grid">
-              <div class="results" id="results">
-                <div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>
-              </div>
-              <section class="detail" id="detail-panel" aria-label="Detail firmy">
-                <h3>Detail firmy</h3>
-                <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
-              </section>
+            <div class="results" id="results">
+              <div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>
             </div>
           </div>
       </section>
@@ -250,17 +235,52 @@
               <span>vazeb na firmy</span>
             </div>
           </div>
-          <div class="people-grid">
-            <div class="results" id="people-results">
-              <div class="empty">Registr lidi se nacte z backendu podle importovanych nebo rucne prirazenych osob.</div>
-            </div>
-            <section class="detail" id="people-detail" aria-label="Detail osoby">
-              <h3>Detail osoby</h3>
-              <p>Vyber osobu v registru. Tady se ukazou firmy, role a rychly prechod na detail firmy.</p>
-            </section>
+          <div class="results" id="people-results">
+            <div class="empty">Registr lidi se nacte z backendu podle importovanych nebo rucne prirazenych osob.</div>
           </div>
         </div>
       </section>
+
+      <dialog class="record-dialog" id="company-edit-dialog" aria-labelledby="company-dialog-title">
+        <form class="record-form" id="company-edit-form">
+          <div class="dialog-heading">
+            <div><span>Firemni zaznam</span><h2 id="company-dialog-title">Upravit firmu</h2></div>
+            <button class="dialog-close" type="button" data-close-dialog="company-edit-dialog" aria-label="Zavrit">&times;</button>
+          </div>
+          <input type="hidden" name="id">
+          <label>Nazev firmy<input name="name" required maxlength="255"></label>
+          <div class="form-columns">
+            <label>ICO<input name="registrationNumber" required maxlength="30"></label>
+            <label>Stat<input name="country" maxlength="80"></label>
+          </div>
+          <label>Pravni forma<input name="legalForm" maxlength="255"></label>
+          <label>Adresa<textarea name="address" maxlength="600"></textarea></label>
+          <label>Zdroj dat<input name="dataSource" maxlength="255"></label>
+          <div class="dialog-actions">
+            <button class="secondary" type="button" data-close-dialog="company-edit-dialog">Zrusit</button>
+            <button type="submit">Ulozit firmu</button>
+          </div>
+        </form>
+      </dialog>
+
+      <dialog class="record-dialog" id="person-edit-dialog" aria-labelledby="person-dialog-title">
+        <form class="record-form" id="person-edit-form">
+          <div class="dialog-heading">
+            <div><span>Osobni zaznam</span><h2 id="person-dialog-title">Upravit osobu</h2></div>
+            <button class="dialog-close" type="button" data-close-dialog="person-edit-dialog" aria-label="Zavrit">&times;</button>
+          </div>
+          <input type="hidden" name="id">
+          <label>Jmeno a prijmeni<input name="fullName" required maxlength="255"></label>
+          <label>Datum narozeni<input name="dateOfBirth" type="date"></label>
+          <label>Bydliste<textarea name="residenceAddress" maxlength="600"></textarea></label>
+          <label>Poznamka<textarea name="note" maxlength="1200"></textarea></label>
+          <p class="privacy-note">Citlive identifikatory, jako rodne cislo, se bez prihlaseni a sifrovani neukladaji.</p>
+          <div class="dialog-actions">
+            <button class="secondary" type="button" data-close-dialog="person-edit-dialog">Zrusit</button>
+            <button type="submit">Ulozit osobu</button>
+          </div>
+        </form>
+      </dialog>
 
       <section class="audit-panel view" id="audit" data-view="audit">
         <div class="panel-header">
@@ -418,8 +438,12 @@
             POST /api/import/csv<br>
             POST /api/import/ares/{ico}<br>
             GET /api/companies/search<br>
+            PUT /api/companies/{id}<br>
+            DELETE /api/companies/{id}<br>
             POST /api/companies/{id}/people<br>
-            PATCH /api/companies/{id}/watchlist
+            PATCH /api/companies/{id}/watchlist<br>
+            PUT /api/people/{id}<br>
+            DELETE /api/people/{id}
             <br>GET /api/audit
           </code>
         </details>

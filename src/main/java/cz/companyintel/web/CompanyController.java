@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/companies")
@@ -35,6 +36,17 @@ public class CompanyController {
     @GetMapping("/{id}")
     public CompanyResponse get(@PathVariable Long id) {
         return CompanyResponse.from(companyService.getCompany(id));
+    }
+
+    @PutMapping("/{id}")
+    public CompanyResponse update(@PathVariable Long id, @RequestBody CompanyUpdateRequest request) {
+        return CompanyResponse.from(companyService.updateCompany(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        companyService.deleteCompany(id);
     }
 
     @GetMapping("/search")

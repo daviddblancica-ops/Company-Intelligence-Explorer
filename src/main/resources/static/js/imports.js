@@ -1,7 +1,7 @@
 import { api } from './api.js';
 import { byId, escapeHtml, formatDate, setButtonBusy, showToast, updateText } from './ui.js';
 
-export function initImports({ audit, demoCompanies, sampleCsv, sampleJson, onChanged = async () => {} }) {
+export function initImports({ audit, onChanged = async () => {} }) {
   const jsonInput = byId('json-input');
   const csvInput = byId('csv-input');
   const previewBlock = byId('import-preview-block');
@@ -10,12 +10,7 @@ export function initImports({ audit, demoCompanies, sampleCsv, sampleJson, onCha
   const runDetail = byId('import-run-detail');
 
   function init() {
-    jsonInput.value = sampleJson;
-    csvInput.value = sampleCsv;
-    renderDemoList();
     initTabs();
-    byId('load-json-demo').addEventListener('click', () => setSample(jsonInput, sampleJson, 'JSON ukazka je pripravena.'));
-    byId('load-csv-demo').addEventListener('click', () => setSample(csvInput, sampleCsv, 'CSV ukazka je pripravena.'));
     byId('preview-json').addEventListener('click', event => previewPayload(event.currentTarget, '/api/import/preview/json', jsonInput.value, 'application/json'));
     byId('preview-csv').addEventListener('click', event => previewPayload(event.currentTarget, '/api/import/preview/csv', csvInput.value, 'text/csv'));
     byId('import-json').addEventListener('click', event => importPayload(event.currentTarget, '/api/import/json', jsonInput.value, 'application/json', 'JSON import dokoncen.'));
@@ -23,11 +18,6 @@ export function initImports({ audit, demoCompanies, sampleCsv, sampleJson, onCha
     byId('ares-form').addEventListener('submit', event => {
       event.preventDefault();
       importAres(byId('ico').value, event.submitter);
-    });
-    byId('seed-demo').addEventListener('click', seedDemo);
-    byId('demo-list').addEventListener('click', event => {
-      const button = event.target.closest('button[data-ico]');
-      if (button) importAres(button.dataset.ico, button);
     });
     byId('refresh-import-runs').addEventListener('click', () => loadRuns(true));
     runs.addEventListener('click', event => {
@@ -57,17 +47,6 @@ export function initImports({ audit, demoCompanies, sampleCsv, sampleJson, onCha
     }));
   }
 
-  function setSample(input, value, message) {
-    input.value = value;
-    showToast(message);
-  }
-
-  function renderDemoList() {
-    byId('demo-list').innerHTML = demoCompanies.map(item => `
-      <div class="demo-item"><div><strong>${escapeHtml(item.name)}</strong><span>ICO ${item.ico}</span></div>
-        <button class="secondary" type="button" data-ico="${item.ico}">Nahrat</button></div>`).join('');
-  }
-
   async function importAres(value, button) {
     const normalized = String(value || '').replace(/\D/g, '');
     if (!normalized) {
@@ -89,25 +68,6 @@ export function initImports({ audit, demoCompanies, sampleCsv, sampleJson, onCha
     } finally {
       if (button) setButtonBusy(button, false);
     }
-  }
-
-  async function seedDemo(event) {
-    const button = event.currentTarget;
-    setButtonBusy(button, true, 'Nahravam demo...');
-    let imported = 0;
-    for (const company of demoCompanies) {
-      try {
-        await api.send(`/api/import/ares/${company.ico}`, 'POST', null, 'application/json');
-        imported += 1;
-      } catch (error) {
-        audit.addActivity('ARES chyba', `Demo import ICO ${company.ico} selhal.`, 'warning');
-      }
-    }
-    setButtonBusy(button, false);
-    showToast(`Demo import dokoncen: ${imported}/${demoCompanies.length}.`);
-    audit.addActivity('Import z ARES', `${imported} ukazkove subjekty byly nacteny pres ARES API.`, 'info');
-    await onChanged();
-    await loadRuns(false);
   }
 
   async function importPayload(button, url, body, contentType, successMessage) {

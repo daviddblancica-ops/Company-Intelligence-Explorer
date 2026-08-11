@@ -21,9 +21,13 @@ public class ChangeEventResponse {
         response.id = event.getId();
         if (event.getCompany() != null) {
             response.companyId = event.getCompany().getId();
-            response.companyName = event.getCompany().getName();
-            response.registrationNumber = event.getCompany().getRegistrationNumber();
         }
+        response.companyName = event.getCompanyName() != null
+                ? event.getCompanyName()
+                : event.getCompany() == null ? null : event.getCompany().getName();
+        response.registrationNumber = event.getRegistrationNumber() != null
+                ? event.getRegistrationNumber()
+                : event.getCompany() == null ? null : event.getCompany().getRegistrationNumber();
         if (event.getImportRun() != null) {
             response.importRunId = event.getImportRun().getId();
         }

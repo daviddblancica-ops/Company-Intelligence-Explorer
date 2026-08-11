@@ -1,8 +1,6 @@
 package cz.companyintel.web;
 
-import java.util.List;
-
-public class CompanyRequest {
+public class CompanyUpdateRequest {
 
     private String name;
     private String registrationNumber;
@@ -10,7 +8,6 @@ public class CompanyRequest {
     private String legalForm;
     private String address;
     private String dataSource;
-    private List<PersonRole> people;
 
     public String getName() {
         return name;
@@ -58,35 +55,5 @@ public class CompanyRequest {
 
     public void setDataSource(String dataSource) {
         this.dataSource = dataSource;
-    }
-
-    public List<PersonRole> getPeople() {
-        return people;
-    }
-
-    public void setPeople(List<PersonRole> people) {
-        this.people = people;
-    }
-
-    public static class PersonRole {
-
-        private String fullName;
-        private String role;
-
-        public String getFullName() {
-            return fullName;
-        }
-
-        public void setFullName(String fullName) {
-            this.fullName = fullName;
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
-            this.role = role;
-        }
     }
 }

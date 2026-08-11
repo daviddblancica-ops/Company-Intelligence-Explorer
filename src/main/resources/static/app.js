@@ -1,7 +1,6 @@
 import { initAudit } from './js/audit.js';
 import { initCompanies } from './js/companies.js';
 import { initDashboard } from './js/dashboard.js';
-import { demoCompanies, sampleCsv, sampleJson } from './js/demo-data.js';
 import { initImports } from './js/imports.js';
 import { initNavigation } from './js/navigation.js';
 import { initPeople } from './js/people.js';
@@ -22,7 +21,8 @@ const navigation = initNavigation({
 
 features.people = initPeople({
   audit,
-  openCompany: registrationNumber => features.companies.openByRegistration(registrationNumber)
+  openCompany: registrationNumber => features.companies.openByRegistration(registrationNumber),
+  onChanged: () => features.companies.search(document.getElementById('query').value)
 });
 features.companies = initCompanies({
   audit,
@@ -32,9 +32,6 @@ features.companies = initCompanies({
 });
 features.imports = initImports({
   audit,
-  demoCompanies,
-  sampleCsv,
-  sampleJson,
   onChanged: refreshRecords
 });
 features.tasks = initTasks({ audit, onChanged: refreshOverview });

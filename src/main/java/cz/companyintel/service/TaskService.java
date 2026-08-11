@@ -23,7 +23,7 @@ public class TaskService {
             return;
         }
         taskItemRepository.save(task("1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze", "Projekt", "HIGH", true));
-        taskItemRepository.save(task("2. Pridat startup demo data pro firmy, osoby, vazby a audit", "Import", "HIGH", true));
+        taskItemRepository.save(task("2. Overit import realne firmy z ARES podle ICO", "Import", "HIGH", true));
         taskItemRepository.save(task("3. Dodelat registr lidi a detail osoby s vazbami na firmy", "Lide", "HIGH", true));
         taskItemRepository.save(task("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role", "Vyhledavani", "HIGH", true));
         taskItemRepository.save(task("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis", "Audit", "MEDIUM", true));

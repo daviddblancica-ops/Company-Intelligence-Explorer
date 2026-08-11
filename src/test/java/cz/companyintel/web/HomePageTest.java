@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
@@ -53,6 +54,10 @@ class HomePageTest {
         assertThat(response.getBody()).contains("import-run-detail");
         assertThat(response.getBody()).contains("preview-json");
         assertThat(response.getBody()).contains("import-preview");
+        assertThat(response.getBody()).contains("company-edit-dialog");
+        assertThat(response.getBody()).contains("person-edit-dialog");
+        assertThat(response.getBody()).contains("value=\"23143614\"");
+        assertThat(response.getBody()).doesNotContain("seed-demo");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view-target=\"notes\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
@@ -107,11 +112,18 @@ class HomePageTest {
 
     @Test
     void archivesAuditEventsAndExposesEventTypes() {
+        CompanyRequest company = new CompanyRequest();
+        company.setName("Archive Audit Test s.r.o.");
+        company.setRegistrationNumber("12345011");
+        company.setCountry("CZ");
+        company.setLegalForm("s.r.o.");
+        restTemplate.postForEntity("/api/companies", company, CompanyResponse.class);
+
         ResponseEntity<String> types = restTemplate.getForEntity("/api/audit/types", String.class);
         ResponseEntity<String> active = restTemplate.getForEntity("/api/audit?archived=false&limit=20", String.class);
 
         assertThat(types.getStatusCodeValue()).isEqualTo(200);
-        assertThat(types.getBody()).contains("DEMO_DATA");
+        assertThat(types.getBody()).contains("CREATED");
         assertThat(active.getStatusCodeValue()).isEqualTo(200);
         assertThat(active.getBody()).contains("\"archived\":false");
 
@@ -289,7 +301,7 @@ class HomePageTest {
         assertThat(tasks.getBody()).contains("Stabilizovat jadro");
         assertThat(tasks.getBody()).contains("Rozsirit rychle vyhledavani");
         assertThat(tasks.getBody()).contains("\"title\":\"1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze\"");
-        assertThat(tasks.getBody()).contains("\"title\":\"2. Pridat startup demo data pro firmy, osoby, vazby a audit\"");
+        assertThat(tasks.getBody()).contains("\"title\":\"2. Overit import realne firmy z ARES podle ICO\"");
         assertThat(tasks.getBody()).contains("\"title\":\"3. Dodelat registr lidi a detail osoby s vazbami na firmy\"");
         assertThat(tasks.getBody()).contains("\"title\":\"4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role\"");
         assertThat(tasks.getBody()).contains("\"title\":\"5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis\"");
@@ -312,36 +324,50 @@ class HomePageTest {
         ResponseEntity<String> dashboard = restTemplate.getForEntity("/api/dashboard", String.class);
 
         assertThat(dashboard.getStatusCodeValue()).isEqualTo(200);
-        assertThat(firstValue(dashboard.getBody(), "companies")).isGreaterThanOrEqualTo(3L);
-        assertThat(firstValue(dashboard.getBody(), "people")).isGreaterThanOrEqualTo(4L);
-        assertThat(firstValue(dashboard.getBody(), "relationships")).isGreaterThanOrEqualTo(4L);
-        assertThat(dashboard.getBody()).contains("\"watchlisted\":1");
+        assertThat(firstValue(dashboard.getBody(), "companies")).isGreaterThanOrEqualTo(0L);
+        assertThat(firstValue(dashboard.getBody(), "people")).isGreaterThanOrEqualTo(0L);
+        assertThat(firstValue(dashboard.getBody(), "relationships")).isGreaterThanOrEqualTo(0L);
+        assertThat(dashboard.getBody()).contains("\"watchlisted\"");
         assertThat(dashboard.getBody()).contains("\"auditEvents\"");
         assertThat(dashboard.getBody()).contains("\"importRuns\"");
     }
 
     @Test
-    void startsWithDemoCompaniesPeopleAndAudit() {
-        ResponseEntity<String> companies = restTemplate.getForEntity("/api/companies/search?q=", String.class);
-        ResponseEntity<String> audit = restTemplate.getForEntity("/api/audit?limit=20", String.class);
-        ResponseEntity<String> health = restTemplate.getForEntity("/api/health", String.class);
+    void doesNotSeedLegacyDemoRecords() {
+        ResponseEntity<String> companies = restTemplate.getForEntity("/api/companies/search?q=70010001", String.class);
+        ResponseEntity<String> audit = restTemplate.getForEntity("/api/audit?type=DEMO_DATA&limit=20", String.class);
 
         assertThat(companies.getStatusCodeValue()).isEqualTo(200);
-        assertThat(companies.getBody()).contains("Atlas Data Lab s.r.o.");
-        assertThat(companies.getBody()).contains("Michaela Cerna");
-        assertThat(companies.getBody()).contains("watchlisted\":true");
-        assertThat(audit.getBody()).contains("DEMO_DATA");
-        assertThat(firstValue(health.getBody(), "companies")).isGreaterThanOrEqualTo(3L);
-        assertThat(firstValue(health.getBody(), "people")).isGreaterThanOrEqualTo(4L);
+        assertThat(companies.getBody()).isEqualTo("[]");
+        assertThat(audit.getBody()).isEqualTo("[]");
     }
 
     @Test
     void exposesPeopleRegistryWithCompanyRelationships() {
+        CompanyRequest company = new CompanyRequest();
+        company.setName("People Registry Test s.r.o.");
+        company.setRegistrationNumber("12345012");
+        company.setCountry("CZ");
+        company.setLegalForm("s.r.o.");
+        ResponseEntity<CompanyResponse> created = restTemplate.postForEntity(
+                "/api/companies", company, CompanyResponse.class);
+        PersonAssignmentRequest assignment = new PersonAssignmentRequest();
+        assignment.setFullName("Michaela Registry");
+        assignment.setRole("jednatelka");
+        ResponseEntity<CompanyResponse> assigned = restTemplate.postForEntity(
+                "/api/companies/" + created.getBody().getId() + "/people",
+                new HttpEntity<PersonAssignmentRequest>(assignment),
+                CompanyResponse.class);
+
+        assertThat(created.getStatusCodeValue()).isEqualTo(201);
+        assertThat(assigned.getStatusCodeValue()).isEqualTo(200);
+        assertThat(assigned.getBody().getPeople()).hasSize(1);
+
         ResponseEntity<String> people = restTemplate.getForEntity("/api/people?q=michaela", String.class);
 
         assertThat(people.getStatusCodeValue()).isEqualTo(200);
-        assertThat(people.getBody()).contains("Michaela Cerna");
-        assertThat(people.getBody()).contains("Atlas Data Lab s.r.o.");
+        assertThat(people.getBody()).contains("Michaela Registry");
+        assertThat(people.getBody()).contains("People Registry Test s.r.o.");
         assertThat(people.getBody()).contains("jednatelka");
 
         Long personId = firstId(people.getBody());
@@ -350,7 +376,95 @@ class HomePageTest {
         assertThat(detail.getStatusCodeValue()).isEqualTo(200);
         assertThat(detail.getBody()).contains("\"companyCount\":1");
         assertThat(detail.getBody()).contains("\"roleCount\":1");
-        assertThat(detail.getBody()).contains("Atlas Data Lab s.r.o.");
+        assertThat(detail.getBody()).contains("People Registry Test s.r.o.");
+    }
+
+    @Test
+    void updatesAndDeletesCompanyThroughApiWhileKeepingAudit() {
+        CompanyRequest company = new CompanyRequest();
+        company.setName("Company CRUD API s.r.o.");
+        company.setRegistrationNumber("12345021");
+        company.setCountry("CZ");
+        company.setLegalForm("s.r.o.");
+        ResponseEntity<CompanyResponse> created = restTemplate.postForEntity(
+                "/api/companies", company, CompanyResponse.class);
+
+        CompanyUpdateRequest update = new CompanyUpdateRequest();
+        update.setName("Company CRUD API a.s.");
+        update.setRegistrationNumber("12345022");
+        update.setCountry("CZ");
+        update.setLegalForm("a.s.");
+        update.setAddress("Praha 2");
+        update.setDataSource("MANUAL");
+        ResponseEntity<CompanyResponse> updated = restTemplate.exchange(
+                "/api/companies/" + created.getBody().getId(),
+                HttpMethod.PUT,
+                new HttpEntity<CompanyUpdateRequest>(update),
+                CompanyResponse.class);
+        ResponseEntity<Void> deleted = restTemplate.exchange(
+                "/api/companies/" + created.getBody().getId(),
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Void.class);
+        ResponseEntity<String> missing = restTemplate.getForEntity(
+                "/api/companies/" + created.getBody().getId(), String.class);
+        ResponseEntity<String> audit = restTemplate.getForEntity(
+                "/api/audit?query=12345022&limit=20", String.class);
+
+        assertThat(updated.getStatusCodeValue()).isEqualTo(200);
+        assertThat(updated.getBody().getName()).isEqualTo("Company CRUD API a.s.");
+        assertThat(updated.getBody().getRegistrationNumber()).isEqualTo("12345022");
+        assertThat(deleted.getStatusCodeValue()).isEqualTo(204);
+        assertThat(missing.getStatusCodeValue()).isEqualTo(404);
+        assertThat(audit.getBody()).contains("COMPANY_DELETED");
+        assertThat(audit.getBody()).contains("Company CRUD API a.s.");
+    }
+
+    @Test
+    void updatesAndDeletesPersonThroughApi() {
+        CompanyRequest company = new CompanyRequest();
+        company.setName("Person CRUD API s.r.o.");
+        company.setRegistrationNumber("12345023");
+        company.setCountry("CZ");
+        company.setLegalForm("s.r.o.");
+        ResponseEntity<CompanyResponse> created = restTemplate.postForEntity(
+                "/api/companies", company, CompanyResponse.class);
+        PersonAssignmentRequest assignment = new PersonAssignmentRequest();
+        assignment.setFullName("Person CRUD Original");
+        assignment.setRole("jednatel");
+        ResponseEntity<CompanyResponse> assigned = restTemplate.postForEntity(
+                "/api/companies/" + created.getBody().getId() + "/people",
+                assignment,
+                CompanyResponse.class);
+        Long personId = assigned.getBody().getPeople().get(0).getPersonId();
+
+        PersonUpdateRequest update = new PersonUpdateRequest();
+        update.setFullName("Person CRUD Updated");
+        update.setDateOfBirth(java.time.LocalDate.of(1990, 1, 2));
+        update.setResidenceAddress("Usti nad Labem");
+        update.setNote("API test");
+        ResponseEntity<PersonResponse> updated = restTemplate.exchange(
+                "/api/people/" + personId,
+                HttpMethod.PUT,
+                new HttpEntity<PersonUpdateRequest>(update),
+                PersonResponse.class);
+        ResponseEntity<Void> deleted = restTemplate.exchange(
+                "/api/people/" + personId,
+                HttpMethod.DELETE,
+                HttpEntity.EMPTY,
+                Void.class);
+        ResponseEntity<String> missing = restTemplate.getForEntity(
+                "/api/people/" + personId, String.class);
+        ResponseEntity<CompanyResponse> companyAfterDelete = restTemplate.getForEntity(
+                "/api/companies/" + created.getBody().getId(), CompanyResponse.class);
+
+        assertThat(updated.getStatusCodeValue()).isEqualTo(200);
+        assertThat(updated.getBody().getFullName()).isEqualTo("Person CRUD Updated");
+        assertThat(updated.getBody().getDateOfBirth()).isEqualTo(java.time.LocalDate.of(1990, 1, 2));
+        assertThat(updated.getBody().getResidenceAddress()).isEqualTo("Usti nad Labem");
+        assertThat(deleted.getStatusCodeValue()).isEqualTo(204);
+        assertThat(missing.getStatusCodeValue()).isEqualTo(404);
+        assertThat(companyAfterDelete.getBody().getPeople()).isEmpty();
     }
 
     @Test

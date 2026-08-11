@@ -1,10 +1,14 @@
 package cz.companyintel.service;
 
 import cz.companyintel.domain.Company;
+import cz.companyintel.domain.ChangeEvent;
 import cz.companyintel.domain.Person;
+import cz.companyintel.repository.ChangeEventRepository;
 import cz.companyintel.repository.CompanyRepository;
 import cz.companyintel.repository.PersonRepository;
 import cz.companyintel.web.CompanyRequest;
+import cz.companyintel.web.CompanyUpdateRequest;
+import java.util.ArrayList;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.data.domain.PageRequest;
@@ -15,14 +19,17 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
+    private final ChangeEventRepository changeEventRepository;
     private final NormalizationService normalizationService;
 
     public CompanyService(
             CompanyRepository companyRepository,
             PersonRepository personRepository,
+            ChangeEventRepository changeEventRepository,
             NormalizationService normalizationService) {
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
+        this.changeEventRepository = changeEventRepository;
         this.normalizationService = normalizationService;
     }
 
@@ -61,6 +68,50 @@ public class CompanyService {
     public Company getCompany(Long id) {
         return companyRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Company not found: " + id));
+    }
+
+    @Transactional
+    public Company updateCompany(Long id, CompanyUpdateRequest request) {
+        Company company = getCompany(id);
+        String name = required(request.getName(), "Company name is required");
+        String registrationNumber = required(request.getRegistrationNumber(), "Registration number is required");
+        String normalizedName = normalizationService.normalizeName(name);
+        companyRepository.findByRegistrationNumber(registrationNumber)
+                .filter(existing -> !existing.getId().equals(id))
+                .ifPresent(existing -> {
+                    throw new IllegalArgumentException("Registration number already belongs to another company");
+                });
+
+        company.updateProfile(
+                name,
+                normalizedName,
+                registrationNumber,
+                clean(request.getCountry()),
+                clean(request.getLegalForm()),
+                clean(request.getAddress()),
+                clean(request.getDataSource()));
+        company.addChange("UPDATED", "Company profile updated manually");
+        return companyRepository.save(company);
+    }
+
+    @Transactional
+    public void deleteCompany(Long id) {
+        Company company = getCompany(id);
+        String name = company.getName();
+        String registrationNumber = company.getRegistrationNumber();
+        List<ChangeEvent> history = new ArrayList<ChangeEvent>(company.getChanges());
+        for (ChangeEvent event : history) {
+            event.detachCompany();
+        }
+        changeEventRepository.saveAll(history);
+        company.getChanges().clear();
+        companyRepository.delete(company);
+        companyRepository.flush();
+        changeEventRepository.save(new ChangeEvent(
+                name,
+                registrationNumber,
+                "COMPANY_DELETED",
+                "Company deleted from registry: " + name + " (" + registrationNumber + ")"));
     }
 
     public List<Company> searchCompanies(String query) {
@@ -116,5 +167,20 @@ public class CompanyService {
         String normalizedName = normalizationService.normalizeName(fullName);
         return personRepository.findByNormalizedName(normalizedName)
                 .orElseGet(() -> personRepository.save(new Person(fullName, normalizedName)));
+    }
+
+    private String required(String value, String message) {
+        String cleaned = clean(value);
+        if (cleaned == null) {
+            throw new IllegalArgumentException(message);
+        }
+        return cleaned;
+    }
+
+    private String clean(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return value.trim();
     }
 }

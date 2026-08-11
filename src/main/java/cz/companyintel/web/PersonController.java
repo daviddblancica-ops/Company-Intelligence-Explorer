@@ -6,9 +6,14 @@ import cz.companyintel.service.PersonService;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -33,5 +38,17 @@ public class PersonController {
         Person person = personService.getPerson(id);
         List<CompanyPersonRole> relationships = personService.findRelationships(person.getId());
         return PersonResponse.from(person, relationships);
+    }
+
+    @PutMapping("/{id}")
+    public PersonResponse update(@PathVariable Long id, @RequestBody PersonUpdateRequest request) {
+        Person person = personService.updatePerson(id, request);
+        return PersonResponse.from(person, personService.findRelationships(id));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        personService.deletePerson(id);
     }
 }

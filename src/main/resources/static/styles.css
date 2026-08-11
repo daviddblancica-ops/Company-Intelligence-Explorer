@@ -1282,35 +1282,6 @@
       font-size: 12px;
     }
 
-    .demo-list {
-      display: grid;
-      gap: 8px;
-      margin-top: 14px;
-    }
-
-    .demo-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      background: var(--panel-soft);
-    }
-
-    .demo-item strong {
-      display: block;
-      font-size: 13px;
-    }
-
-    .demo-item span {
-      display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 2px;
-    }
-
     .import-runs {
       display: grid;
       gap: 8px;
@@ -1461,6 +1432,10 @@
       gap: 12px;
     }
 
+    .registry-entry {
+      display: grid;
+    }
+
     .registry-grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
@@ -1501,6 +1476,12 @@
     .person-card.selected {
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(23, 105, 224, .10);
+    }
+
+    .company.expanded,
+    .person-card.expanded {
+      border-radius: 8px 8px 0 0;
+      box-shadow: none;
     }
 
     .company-head,
@@ -1631,6 +1612,18 @@
       background: #fff;
     }
 
+    .inline-detail {
+      padding: 18px;
+      border: 1px solid var(--accent);
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      background: #f8fbff;
+    }
+
+    .inline-detail .detail-section:first-of-type {
+      margin-top: 10px;
+    }
+
     .detail h3 {
       margin: 0 0 8px;
       font-size: 18px;
@@ -1700,6 +1693,134 @@
 
     .danger:hover {
       background: #ffe4e6;
+    }
+
+    .record-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .record-actions button {
+      min-height: 36px;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    .person-profile-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+      gap: 18px;
+    }
+
+    .record-dialog {
+      width: min(620px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, .28);
+    }
+
+    .record-dialog::backdrop {
+      background: rgba(15, 23, 42, .56);
+    }
+
+    .record-form {
+      display: grid;
+      gap: 14px;
+      padding: 22px;
+    }
+
+    .record-form label {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .record-form input,
+    .record-form textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 11px;
+      background: #fff;
+      color: var(--ink);
+      font: inherit;
+      font-weight: 400;
+      resize: vertical;
+    }
+
+    .record-form textarea {
+      min-height: 76px;
+    }
+
+    .record-form input:focus,
+    .record-form textarea:focus {
+      outline: 3px solid rgba(23, 105, 224, .14);
+      border-color: var(--accent);
+    }
+
+    .dialog-heading,
+    .dialog-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .dialog-heading span {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .dialog-heading h2 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: 0;
+    }
+
+    .dialog-close {
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      padding: 0;
+      border: 0;
+      background: var(--panel-soft);
+      color: var(--ink);
+      font-size: 25px;
+      line-height: 1;
+    }
+
+    .dialog-actions {
+      justify-content: flex-end;
+      padding-top: 6px;
+    }
+
+    .form-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .privacy-note {
+      margin: 0;
+      padding: 10px 12px;
+      border-left: 3px solid #d49b16;
+      background: #fffbeb;
+      color: #6b4f12;
+      font-size: 12px;
+      line-height: 1.5;
     }
 
     .detail-row {
@@ -1882,6 +2003,7 @@
       .import-grid,
       .registry-grid,
       .people-grid,
+      .person-profile-grid,
       .flow,
       .ops-grid,
       .explain,
@@ -1903,8 +2025,17 @@
       .topbar,
       .dashboard-intro,
       .company-head,
-      .person-head {
+      .person-head,
+      .detail-heading {
         display: grid;
+      }
+
+      .record-actions {
+        justify-content: flex-start;
+      }
+
+      .form-columns {
+        grid-template-columns: 1fr;
       }
 
       h1 {
