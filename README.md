@@ -80,6 +80,11 @@ $env:RATE_LIMIT_LOGIN_MAX_REQUESTS="10"
 $env:RATE_LIMIT_LOGIN_WINDOW="5m"
 $env:RATE_LIMIT_ARES_MAX_REQUESTS="30"
 $env:RATE_LIMIT_ARES_WINDOW="1m"
+$env:RATE_LIMIT_IMPORT_MAX_REQUESTS="20"
+$env:RATE_LIMIT_IMPORT_WINDOW="1m"
+$env:IMPORT_MAX_PAYLOAD_BYTES="1048576"
+$env:IMPORT_MAX_ROWS="1000"
+$env:IMPORT_MAX_PEOPLE_PER_COMPANY="100"
 ```
 
 Při lokálním ověřování produkčního profilu přes obyčejné HTTP nastavte obě poslední
@@ -163,6 +168,11 @@ name,registrationNumber,country,legalForm,people
 Nová Data Systems s.r.o.,12345678,CZ,s.r.o.,Jan Novák|jednatel;Eva Svobodová|společník
 ```
 
+CSV podporuje standardní uvozovky pro hodnoty obsahující čárku. Výchozí bezpečnostní
+limity jsou 1 MiB na požadavek, 1 000 firem v jednom importu, 100 osob u jedné firmy
+a 20 hromadných importních nebo kontrolních požadavků za minutu. V produkci je lze
+upravit uvedenými proměnnými prostředí.
+
 Import z ARES podle IČO:
 
 ```http
@@ -184,6 +194,9 @@ Export CSV používá stejné filtry:
 GET /api/audit/export.csv?severity=WARNING&from=2026-01-01
 ```
 
+Textové buňky exportu, které by tabulkový procesor mohl vyhodnotit jako vzorec,
+se zapisují jako prostý text. Audit tak lze bezpečně otevřít v Excelu nebo LibreOffice.
+
 Hromadná archivace nebo obnovení událostí:
 
 ```http
@@ -197,6 +210,10 @@ Content-Type: application/json
   "archived": true
 }
 ```
+
+Běžné zapisovací endpointy kontrolují povinná pole, délky, datumové hodnoty a číselné
+rozsahy ještě před uložením. Neplatný nebo poškozený JSON vrací stav `400` s bezpečnou
+zprávou pro uživatele.
 
 ## Jak projekt popsat u obhajoby
 

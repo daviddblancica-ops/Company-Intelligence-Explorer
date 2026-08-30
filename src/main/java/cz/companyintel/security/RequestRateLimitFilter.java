@@ -5,6 +5,9 @@ import cz.companyintel.web.ErrorResponse;
 import java.io.IOException;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -24,11 +27,17 @@ public class RequestRateLimitFilter extends OncePerRequestFilter {
 
     private static final String LOGIN_PATH = "/api/auth/login";
     private static final String ARES_PATH_PREFIX = "/api/import/ares/";
+    private static final Set<String> BULK_IMPORT_PATHS = new HashSet<String>(Arrays.asList(
+            "/api/import/json",
+            "/api/import/csv",
+            "/api/import/preview/json",
+            "/api/import/preview/csv"));
 
     private final ObjectMapper objectMapper;
     private final boolean enabled;
     private final FixedWindowRateLimiter loginLimiter;
     private final FixedWindowRateLimiter aresLimiter;
+    private final FixedWindowRateLimiter bulkImportLimiter;
 
     @Autowired
     public RequestRateLimitFilter(
@@ -38,9 +47,11 @@ public class RequestRateLimitFilter extends OncePerRequestFilter {
             @Value("${app.security.rate-limit.login.max-requests:10}") int loginMaxRequests,
             @Value("${app.security.rate-limit.login.window:5m}") Duration loginWindow,
             @Value("${app.security.rate-limit.ares.max-requests:30}") int aresMaxRequests,
-            @Value("${app.security.rate-limit.ares.window:1m}") Duration aresWindow) {
+            @Value("${app.security.rate-limit.ares.window:1m}") Duration aresWindow,
+            @Value("${app.security.rate-limit.import.max-requests:20}") int importMaxRequests,
+            @Value("${app.security.rate-limit.import.window:1m}") Duration importWindow) {
         this(objectMapper, enabled, maxKeys, loginMaxRequests, loginWindow,
-                aresMaxRequests, aresWindow, Clock.systemUTC());
+                aresMaxRequests, aresWindow, importMaxRequests, importWindow, Clock.systemUTC());
     }
 
     RequestRateLimitFilter(
@@ -51,11 +62,14 @@ public class RequestRateLimitFilter extends OncePerRequestFilter {
             Duration loginWindow,
             int aresMaxRequests,
             Duration aresWindow,
+            int importMaxRequests,
+            Duration importWindow,
             Clock clock) {
         this.objectMapper = objectMapper;
         this.enabled = enabled;
         this.loginLimiter = new FixedWindowRateLimiter(loginMaxRequests, loginWindow, maxKeys, clock);
         this.aresLimiter = new FixedWindowRateLimiter(aresMaxRequests, aresWindow, maxKeys, clock);
+        this.bulkImportLimiter = new FixedWindowRateLimiter(importMaxRequests, importWindow, maxKeys, clock);
     }
 
     @Override
@@ -81,6 +95,9 @@ public class RequestRateLimitFilter extends OncePerRequestFilter {
         }
         if (path.startsWith(ARES_PATH_PREFIX)) {
             return aresLimiter.acquire("ares:" + authenticatedSubject() + ":" + remoteAddress(request));
+        }
+        if (BULK_IMPORT_PATHS.contains(path)) {
+            return bulkImportLimiter.acquire("import:" + authenticatedSubject() + ":" + remoteAddress(request));
         }
         return null;
     }

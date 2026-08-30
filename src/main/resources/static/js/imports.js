@@ -85,7 +85,7 @@ export function initImports({ audit, onChanged = async () => {} }) {
       await loadRuns(false);
       showTab('history');
     } catch (error) {
-      showToast('Import selhal. Zkontroluj formát vstupu.');
+      showToast(error.message || 'Import selhal. Zkontroluj formát vstupu.');
       audit.addActivity('Chyba importu', 'Import selhal při kontrole formátu vstupních dat.', 'critical');
       await audit.load(false);
     } finally {
@@ -104,7 +104,7 @@ export function initImports({ audit, onChanged = async () => {} }) {
       renderPreview(result);
       showToast(result.invalidRows ? 'Kontrola našla chyby ve vstupu.' : 'Vstup je připravený k importu.');
     } catch (error) {
-      showToast('Kontrola vstupu selhala.');
+      showToast(error.message || 'Kontrola vstupu selhala.');
       audit.addActivity('Kontrola importu', 'Backend nevrátil validační náhled importu.', 'warning');
     } finally {
       setButtonBusy(button, false);

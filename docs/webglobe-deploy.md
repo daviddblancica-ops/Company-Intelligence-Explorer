@@ -52,11 +52,19 @@ export RATE_LIMIT_LOGIN_MAX_REQUESTS="10"
 export RATE_LIMIT_LOGIN_WINDOW="5m"
 export RATE_LIMIT_ARES_MAX_REQUESTS="30"
 export RATE_LIMIT_ARES_WINDOW="1m"
+export RATE_LIMIT_IMPORT_MAX_REQUESTS="20"
+export RATE_LIMIT_IMPORT_WINDOW="1m"
+export IMPORT_MAX_PAYLOAD_BYTES="1048576"
+export IMPORT_MAX_ROWS="1000"
+export IMPORT_MAX_PEOPLE_PER_COMPANY="100"
 ```
 
 Hodnoty `DB_HOST`, `DB_NAME`, `DB_USER` a `DB_PASSWORD` vezmi z Webglobe administrace databáze. Hesla nepatří do Gitu ani do dokumentace. Všechna tři uživatelská jména musí být odlišná a každé heslo musí mít alespoň deset znaků.
 
 `SESSION_COOKIE_SECURE=true` a `REQUIRE_HTTPS=true` použij na serveru dostupném přes HTTPS. Reverzní proxy musí předávat hlavičky `X-Forwarded-For` a `X-Forwarded-Proto`. Pro dočasné lokální spuštění přes obyčejné HTTP nastav obě hodnoty na `false`.
+
+Importní limity chrání aplikaci před zahlcením velkým JSON/CSV vstupem. Jejich zvýšení
+prováděj jen společně s kontrolou dostupné paměti a výkonu databáze.
 
 Při prvním startu profilu `prod` Flyway vytvoří tabulku `flyway_schema_history` a provede dosud chybějící migrace. Funguje to pro prázdnou databázi i pro databázi, ve které už Hibernate dříve vytvořil tabulky. Hibernate v produkci schéma pouze ověřuje a sám ho nemění.
 

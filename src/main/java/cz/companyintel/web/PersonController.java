@@ -2,11 +2,14 @@ package cz.companyintel.web;
 
 import cz.companyintel.domain.CompanyPersonRole;
 import cz.companyintel.domain.Person;
+import cz.companyintel.security.AuthorizationRules;
 import cz.companyintel.service.PersonService;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/people")
+@PreAuthorize(AuthorizationRules.READ)
 public class PersonController {
 
     private final PersonService personService;
@@ -49,9 +53,10 @@ public class PersonController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize(AuthorizationRules.EDIT)
     public PersonResponse update(
             @PathVariable Long id,
-            @RequestBody PersonUpdateRequest request,
+            @Valid @RequestBody PersonUpdateRequest request,
             Authentication authentication) {
         Person person = personService.updatePerson(id, request);
         return PersonResponse.from(
@@ -62,6 +67,7 @@ public class PersonController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize(AuthorizationRules.ADMIN)
     public void delete(@PathVariable Long id) {
         personService.deletePerson(id);
     }

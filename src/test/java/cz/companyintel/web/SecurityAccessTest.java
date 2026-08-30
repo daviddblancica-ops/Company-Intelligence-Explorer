@@ -4,7 +4,9 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -99,6 +101,34 @@ class SecurityAccessTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"title\":\"Zakázaná změna\",\"segment\":\"Projekt\",\"priority\":\"LOW\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void viewerCannotBypassAuthorizationByChangingRecordIds() throws Exception {
+        String unknownId = "9223372036854775807";
+
+        mockMvc.perform(put("/api/companies/" + unknownId)
+                        .with(httpBasic("viewer", "viewer-local-2026"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(patch("/api/companies/" + unknownId + "/watchlist")
+                        .with(httpBasic("viewer", "viewer-local-2026"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"watchlisted\":true}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(put("/api/people/" + unknownId)
+                        .with(httpBasic("viewer", "viewer-local-2026"))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(delete("/api/companies/" + unknownId + "/people/" + unknownId)
+                        .with(httpBasic("viewer", "viewer-local-2026"))
+                        .with(csrf()))
                 .andExpect(status().isForbidden());
     }
 

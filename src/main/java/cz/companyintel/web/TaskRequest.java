@@ -1,9 +1,19 @@
 package cz.companyintel.web;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+
 public class TaskRequest {
 
+    @NotBlank(message = "Název úkolu je povinný")
+    @Size(max = 240, message = "Název úkolu může obsahovat nejvýše 240 znaků")
     private String title;
+
+    @Size(max = 80, message = "Segment úkolu může obsahovat nejvýše 80 znaků")
     private String segment;
+
+    @Pattern(regexp = "(?i)HIGH|MEDIUM|LOW", message = "Priorita musí být HIGH, MEDIUM nebo LOW")
     private String priority;
     private boolean done;
     private boolean archived;

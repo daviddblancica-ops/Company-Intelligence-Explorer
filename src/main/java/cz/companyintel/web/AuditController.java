@@ -3,13 +3,16 @@ package cz.companyintel.web;
 import cz.companyintel.service.AuditCsvExporter;
 import cz.companyintel.service.AuditFilter;
 import cz.companyintel.service.AuditService;
+import cz.companyintel.security.AuthorizationRules;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/audit")
+@PreAuthorize(AuthorizationRules.READ)
 public class AuditController {
 
     private final AuditService auditService;
@@ -70,12 +74,14 @@ public class AuditController {
     }
 
     @PostMapping("/{id}/archive")
+    @PreAuthorize(AuthorizationRules.ADMIN)
     public ChangeEventResponse setArchived(@PathVariable Long id, @RequestBody AuditArchiveRequest request) {
         return ChangeEventResponse.from(auditService.setArchived(id, request.isArchived()));
     }
 
     @PostMapping("/archive")
-    public List<ChangeEventResponse> setArchived(@RequestBody AuditBulkArchiveRequest request) {
+    @PreAuthorize(AuthorizationRules.ADMIN)
+    public List<ChangeEventResponse> setArchived(@Valid @RequestBody AuditBulkArchiveRequest request) {
         return auditService.setArchived(request.getIds(), request.isArchived()).stream()
                 .map(ChangeEventResponse::from)
                 .collect(Collectors.toList());

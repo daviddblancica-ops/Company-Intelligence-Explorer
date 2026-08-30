@@ -32,6 +32,10 @@ server:
         same-site: lax
 
 app:
+  import:
+    max-payload-bytes: ${IMPORT_MAX_PAYLOAD_BYTES:1048576}
+    max-rows: ${IMPORT_MAX_ROWS:1000}
+    max-people-per-company: ${IMPORT_MAX_PEOPLE_PER_COMPANY:100}
   integrations:
     ares:
       connect-timeout: ${ARES_CONNECT_TIMEOUT:3s}
@@ -48,6 +52,9 @@ app:
       ares:
         max-requests: ${RATE_LIMIT_ARES_MAX_REQUESTS:30}
         window: ${RATE_LIMIT_ARES_WINDOW:1m}
+      import:
+        max-requests: ${RATE_LIMIT_IMPORT_MAX_REQUESTS:20}
+        window: ${RATE_LIMIT_IMPORT_WINDOW:1m}
     users:
       admin:
         username: ${APP_ADMIN_USERNAME}

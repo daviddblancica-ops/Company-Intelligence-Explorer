@@ -1,6 +1,7 @@
 package cz.companyintel.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cz.companyintel.security.ImportPayloadLimitFilter;
 import cz.companyintel.security.RequestRateLimitFilter;
 import cz.companyintel.web.AuthSessionResponse;
 import java.io.IOException;
@@ -8,11 +9,13 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
@@ -22,16 +25,36 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfiguration {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public FilterRegistrationBean<RequestRateLimitFilter> requestRateLimitFilterRegistration(
+            RequestRateLimitFilter filter) {
+        FilterRegistrationBean<RequestRateLimitFilter> registration =
+                new FilterRegistrationBean<RequestRateLimitFilter>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
+
+    @Bean
+    public FilterRegistrationBean<ImportPayloadLimitFilter> importPayloadLimitFilterRegistration(
+            ImportPayloadLimitFilter filter) {
+        FilterRegistrationBean<ImportPayloadLimitFilter> registration =
+                new FilterRegistrationBean<ImportPayloadLimitFilter>(filter);
+        registration.setEnabled(false);
+        return registration;
     }
 
     @Bean
@@ -55,6 +78,7 @@ public class SecurityConfiguration {
             HttpSecurity http,
             ObjectMapper objectMapper,
             RequestRateLimitFilter rateLimitFilter,
+            ImportPayloadLimitFilter importPayloadLimitFilter,
             @Value("${app.security.csrf-enabled:true}") boolean csrfEnabled,
             @Value("${app.security.require-https:false}") boolean requireHttps) throws Exception {
         if (requireHttps) {
@@ -74,6 +98,7 @@ public class SecurityConfiguration {
         }
 
         http.addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(importPayloadLimitFilter, FilterSecurityInterceptor.class)
                 .authorizeRequests()
                 .antMatchers("/", "/index.html", "/styles.css", "/app.js", "/js/**").permitAll()
                 .antMatchers("/api/auth/session", "/api/auth/login", "/api/auth/logout").permitAll()

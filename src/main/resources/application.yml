@@ -26,6 +26,10 @@ server:
         same-site: lax
 
 app:
+  import:
+    max-payload-bytes: 1048576
+    max-rows: 1000
+    max-people-per-company: 100
   integrations:
     ares:
       connect-timeout: 3s
@@ -40,6 +44,9 @@ app:
         window: 5m
       ares:
         max-requests: 30
+        window: 1m
+      import:
+        max-requests: 20
         window: 1m
     users:
       admin:

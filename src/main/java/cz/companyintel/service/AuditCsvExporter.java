@@ -18,7 +18,7 @@ public class AuditCsvExporter {
             append(csv, event.getSeverity());
             append(csv, event.getType());
             append(csv, subject(event));
-            append(csv, event.getCompany() == null ? "" : event.getCompany().getRegistrationNumber());
+            append(csv, registrationNumber(event));
             append(csv, event.getImportRun() == null ? "" : String.valueOf(event.getImportRun().getId()));
             append(csv, event.getDescription());
             appendLast(csv, String.valueOf(event.isArchived()));
@@ -30,7 +30,17 @@ public class AuditCsvExporter {
         if (event.getImportRun() != null) {
             return "Import #" + event.getImportRun().getId();
         }
+        if (event.getCompanyName() != null && !event.getCompanyName().trim().isEmpty()) {
+            return event.getCompanyName();
+        }
         return event.getCompany() == null ? "Systém" : event.getCompany().getName();
+    }
+
+    private static String registrationNumber(ChangeEvent event) {
+        if (event.getRegistrationNumber() != null && !event.getRegistrationNumber().trim().isEmpty()) {
+            return event.getRegistrationNumber();
+        }
+        return event.getCompany() == null ? "" : event.getCompany().getRegistrationNumber();
     }
 
     private static void append(StringBuilder csv, String value) {
@@ -42,7 +52,27 @@ public class AuditCsvExporter {
     }
 
     private static String escape(String value) {
-        String safeValue = value == null ? "" : value;
+        String safeValue = neutralizeSpreadsheetFormula(value == null ? "" : value);
         return '"' + safeValue.replace("\"", "\"\"") + '"';
+    }
+
+    private static String neutralizeSpreadsheetFormula(String value) {
+        if (value.isEmpty()) {
+            return value;
+        }
+        if (value.charAt(0) == '\t' || value.charAt(0) == '\r') {
+            return "'" + value;
+        }
+        int firstContent = 0;
+        while (firstContent < value.length() && Character.isWhitespace(value.charAt(firstContent))) {
+            firstContent++;
+        }
+        if (firstContent < value.length()) {
+            char first = value.charAt(firstContent);
+            if (first == '=' || first == '+' || first == '-' || first == '@') {
+                return "'" + value;
+            }
+        }
+        return value;
     }
 }

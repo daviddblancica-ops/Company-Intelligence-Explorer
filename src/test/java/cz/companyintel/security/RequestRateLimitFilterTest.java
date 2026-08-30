@@ -30,6 +30,8 @@ class RequestRateLimitFilterTest {
                 Duration.ofMinutes(5),
                 1,
                 Duration.ofMinutes(1),
+                2,
+                Duration.ofMinutes(1),
                 Clock.fixed(Instant.parse("2026-08-11T12:00:00Z"), ZoneOffset.UTC));
     }
 
@@ -61,6 +63,17 @@ class RequestRateLimitFilterTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new TestingAuthenticationToken("editor-b", "", "ROLE_EDITOR"));
         assertThat(execute("/api/import/ares/23143614", "192.0.2.10").getStatus()).isEqualTo(200);
+    }
+
+    @Test
+    void limitsRepeatedBulkImports() throws Exception {
+        assertThat(execute("/api/import/json", "192.0.2.20").getStatus()).isEqualTo(200);
+        assertThat(execute("/api/import/preview/csv", "192.0.2.20").getStatus()).isEqualTo(200);
+
+        MockHttpServletResponse blocked = execute("/api/import/csv", "192.0.2.20");
+
+        assertThat(blocked.getStatus()).isEqualTo(429);
+        assertThat(blocked.getHeader("Retry-After")).isEqualTo("60");
     }
 
     private MockHttpServletResponse execute(String path, String remoteAddress) throws Exception {

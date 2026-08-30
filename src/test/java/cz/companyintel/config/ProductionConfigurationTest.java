@@ -34,12 +34,20 @@ class ProductionConfigurationTest {
                 .isEqualTo("${ARES_CONNECT_TIMEOUT:3s}");
         assertThat(production.getProperty("app.integrations.ares.read-timeout"))
                 .isEqualTo("${ARES_READ_TIMEOUT:10s}");
+        assertThat(production.getProperty("app.import.max-payload-bytes"))
+                .isEqualTo("${IMPORT_MAX_PAYLOAD_BYTES:1048576}");
+        assertThat(production.getProperty("app.import.max-rows"))
+                .isEqualTo("${IMPORT_MAX_ROWS:1000}");
+        assertThat(production.getProperty("app.import.max-people-per-company"))
+                .isEqualTo("${IMPORT_MAX_PEOPLE_PER_COMPANY:100}");
         assertThat(production.getProperty("app.security.rate-limit.enabled"))
                 .isEqualTo("${RATE_LIMIT_ENABLED:true}");
         assertThat(production.getProperty("app.security.rate-limit.login.max-requests"))
                 .isEqualTo("${RATE_LIMIT_LOGIN_MAX_REQUESTS:10}");
         assertThat(production.getProperty("app.security.rate-limit.ares.max-requests"))
                 .isEqualTo("${RATE_LIMIT_ARES_MAX_REQUESTS:30}");
+        assertThat(production.getProperty("app.security.rate-limit.import.max-requests"))
+                .isEqualTo("${RATE_LIMIT_IMPORT_MAX_REQUESTS:20}");
         assertThat(production.getProperty("app.security.users.admin.username"))
                 .isEqualTo("${APP_ADMIN_USERNAME}");
         assertThat(production.getProperty("app.security.users.admin.password"))

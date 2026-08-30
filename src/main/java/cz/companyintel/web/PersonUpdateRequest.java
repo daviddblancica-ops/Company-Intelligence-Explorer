@@ -1,12 +1,23 @@
 package cz.companyintel.web;
 
 import java.time.LocalDate;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.Size;
 
 public class PersonUpdateRequest {
 
+    @NotBlank(message = "Jméno osoby je povinné")
+    @Size(max = 255, message = "Jméno osoby může obsahovat nejvýše 255 znaků")
     private String fullName;
+
+    @PastOrPresent(message = "Datum narození nemůže být v budoucnosti")
     private LocalDate dateOfBirth;
+
+    @Size(max = 600, message = "Bydliště může obsahovat nejvýše 600 znaků")
     private String residenceAddress;
+
+    @Size(max = 1200, message = "Poznámka může obsahovat nejvýše 1200 znaků")
     private String note;
 
     public String getFullName() {
