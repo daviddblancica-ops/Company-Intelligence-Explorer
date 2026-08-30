@@ -14,7 +14,9 @@ import javax.persistence.Table;
 @Entity
 @Table(indexes = {
         @Index(name = "idx_change_company_created", columnList = "company_id, createdAt"),
+        @Index(name = "idx_change_import_run_created", columnList = "import_run_id, createdAt"),
         @Index(name = "idx_change_type_created", columnList = "type, createdAt"),
+        @Index(name = "idx_change_severity_created", columnList = "severity, createdAt"),
         @Index(name = "idx_change_archived_created", columnList = "archived, createdAt")
 })
 public class ChangeEvent {
@@ -23,12 +25,23 @@ public class ChangeEvent {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(optional = false)
+    @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
 
+    private String companyName;
+
+    private String registrationNumber;
+
+    @ManyToOne
+    @JoinColumn(name = "import_run_id")
+    private ImportRun importRun;
+
     @Column(nullable = false)
     private String type;
+
+    @Column(nullable = false, length = 20)
+    private String severity;
 
     @Column(nullable = false, length = 1200)
     private String description;
@@ -44,7 +57,27 @@ public class ChangeEvent {
 
     public ChangeEvent(Company company, String type, String description) {
         this.company = company;
+        this.companyName = company.getName();
+        this.registrationNumber = company.getRegistrationNumber();
         this.type = type;
+        this.severity = severity(type);
+        this.description = description;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public ChangeEvent(ImportRun importRun, String type, String description) {
+        this.importRun = importRun;
+        this.type = type;
+        this.severity = severity(type);
+        this.description = description;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public ChangeEvent(String companyName, String registrationNumber, String type, String description) {
+        this.companyName = companyName;
+        this.registrationNumber = registrationNumber;
+        this.type = type;
+        this.severity = severity(type);
         this.description = description;
         this.createdAt = LocalDateTime.now();
     }
@@ -57,8 +90,28 @@ public class ChangeEvent {
         return company;
     }
 
+    public String getCompanyName() {
+        return companyName;
+    }
+
+    public String getRegistrationNumber() {
+        return registrationNumber;
+    }
+
+    public void detachCompany() {
+        this.company = null;
+    }
+
+    public ImportRun getImportRun() {
+        return importRun;
+    }
+
     public String getType() {
         return type;
+    }
+
+    public String getSeverity() {
+        return severity;
     }
 
     public String getDescription() {
@@ -75,5 +128,18 @@ public class ChangeEvent {
 
     public void setArchived(boolean archived) {
         this.archived = archived;
+    }
+
+    private static String severity(String type) {
+        if (type == null) {
+            return "INFO";
+        }
+        if (type.contains("FAILED") || type.contains("ERROR") || type.contains("DELETED")) {
+            return "CRITICAL";
+        }
+        if (type.contains("WATCHLIST") || type.contains("PERSON") || type.contains("PARTIAL")) {
+            return "WARNING";
+        }
+        return "INFO";
     }
 }

@@ -1,4 +1,10 @@
 spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration/mariadb
+    validate-on-migrate: true
   datasource:
     url: jdbc:mariadb://${DB_HOST}:${DB_PORT:3306}/${DB_NAME}?useUnicode=true&characterEncoding=utf8&serverTimezone=Europe/Prague
     username: ${DB_USER}
@@ -9,7 +15,7 @@ spring:
       enabled: false
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     open-in-view: false
     properties:
       hibernate:
@@ -17,3 +23,45 @@ spring:
 
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        secure: ${SESSION_COOKIE_SECURE:true}
+        http-only: true
+        same-site: lax
+
+app:
+  import:
+    max-payload-bytes: ${IMPORT_MAX_PAYLOAD_BYTES:1048576}
+    max-rows: ${IMPORT_MAX_ROWS:1000}
+    max-people-per-company: ${IMPORT_MAX_PEOPLE_PER_COMPANY:100}
+  integrations:
+    ares:
+      connect-timeout: ${ARES_CONNECT_TIMEOUT:3s}
+      read-timeout: ${ARES_READ_TIMEOUT:10s}
+  security:
+    csrf-enabled: true
+    require-https: ${REQUIRE_HTTPS:true}
+    rate-limit:
+      enabled: ${RATE_LIMIT_ENABLED:true}
+      max-keys: ${RATE_LIMIT_MAX_KEYS:10000}
+      login:
+        max-requests: ${RATE_LIMIT_LOGIN_MAX_REQUESTS:10}
+        window: ${RATE_LIMIT_LOGIN_WINDOW:5m}
+      ares:
+        max-requests: ${RATE_LIMIT_ARES_MAX_REQUESTS:30}
+        window: ${RATE_LIMIT_ARES_WINDOW:1m}
+      import:
+        max-requests: ${RATE_LIMIT_IMPORT_MAX_REQUESTS:20}
+        window: ${RATE_LIMIT_IMPORT_WINDOW:1m}
+    users:
+      admin:
+        username: ${APP_ADMIN_USERNAME}
+        password: ${APP_ADMIN_PASSWORD}
+      editor:
+        username: ${APP_EDITOR_USERNAME}
+        password: ${APP_EDITOR_PASSWORD}
+      viewer:
+        username: ${APP_VIEWER_USERNAME}
+        password: ${APP_VIEWER_PASSWORD}

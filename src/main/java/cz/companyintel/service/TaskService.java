@@ -20,15 +20,16 @@ public class TaskService {
     @PostConstruct
     public void seedDefaults() {
         if (taskItemRepository.count() > 0) {
+            updateDefaultLabels();
             return;
         }
-        taskItemRepository.save(task("1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze", "Projekt", "HIGH", true));
-        taskItemRepository.save(task("2. Pridat startup demo data pro firmy, osoby, vazby a audit", "Import", "HIGH", true));
-        taskItemRepository.save(task("3. Dodelat registr lidi a detail osoby s vazbami na firmy", "Lide", "HIGH", true));
-        taskItemRepository.save(task("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role", "Vyhledavani", "HIGH", true));
-        taskItemRepository.save(task("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis", "Audit", "MEDIUM", true));
-        taskItemRepository.save(task("6. Pridat historii importnich behu vcetne chybovych radku", "Import", "MEDIUM", true));
-        taskItemRepository.save(task("7. Zprehlednit dashboard: metriky firem, osob, vazeb a watchlistu", "UI", "MEDIUM", true));
+        taskItemRepository.save(task("1. Stabilizovat jádro: health endpoint, chybové odpovědi, stav databáze", "Projekt", "HIGH", true));
+        taskItemRepository.save(task("2. Ověřit import reálné firmy z ARES podle IČO", "Import", "HIGH", true));
+        taskItemRepository.save(task("3. Dodělat registr lidí a detail osoby s vazbami na firmy", "Lidé", "HIGH", true));
+        taskItemRepository.save(task("4. Rozšířit rychlé vyhledávání podle firmy, IČO, osoby a role", "Vyhledávání", "HIGH", true));
+        taskItemRepository.save(task("5. Posílit audit: filtry, typy událostí, archiv a tiskový výpis", "Audit", "MEDIUM", true));
+        taskItemRepository.save(task("6. Přidat historii importních běhů včetně chybných řádků", "Import", "MEDIUM", true));
+        taskItemRepository.save(task("7. Zpřehlednit dashboard: metriky firem, osob, vazeb a watchlistu", "UI", "MEDIUM", true));
     }
 
     public List<TaskItem> findActive() {
@@ -80,13 +81,13 @@ public class TaskService {
 
     private TaskItem getTask(Long id) {
         return taskItemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Task not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Úkol nebyl nalezen: " + id));
     }
 
     private String cleanTitle(String value) {
         String title = value == null ? "" : value.trim();
         if (title.isEmpty()) {
-            throw new IllegalArgumentException("Task title is required");
+            throw new IllegalArgumentException("Název úkolu je povinný");
         }
         return title.length() > 240 ? title.substring(0, 240) : title;
     }
@@ -102,5 +103,47 @@ public class TaskService {
             return "MEDIUM";
         }
         return priority;
+    }
+
+    private void updateDefaultLabels() {
+        for (TaskItem task : taskItemRepository.findAll()) {
+            String title = accentDefaultTitle(task.getTitle());
+            String segment = accentSegment(task.getSegment());
+            if (!title.equals(task.getTitle()) || !segment.equals(task.getSegment())) {
+                task.update(title, segment, task.getPriority());
+                taskItemRepository.save(task);
+            }
+        }
+    }
+
+    private String accentDefaultTitle(String title) {
+        if (title == null) {
+            return "";
+        }
+        return title
+                .replace("1. Stabilizovat jadro: health endpoint, chybove odpovedi, stav databaze",
+                        "1. Stabilizovat jádro: health endpoint, chybové odpovědi, stav databáze")
+                .replace("2. Overit import realne firmy z ARES podle ICO",
+                        "2. Ověřit import reálné firmy z ARES podle IČO")
+                .replace("3. Dodelat registr lidi a detail osoby s vazbami na firmy",
+                        "3. Dodělat registr lidí a detail osoby s vazbami na firmy")
+                .replace("4. Rozsirit rychle vyhledavani podle firmy, ICO, osoby a role",
+                        "4. Rozšířit rychlé vyhledávání podle firmy, IČO, osoby a role")
+                .replace("5. Posilit audit: filtry, typy udalosti, archiv a tiskovy vypis",
+                        "5. Posílit audit: filtry, typy událostí, archiv a tiskový výpis")
+                .replace("6. Pridat historii importnich behu vcetne chybovych radku",
+                        "6. Přidat historii importních běhů včetně chybných řádků")
+                .replace("7. Zprehlednit dashboard: metriky firem, osob, vazeb a watchlistu",
+                        "7. Zpřehlednit dashboard: metriky firem, osob, vazeb a watchlistu");
+    }
+
+    private String accentSegment(String segment) {
+        if ("Lide".equals(segment)) {
+            return "Lidé";
+        }
+        if ("Vyhledavani".equals(segment)) {
+            return "Vyhledávání";
+        }
+        return segment;
     }
 }

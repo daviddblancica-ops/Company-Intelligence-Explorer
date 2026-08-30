@@ -1,17 +1,17 @@
 [
   {
-    "name": "Nova Data Systems s.r.o.",
+    "name": "Nová Data Systems s.r.o.",
     "registrationNumber": "12345678",
     "country": "CZ",
     "legalForm": "s.r.o.",
     "people": [
       {
-        "fullName": "Jan Novak",
+        "fullName": "Jan Novák",
         "role": "jednatel"
       },
       {
-        "fullName": "Eva Svobodova",
-        "role": "spolecnik"
+        "fullName": "Eva Svobodová",
+        "role": "společník"
       }
     ]
   },
@@ -22,8 +22,8 @@
     "legalForm": "a.s.",
     "people": [
       {
-        "fullName": "Petra Dvorakova",
-        "role": "clen predstavenstva"
+        "fullName": "Petra Dvořáková",
+        "role": "člen představenstva"
       }
     ]
   }

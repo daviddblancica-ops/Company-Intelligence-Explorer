@@ -4,5 +4,11 @@ target/
 *.iml
 .idea/
 .vscode/
+.playwright-cli/
 .DS_Store
 Thumbs.db
+.env
+.env.*
+!.env.example
+*.secrets.txt
+*.secrets.local

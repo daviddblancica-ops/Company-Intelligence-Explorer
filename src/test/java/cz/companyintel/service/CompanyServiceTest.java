@@ -4,8 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import cz.companyintel.domain.Company;
+import cz.companyintel.domain.ChangeEvent;
+import cz.companyintel.repository.ChangeEventRepository;
+import cz.companyintel.repository.CompanyRepository;
 import cz.companyintel.repository.PersonRepository;
 import cz.companyintel.web.CompanyRequest;
+import cz.companyintel.web.CompanyUpdateRequest;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +25,12 @@ class CompanyServiceTest {
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
+
+    @Autowired
+    private ChangeEventRepository changeEventRepository;
 
     @Test
     void savesCompanyWithNormalizedNamePeopleAndChangeHistory() {
@@ -155,7 +167,96 @@ class CompanyServiceTest {
 
         assertThatThrownBy(() -> companyService.assignPerson(saved.getId(), "   ", "kontrolor"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Person full name is required");
+                .hasMessage("Jméno osoby je povinné");
         assertThat(personRepository.count()).isEqualTo(peopleBefore);
+    }
+
+    @Test
+    void updatesCompanyProfileWithoutReplacingPeople() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Editable Company s.r.o.");
+        request.setRegistrationNumber("81122334");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+        Company saved = companyService.saveCompany(request);
+        companyService.assignPerson(saved.getId(), "Editovana Osoba", "jednatel");
+
+        CompanyUpdateRequest update = new CompanyUpdateRequest();
+        update.setName("Editable Company a.s.");
+        update.setRegistrationNumber("81122335");
+        update.setCountry("CZ");
+        update.setLegalForm("a.s.");
+        update.setAddress("Testovaci 10, Praha");
+        update.setDataSource("MANUAL");
+        update.setRegistryFileNumber("B 12345/MSPH");
+        update.setRegistryRegistrationDate(LocalDate.of(2020, 2, 3));
+        update.setIncorporationDate(LocalDate.of(2020, 2, 1));
+        update.setShareCapital(new BigDecimal("2000000"));
+        update.setShareCapitalCurrency("czk");
+
+        Company updated = companyService.updateCompany(saved.getId(), update);
+
+        assertThat(updated.getName()).isEqualTo("Editable Company a.s.");
+        assertThat(updated.getRegistrationNumber()).isEqualTo("81122335");
+        assertThat(updated.getAddress()).isEqualTo("Testovaci 10, Praha");
+        assertThat(updated.getRegistryFileNumber()).isEqualTo("B 12345/MSPH");
+        assertThat(updated.getRegistryRegistrationDate()).isEqualTo(LocalDate.of(2020, 2, 3));
+        assertThat(updated.getIncorporationDate()).isEqualTo(LocalDate.of(2020, 2, 1));
+        assertThat(updated.getShareCapital()).isEqualByComparingTo("2000000");
+        assertThat(updated.getShareCapitalCurrency()).isEqualTo("CZK");
+        assertThat(updated.getPeople()).hasSize(1);
+        assertThat(updated.getChanges()).extracting("type").contains("UPDATED");
+    }
+
+    @Test
+    void reimportWithoutPeopleKeepsManualRelationships() {
+        CompanyRequest original = new CompanyRequest();
+        original.setName("ARES Relationship Company s.r.o.");
+        original.setRegistrationNumber("81122337");
+        original.setCountry("CZ");
+        original.setLegalForm("s.r.o.");
+        original.setRegistryFileNumber("C 11111/MSPH");
+        original.setIncorporationDate(LocalDate.of(2019, 6, 1));
+        original.setShareCapital(new BigDecimal("100000"));
+        original.setShareCapitalCurrency("CZK");
+        Company saved = companyService.saveCompany(original);
+        companyService.assignPerson(saved.getId(), "Manualni Vazba", "jednatel");
+
+        CompanyRequest reimport = new CompanyRequest();
+        reimport.setName("ARES Relationship Company s.r.o.");
+        reimport.setRegistrationNumber("81122337");
+        reimport.setCountry("CZ");
+        reimport.setLegalForm("s.r.o.");
+        reimport.setDataSource("CSV");
+
+        Company updated = companyService.saveCompany(reimport);
+
+        assertThat(updated.getPeople()).hasSize(1);
+        assertThat(updated.getPeople()).extracting("role").containsExactly("jednatel");
+        assertThat(updated.getRegistryFileNumber()).isEqualTo("C 11111/MSPH");
+        assertThat(updated.getIncorporationDate()).isEqualTo(LocalDate.of(2019, 6, 1));
+        assertThat(updated.getShareCapital()).isEqualByComparingTo("100000");
+    }
+
+    @Test
+    void deletesCompanyButPreservesAuditHistory() {
+        CompanyRequest request = new CompanyRequest();
+        request.setName("Deleted Audit Company s.r.o.");
+        request.setRegistrationNumber("81122336");
+        request.setCountry("CZ");
+        request.setLegalForm("s.r.o.");
+        Company saved = companyService.saveCompany(request);
+        Long companyId = saved.getId();
+
+        companyService.deleteCompany(companyId);
+
+        assertThat(companyRepository.findById(companyId)).isEmpty();
+        assertThat(changeEventRepository.findAll())
+                .filteredOn(event -> "81122336".equals(event.getRegistrationNumber()))
+                .extracting(ChangeEvent::getType)
+                .contains("CREATED", "COMPANY_DELETED");
+        assertThat(changeEventRepository.findAll())
+                .filteredOn(event -> "81122336".equals(event.getRegistrationNumber()))
+                .allMatch(event -> event.getCompany() == null);
     }
 }

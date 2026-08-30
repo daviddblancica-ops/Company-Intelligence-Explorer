@@ -1,5 +1,7 @@
 package cz.companyintel.domain;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -44,6 +46,19 @@ public class Company {
 
     private String dataSource;
 
+    @Column(length = 120)
+    private String registryFileNumber;
+
+    private LocalDate registryRegistrationDate;
+
+    private LocalDate incorporationDate;
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal shareCapital;
+
+    @Column(length = 12)
+    private String shareCapitalCurrency;
+
     @Column(nullable = false)
     private boolean watchlisted;
 
@@ -56,7 +71,7 @@ public class Company {
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<CompanyPersonRole> people = new LinkedHashSet<CompanyPersonRole>();
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "company", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     private Set<ChangeEvent> changes = new LinkedHashSet<ChangeEvent>();
 
     protected Company() {
@@ -85,6 +100,32 @@ public class Company {
         updateProfile(name, normalizedName, country, legalForm);
         this.address = address;
         this.dataSource = dataSource;
+    }
+
+    public void updateRegistryData(
+            String registryFileNumber,
+            LocalDate registryRegistrationDate,
+            LocalDate incorporationDate,
+            BigDecimal shareCapital,
+            String shareCapitalCurrency) {
+        this.registryFileNumber = registryFileNumber;
+        this.registryRegistrationDate = registryRegistrationDate;
+        this.incorporationDate = incorporationDate;
+        this.shareCapital = shareCapital;
+        this.shareCapitalCurrency = shareCapitalCurrency;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateProfile(
+            String name,
+            String normalizedName,
+            String registrationNumber,
+            String country,
+            String legalForm,
+            String address,
+            String dataSource) {
+        this.registrationNumber = registrationNumber;
+        updateProfile(name, normalizedName, country, legalForm, address, dataSource);
     }
 
     public void addRole(Person person, String role) {
@@ -161,6 +202,26 @@ public class Company {
 
     public String getDataSource() {
         return dataSource;
+    }
+
+    public String getRegistryFileNumber() {
+        return registryFileNumber;
+    }
+
+    public LocalDate getRegistryRegistrationDate() {
+        return registryRegistrationDate;
+    }
+
+    public LocalDate getIncorporationDate() {
+        return incorporationDate;
+    }
+
+    public BigDecimal getShareCapital() {
+        return shareCapital;
+    }
+
+    public String getShareCapitalCurrency() {
+        return shareCapitalCurrency;
     }
 
     public boolean isWatchlisted() {

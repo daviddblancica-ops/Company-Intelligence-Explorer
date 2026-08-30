@@ -1,13 +1,15 @@
-# Nasazeni na Webglobe
+# Nasazení na Webglobe
 
-Tento projekt je Spring Boot Java aplikace. Webglobe udaje, ktere mas k dispozici, staci pro SFTP/SCP a databazi pres Adminer/phpMyAdmin. Pred produkcnim nasazenim je nutne overit, ze hosting umi dlouho bezici Java proces.
+Tento projekt je Spring Boot Java aplikace. Webglobe údaje, které máš k dispozici, stačí pro SFTP/SCP a databázi přes Adminer nebo phpMyAdmin. Před produkčním nasazením je nutné ověřit, že hosting umí dlouho běžící Java proces.
 
-## Co je pripravene v projektu
+## Co je připravené v projektu
 
-- lokalni profil pouziva H2 databazi
-- produkcni profil `prod` pouziva MariaDB/MySQL pres environment variables
-- build vytvari spustitelny `.jar`
-- hesla a pristupy nejsou ulozene v repozitari
+- lokální profil používá H2 databázi
+- produkční profil `prod` používá MariaDB/MySQL přes proměnné prostředí
+- produkční schéma spravují verzované Flyway migrace
+- aplikace vyžaduje přihlášení a rozlišuje role `ADMIN`, `EDITOR` a `VIEWER`
+- build vytváří spustitelný `.jar`
+- hesla a přístupy nejsou uložené v repozitáři
 
 ## Build
 
@@ -15,15 +17,15 @@ Tento projekt je Spring Boot Java aplikace. Webglobe udaje, ktere mas k dispozic
 .\mvnw.cmd clean package
 ```
 
-Vysledny soubor:
+Výsledný soubor:
 
 ```text
 target/company-intelligence-explorer-0.1.0.jar
 ```
 
-## Promenne pro produkci
+## Proměnné pro produkci
 
-Na hostingu nebo v shell session nastav:
+Na hostingu nebo v shell session nastav databázi, port a tři aplikační účty:
 
 ```bash
 export SPRING_PROFILES_ACTIVE=prod
@@ -33,45 +35,64 @@ export DB_NAME="nazev_databaze"
 export DB_USER="uzivatel_databaze"
 export DB_PASSWORD="heslo_databaze"
 export PORT="8080"
+
+export APP_ADMIN_USERNAME="spravce"
+export APP_ADMIN_PASSWORD="dlouhe-nahodne-heslo-pro-spravce"
+export APP_EDITOR_USERNAME="editor"
+export APP_EDITOR_PASSWORD="jine-dlouhe-nahodne-heslo"
+export APP_VIEWER_USERNAME="ctenar"
+export APP_VIEWER_PASSWORD="treti-dlouhe-nahodne-heslo"
+export SESSION_COOKIE_SECURE="true"
+export REQUIRE_HTTPS="true"
+export ARES_CONNECT_TIMEOUT="3s"
+export ARES_READ_TIMEOUT="10s"
+export RATE_LIMIT_ENABLED="true"
+export RATE_LIMIT_MAX_KEYS="10000"
+export RATE_LIMIT_LOGIN_MAX_REQUESTS="10"
+export RATE_LIMIT_LOGIN_WINDOW="5m"
+export RATE_LIMIT_ARES_MAX_REQUESTS="30"
+export RATE_LIMIT_ARES_WINDOW="1m"
+export RATE_LIMIT_IMPORT_MAX_REQUESTS="20"
+export RATE_LIMIT_IMPORT_WINDOW="1m"
+export IMPORT_MAX_PAYLOAD_BYTES="1048576"
+export IMPORT_MAX_ROWS="1000"
+export IMPORT_MAX_PEOPLE_PER_COMPANY="100"
 ```
 
-Hodnoty `DB_HOST`, `DB_NAME`, `DB_USER` a `DB_PASSWORD` vezmi z Webglobe administrace databaze. Heslo nepatri do gitu ani do dokumentace.
+Hodnoty `DB_HOST`, `DB_NAME`, `DB_USER` a `DB_PASSWORD` vezmi z Webglobe administrace databáze. Hesla nepatří do Gitu ani do dokumentace. Všechna tři uživatelská jména musí být odlišná a každé heslo musí mít alespoň deset znaků.
 
-## Test spusteni pres SSH
+`SESSION_COOKIE_SECURE=true` a `REQUIRE_HTTPS=true` použij na serveru dostupném přes HTTPS. Reverzní proxy musí předávat hlavičky `X-Forwarded-For` a `X-Forwarded-Proto`. Pro dočasné lokální spuštění přes obyčejné HTTP nastav obě hodnoty na `false`.
 
-Po nahrani `.jar` na hosting zkus v SSH:
+Importní limity chrání aplikaci před zahlcením velkým JSON/CSV vstupem. Jejich zvýšení
+prováděj jen společně s kontrolou dostupné paměti a výkonu databáze.
+
+Při prvním startu profilu `prod` Flyway vytvoří tabulku `flyway_schema_history` a provede dosud chybějící migrace. Funguje to pro prázdnou databázi i pro databázi, ve které už Hibernate dříve vytvořil tabulky. Hibernate v produkci schéma pouze ověřuje a sám ho nemění.
+
+Před prvním spuštěním nad existující databází vytvoř zálohu. Po startu musí log obsahovat úspěšně dokončené migrace a validaci schématu bez DDL chyb.
+
+## Test spuštění přes SSH
+
+Po nahrání `.jar` na hosting zkus v SSH:
 
 ```bash
 java -version
 java -jar company-intelligence-explorer-0.1.0.jar
 ```
 
-Pokud Java neni dostupna nebo proces hosting po odhlaseni ukonci, nejde tento typ Spring Boot aplikace provozovat primo na sdilenem hostingu. V tom pripade lze databazi na Webglobe pouzit, ale Java backend musi bezet na VPS nebo jine sluzbe pro dlouho bezici aplikace.
+Pokud Java není dostupná nebo proces hosting po odhlášení ukončí, nejde tento typ Spring Boot aplikace provozovat přímo na sdíleném hostingu. V tom případě lze databázi na Webglobe použít, ale Java backend musí běžet na VPS nebo jiné službě pro dlouho běžící aplikace.
 
 ## SFTP/SCP
 
-Server:
-
-```text
-185.102.21.128
-```
-
-Port:
-
-```text
-222
-```
-
-Priklad nahrani pres SCP:
+Použij adresu a port uvedené v aktuální administraci hostingu. Příklad nahrání přes SCP:
 
 ```bash
-scp -P 222 target/company-intelligence-explorer-0.1.0.jar USER@185.102.21.128:/cesta/k/aplikaci/
+scp -P PORT target/company-intelligence-explorer-0.1.0.jar USER@SERVER:/cesta/k/aplikaci/
 ```
 
-`USER` je prihlasovaci jmeno hlavniho FTP uctu.
+`USER` je přihlašovací jméno SSH/SFTP účtu. Konkrétní server, uživatele ani heslo neukládej do repozitáře.
 
 ## Cron
 
-Cron je vhodny pro pravidelne ulohy, ne pro provoz web serveru. Dava smysl az pro doplnkove ulohy, napriklad denni import nebo kontrolu dostupnosti.
+Cron je vhodný pro pravidelné úlohy, ne pro provoz web serveru. Dává smysl až pro doplňkové úlohy, například denní import nebo kontrolu dostupnosti.
 
-Pro samotny Spring Boot backend je potreba dlouho bezici proces, typicky systemd, supervisor, Docker, VPS, nebo hosting s podporou Java aplikaci.
+Pro samotný Spring Boot backend je potřeba dlouho běžící proces, typicky systemd, supervisor, Docker, VPS nebo hosting s podporou Java aplikací.

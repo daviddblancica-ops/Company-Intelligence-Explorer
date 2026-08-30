@@ -1,318 +1,391 @@
-export function initCompanies({ dom, state, ui, audit }) {
-  dom.form.addEventListener('submit', async event => {
-    event.preventDefault();
-    ui.showToast(dom.query.value.trim() ? `Hledam: ${dom.query.value.trim()}` : 'Zobrazuji vsechny firmy.');
-    await search(dom.query.value);
-  });
+import { api } from './api.js';
+import { byId, escapeHtml, formatDate, setServerStatus, showToast, updateText } from './ui.js';
 
-  dom.showAll.addEventListener('click', async () => {
-    dom.query.value = '';
-    state.watchlistOnly = false;
-    dom.showWatchlist.classList.remove('active');
-    ui.showToast('Zobrazuji vsechny firmy.');
-    await search('');
-  });
+export function initCompanies({ audit, navigation, onChanged = async () => {}, onPeopleChanged = async () => {} }) {
+  const form = byId('search-form');
+  const query = byId('query');
+  const results = byId('results');
+  const showAll = byId('show-all');
+  const showWatchlist = byId('show-watchlist');
+  const editDialog = byId('company-edit-dialog');
+  const editForm = byId('company-edit-form');
+  let companies = [];
+  let selectedId = null;
+  let watchlistOnly = false;
 
-  dom.showWatchlist.addEventListener('click', () => {
-    state.watchlistOnly = !state.watchlistOnly;
-    dom.showWatchlist.classList.toggle('active', state.watchlistOnly);
-    ui.showToast(state.watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji vsechny vysledky.');
-    renderCompanies(state.currentCompanies);
-  });
+  function init() {
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      search(query.value);
+    });
+    showAll.addEventListener('click', () => {
+      query.value = '';
+      watchlistOnly = false;
+      showWatchlist.classList.remove('active');
+      showWatchlist.setAttribute('aria-pressed', 'false');
+      search('');
+    });
+    showWatchlist.addEventListener('click', () => {
+      watchlistOnly = !watchlistOnly;
+      showWatchlist.classList.toggle('active', watchlistOnly);
+      showWatchlist.setAttribute('aria-pressed', String(watchlistOnly));
+      showToast(watchlistOnly ? 'Zobrazuji watchlist.' : 'Zobrazuji všechny výsledky.');
+      if (selectedId && !visibleCompanies().some(company => company.id === selectedId)) selectedId = null;
+      renderList();
+    });
+    results.addEventListener('click', handleResultAction);
+    results.addEventListener('submit', handlePersonSubmit);
+    editForm.addEventListener('submit', saveCompanyEdit);
+    document.querySelectorAll('[data-close-dialog="company-edit-dialog"]').forEach(button => {
+      button.addEventListener('click', () => editDialog.close());
+    });
+  }
 
-  dom.results.addEventListener('click', async event => {
+  async function search(value = '') {
+    const term = String(value || '').trim();
+    try {
+      companies = await api.get(`/api/companies/search?q=${encodeURIComponent(term)}`);
+      setServerStatus(true);
+      audit.addActivity('Vyhledávání', `${companies.length} záznamů odpovídá dotazu "${term || 'vše'}".`, 'low');
+      if (selectedId && !companies.some(company => company.id === selectedId)) selectedId = null;
+      renderList();
+    } catch (error) {
+      setServerStatus(false);
+      showToast(error.status === 0 ? 'Server je offline.' : 'Vyhledávání selhalo.');
+      audit.addActivity('Chyba vyhledávání', 'API vrátilo chybu při hledání firemních záznamů.', 'critical');
+    }
+  }
+
+  async function openByRegistration(registrationNumber) {
+    navigation.show('search');
+    query.value = registrationNumber || '';
+    watchlistOnly = false;
+    showWatchlist.classList.remove('active');
+    showWatchlist.setAttribute('aria-pressed', 'false');
+    await search(query.value);
+    const company = companies.find(item => item.registrationNumber === registrationNumber) || companies[0];
+    selectedId = company ? company.id : null;
+    renderList();
+  }
+
+  async function handleResultAction(event) {
     const detailButton = event.target.closest('button[data-detail-id]');
     if (detailButton) {
-      state.selectedCompanyId = Number(detailButton.dataset.detailId);
-      renderDetail(state.currentCompanies.find(company => company.id === state.selectedCompanyId));
-      renderCompanies(state.currentCompanies);
+      const id = Number(detailButton.dataset.detailId);
+      selectedId = selectedId === id ? null : id;
+      renderList();
       return;
     }
 
     const watchButton = event.target.closest('button[data-watch-id]');
-    if (!watchButton) {
-      return;
-    }
-    const id = watchButton.dataset.watchId;
-    const watchlisted = watchButton.dataset.watchState === 'true';
-    const response = await fetch(`/api/companies/${id}/watchlist`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ watchlisted })
-    });
-    if (!response.ok) {
-      ui.showToast('Watchlist se nepodarilo ulozit.');
-      audit.addActivity('Watchlist chyba', 'Zmenu watchlistu se nepodarilo ulozit.', 'warning');
-      return;
-    }
-    const updated = await response.json();
-    state.currentCompanies = state.currentCompanies.map(company => company.id === updated.id ? updated : company);
-    if (state.selectedCompanyId === updated.id) {
-      renderDetail(updated);
-    }
-    ui.showToast(watchlisted ? 'Firma pridana na watchlist.' : 'Firma odebrana z watchlistu.');
-    audit.addActivity('Watchlist', `${updated.name} ma stav: ${updated.watchlisted ? 'sledovano' : 'nesledovano'}.`, 'warning');
-    await audit.loadBackendAudit(false);
-    renderCompanies(state.currentCompanies);
-  });
-
-  dom.detailPanel.addEventListener('submit', async event => {
-    if (event.target.id !== 'person-form') {
-      return;
-    }
-    event.preventDefault();
-    const formData = new FormData(event.target);
-    const fullName = String(formData.get('fullName') || '').trim();
-    const role = String(formData.get('role') || '').trim();
-    const editingPersonId = event.target.dataset.editPersonId;
-    if (!fullName) {
-      ui.showToast('Vypln jmeno osoby.');
-      return;
-    }
-    const companyId = event.target.dataset.companyId;
-    const url = editingPersonId
-      ? `/api/companies/${companyId}/people/${editingPersonId}`
-      : `/api/companies/${companyId}/people`;
-    const response = await fetch(url, {
-      method: editingPersonId ? 'PATCH' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fullName, role })
-    });
-    if (!response.ok) {
-      ui.showToast(editingPersonId ? 'Vazbu osoby se nepodarilo upravit.' : 'Osobu se nepodarilo priradit.');
-      audit.addActivity('Vazba osoby', editingPersonId ? 'Uprava vazby osoby selhala.' : 'Prirazeni osoby k firme selhalo.', 'warning');
-      return;
-    }
-    const updated = await response.json();
-    state.currentCompanies = state.currentCompanies.map(company => company.id === updated.id ? updated : company);
-    state.selectedCompanyId = updated.id;
-    renderCompanies(state.currentCompanies);
-    renderDetail(updated);
-    ui.showToast(editingPersonId ? 'Vazba osoby byla upravena.' : 'Osoba byla prirazena k firme.');
-    audit.addActivity('Vazba osoby', editingPersonId ? `${fullName} upraven u firmy ${updated.name}.` : `${fullName} prirazen k firme ${updated.name}.`, 'warning');
-    await audit.loadBackendAudit(false);
-  });
-
-  dom.detailPanel.addEventListener('click', async event => {
-    const editButton = event.target.closest('button[data-edit-person-id]');
-    if (editButton) {
-      const form = document.getElementById('person-form');
-      form.dataset.editPersonId = editButton.dataset.editPersonId;
-      form.querySelector('input[name="fullName"]').value = editButton.dataset.fullName || '';
-      form.querySelector('input[name="fullName"]').readOnly = true;
-      form.querySelector('input[name="role"]').value = editButton.dataset.role || '';
-      form.querySelector('button[type="submit"]').textContent = 'Ulozit';
-      document.getElementById('person-cancel-edit').hidden = false;
-      ui.showToast('Uprav roli osoby a uloz zmenu.');
+    if (watchButton) {
+      await setWatchlist(watchButton);
       return;
     }
 
-    const cancelButton = event.target.closest('#person-cancel-edit');
-    if (cancelButton) {
+    const editCompanyButton = event.target.closest('button[data-edit-company-id]');
+    if (editCompanyButton) {
+      const company = companies.find(item => item.id === Number(editCompanyButton.dataset.editCompanyId));
+      if (company) openEditDialog(company);
+      return;
+    }
+
+    const deleteCompanyButton = event.target.closest('button[data-delete-company-id]');
+    if (deleteCompanyButton) {
+      await deleteCompany(Number(deleteCompanyButton.dataset.deleteCompanyId));
+      return;
+    }
+
+    const editPersonButton = event.target.closest('button[data-edit-person-id]');
+    if (editPersonButton) {
+      const company = selectedCompany();
+      const person = company?.people?.find(item => item.personId === Number(editPersonButton.dataset.editPersonId));
+      if (person) startRoleEdit(person);
+      return;
+    }
+
+    if (event.target.closest('#person-cancel-edit')) {
       resetPersonForm();
-      ui.showToast('Uprava osoby zrusena.');
       return;
     }
 
-    const deleteButton = event.target.closest('button[data-delete-person-id]');
-    if (!deleteButton) {
-      return;
-    }
-    const companyId = deleteButton.dataset.companyId;
-    const personId = deleteButton.dataset.deletePersonId;
-    const response = await fetch(`/api/companies/${companyId}/people/${personId}`, { method: 'DELETE' });
-    if (!response.ok) {
-      ui.showToast('Vazbu osoby se nepodarilo smazat.');
-      audit.addActivity('Vazba osoby', 'Smazani vazby osoby selhalo.', 'warning');
-      return;
-    }
-    const updated = await response.json();
-    state.currentCompanies = state.currentCompanies.map(company => company.id === updated.id ? updated : company);
-    state.selectedCompanyId = updated.id;
-    renderCompanies(state.currentCompanies);
-    renderDetail(updated);
-    ui.showToast('Vazba osoby byla smazana.');
-    audit.addActivity('Vazba osoby', `Osoba odebrana od firmy ${updated.name}.`, 'warning');
-    await audit.loadBackendAudit(false);
-  });
-
-  async function search(value) {
-    let response;
-    try {
-      response = await fetch(`/api/companies/search?q=${encodeURIComponent(value || '')}`);
-    } catch (error) {
-      ui.setServerStatus(false);
-      ui.showToast('Server je offline.');
-      audit.addActivity('Server offline', 'Vyhledavani se nepodarilo spustit, API neodpovedelo.', 'critical');
-      return;
-    }
-    if (!response.ok) {
-      ui.setServerStatus(false);
-      ui.showToast('Vyhledavani selhalo.');
-      audit.addActivity('Chyba vyhledavani', 'API vratilo chybu pri hledani firemnich zaznamu.', 'critical');
-      return;
-    }
-    ui.setServerStatus(true);
-    state.currentCompanies = await response.json();
-    audit.addActivity('Vyhledavani', `${state.currentCompanies.length} zaznamu odpovida dotazu "${value || 'vse'}".`, 'low');
-    if (state.selectedCompanyId && !state.currentCompanies.some(company => company.id === state.selectedCompanyId)) {
-      state.selectedCompanyId = null;
-      renderDetail(null);
-    }
-    renderCompanies(state.currentCompanies);
+    const deletePersonButton = event.target.closest('button[data-delete-person-id]');
+    if (deletePersonButton) await removePersonRelationship(deletePersonButton);
   }
 
-  function renderCompanies(companies) {
-    const visibleCompanies = state.watchlistOnly ? companies.filter(c => c.watchlisted) : companies;
-    dom.count.textContent = visibleCompanies.length;
-    dom.aresCount.textContent = visibleCompanies.filter(c => c.dataSource === 'ARES').length;
-    dom.changeCount.textContent = visibleCompanies.reduce((sum, c) => sum + ((c.changes || []).length), 0);
-    dom.watchCount.textContent = companies.filter(c => c.watchlisted).length;
+  async function setWatchlist(button) {
+    const id = Number(button.dataset.watchId);
+    const watchlisted = button.dataset.watchState === 'true';
+    try {
+      const updated = await api.patch(`/api/companies/${id}/watchlist`, { watchlisted });
+      replaceCompany(updated);
+      showToast(watchlisted ? 'Firma přidána na watchlist.' : 'Firma odebrána z watchlistu.');
+      audit.addActivity('Watchlist', `${updated.name} má stav: ${updated.watchlisted ? 'sledováno' : 'nesledováno'}.`, 'warning');
+      renderList();
+      await onChanged();
+    } catch (error) {
+      showToast('Watchlist se nepodařilo uložit.');
+      audit.addActivity('Chyba watchlistu', 'Změnu watchlistu se nepodařilo uložit.', 'warning');
+    }
+  }
 
-    if (!visibleCompanies.length) {
-      dom.results.innerHTML = state.watchlistOnly
-        ? '<div class="empty">Watchlist je prazdny. Oznac firmu tlacitkem Sledovat.</div>'
-        : '<div class="empty">Zadne firmy nebyly nalezeny. Nacti data z ARES, JSON nebo CSV, pripadne uprav vyhledavani.</div>';
+  async function handlePersonSubmit(event) {
+    if (event.target.id !== 'person-form') return;
+    event.preventDefault();
+    const data = new FormData(event.target);
+    const fullName = String(data.get('fullName') || '').trim();
+    const role = String(data.get('role') || '').trim();
+    const companyId = event.target.dataset.companyId;
+    const personId = event.target.dataset.editPersonId;
+    if (!fullName) {
+      showToast('Vyplň jméno osoby.');
       return;
     }
-
-    if (!state.selectedCompanyId || !visibleCompanies.some(company => company.id === state.selectedCompanyId)) {
-      state.selectedCompanyId = visibleCompanies[0].id;
-      renderDetail(visibleCompanies[0]);
+    try {
+      const updated = personId
+        ? await api.patch(`/api/companies/${companyId}/people/${personId}`, { fullName, role })
+        : await api.post(`/api/companies/${companyId}/people`, { fullName, role });
+      replaceCompany(updated);
+      selectedId = updated.id;
+      showToast(personId ? 'Role osoby byla upravena.' : 'Osoba byla přiřazena k firmě.');
+      audit.addActivity('Vazba osoby', personId
+        ? `${fullName}: role upravena u firmy ${updated.name}.`
+        : `${fullName} přiřazen k firmě ${updated.name}.`, 'warning');
+      renderList();
+      await Promise.allSettled([onChanged(), onPeopleChanged()]);
+    } catch (error) {
+      showToast(personId ? 'Roli osoby se nepodařilo upravit.' : 'Osobu se nepodařilo přiřadit.');
+      audit.addActivity('Vazba osoby', 'Uložení vazby osoby selhalo.', 'warning');
     }
+  }
 
-    dom.results.innerHTML = visibleCompanies.map(company => `
-      <article class="company ${company.id === state.selectedCompanyId ? 'selected' : ''}">
+  function startRoleEdit(person) {
+    const personForm = byId('person-form');
+    personForm.dataset.editPersonId = person.personId;
+    personForm.querySelector('[name="fullName"]').value = person.fullName || '';
+    personForm.querySelector('[name="fullName"]').readOnly = true;
+    personForm.querySelector('[name="role"]').value = person.role || '';
+    personForm.querySelector('button[type="submit"]').textContent = 'Uložit roli';
+    byId('person-cancel-edit').hidden = false;
+    personForm.querySelector('[name="role"]').focus();
+  }
+
+  async function removePersonRelationship(button) {
+    const companyId = button.dataset.companyId;
+    const personId = button.dataset.deletePersonId;
+    if (!window.confirm('Odebrat tuto osobu od firmy? Samotný záznam osoby zůstane v registru.')) return;
+    try {
+      const updated = await api.delete(`/api/companies/${companyId}/people/${personId}`);
+      replaceCompany(updated);
+      showToast('Vazba osoby byla odstraněna.');
+      audit.addActivity('Vazba osoby', `Osoba odebrána od firmy ${updated.name}.`, 'warning');
+      renderList();
+      await Promise.allSettled([onChanged(), onPeopleChanged()]);
+    } catch (error) {
+      showToast('Vazbu osoby se nepodařilo odstranit.');
+    }
+  }
+
+  function openEditDialog(company) {
+    editForm.elements.id.value = company.id;
+    editForm.elements.name.value = company.name || '';
+    editForm.elements.registrationNumber.value = company.registrationNumber || '';
+    editForm.elements.country.value = company.country || '';
+    editForm.elements.legalForm.value = company.legalForm || '';
+    editForm.elements.registryFileNumber.value = company.registryFileNumber || '';
+    editForm.elements.registryRegistrationDate.value = company.registryRegistrationDate || '';
+    editForm.elements.incorporationDate.value = company.incorporationDate || '';
+    editForm.elements.shareCapital.value = company.shareCapital ?? '';
+    editForm.elements.shareCapitalCurrency.value = company.shareCapitalCurrency || 'CZK';
+    editForm.elements.address.value = company.address || '';
+    editForm.elements.dataSource.value = company.dataSource || '';
+    editDialog.showModal();
+    editForm.elements.name.focus();
+  }
+
+  async function saveCompanyEdit(event) {
+    event.preventDefault();
+    const data = new FormData(editForm);
+    const id = Number(data.get('id'));
+    const payload = {
+      name: String(data.get('name') || '').trim(),
+      registrationNumber: String(data.get('registrationNumber') || '').trim(),
+      country: String(data.get('country') || '').trim(),
+      legalForm: String(data.get('legalForm') || '').trim(),
+      registryFileNumber: String(data.get('registryFileNumber') || '').trim(),
+      registryRegistrationDate: String(data.get('registryRegistrationDate') || '').trim() || null,
+      incorporationDate: String(data.get('incorporationDate') || '').trim() || null,
+      shareCapital: String(data.get('shareCapital') || '').trim() || null,
+      shareCapitalCurrency: String(data.get('shareCapitalCurrency') || '').trim(),
+      address: String(data.get('address') || '').trim(),
+      dataSource: String(data.get('dataSource') || '').trim()
+    };
+    try {
+      const updated = await api.put(`/api/companies/${id}`, payload);
+      replaceCompany(updated);
+      selectedId = updated.id;
+      editDialog.close();
+      renderList();
+      showToast('Firemní záznam byl upraven.');
+      audit.addActivity('Úprava firmy', `${updated.name} byla upravena.`, 'warning');
+      await onChanged();
+    } catch (error) {
+      showToast(error.message || 'Firmu se nepodařilo uložit.');
+    }
+  }
+
+  async function deleteCompany(id) {
+    const company = companies.find(item => item.id === id);
+    if (!company || !window.confirm(`Opravdu smazat firmu ${company.name}? Vazby zmizí, audit zůstane zachován.`)) return;
+    try {
+      await api.delete(`/api/companies/${id}`);
+      companies = companies.filter(item => item.id !== id);
+      selectedId = null;
+      renderList();
+      showToast('Firma byla smazána z registru.');
+      audit.addActivity('Smazání firmy', `${company.name} byla smazána z registru.`, 'critical');
+      await Promise.allSettled([onChanged(), onPeopleChanged()]);
+    } catch (error) {
+      showToast(error.message || 'Firmu se nepodařilo smazat.');
+    }
+  }
+
+  function replaceCompany(updated) {
+    companies = companies.map(company => company.id === updated.id ? updated : company);
+  }
+
+  function selectedCompany() {
+    return companies.find(company => company.id === selectedId);
+  }
+
+  function visibleCompanies() {
+    return watchlistOnly ? companies.filter(company => company.watchlisted) : companies;
+  }
+
+  function renderList() {
+    const visible = visibleCompanies();
+    updateText('count', visible.length);
+    updateText('ares-count', visible.filter(company => company.dataSource === 'ARES').length);
+    updateText('change-count', visible.reduce((sum, company) => sum + (company.changes || []).length, 0));
+    updateText('watch-count', companies.filter(company => company.watchlisted).length);
+
+    if (!visible.length) {
+      results.innerHTML = `<div class="empty">${watchlistOnly
+        ? 'Watchlist je prázdný. Označ firmu tlačítkem Sledovat.'
+        : 'Žádné firmy nebyly nalezeny. Načti data nebo uprav vyhledávání.'}</div>`;
+      return;
+    }
+    results.innerHTML = visible.map(company => renderCompanyEntry(company)).join('');
+  }
+
+  function renderCompanyEntry(company) {
+    const expanded = company.id === selectedId;
+    return `<div class="registry-entry">
+      <article class="company compact-company ${expanded ? 'selected expanded' : ''}">
         <div class="company-head">
-          <div>
-            <h3>${ui.escapeHtml(company.name)}</h3>
-            <p>${ui.escapeHtml(company.address || 'Adresa neni uvedena')}</p>
-          </div>
+          <div><h3>${escapeHtml(company.name)}</h3><p>IČO ${escapeHtml(company.registrationNumber)} · ${escapeHtml(company.address || 'adresa neuvedena')}</p></div>
           <div class="company-actions">
-            <button class="secondary" type="button" data-detail-id="${company.id}">Detail</button>
-            <button class="watch ${company.watchlisted ? 'active' : ''}" type="button" data-watch-id="${company.id}" data-watch-state="${company.watchlisted ? 'false' : 'true'}">
-              ${company.watchlisted ? 'Sledovano' : 'Sledovat'}
-            </button>
-            <span class="badge ${company.watchlisted ? 'watchlisted' : ''}">${company.watchlisted ? 'WATCHLIST' : ui.escapeHtml(company.dataSource || 'LOCAL')}</span>
+            <button class="secondary" type="button" data-detail-id="${company.id}" aria-expanded="${expanded}">${expanded ? 'Skrýt' : 'Detail'}</button>
+            <button class="watch ${company.watchlisted ? 'active' : ''}" type="button"
+              data-watch-id="${company.id}" data-watch-state="${company.watchlisted ? 'false' : 'true'}"
+              aria-pressed="${company.watchlisted}">${company.watchlisted ? 'Sledováno' : 'Sledovat'}</button>
           </div>
         </div>
         <div class="meta">
-          <span><strong>ICO:</strong> ${ui.escapeHtml(company.registrationNumber)}</span>
-          <span><strong>Stat:</strong> ${ui.escapeHtml(company.country || '-')}</span>
-          <span><strong>Pravni forma:</strong> ${ui.escapeHtml(company.legalForm || '-')}</span>
-          <span><strong>Historie:</strong> ${(company.changes || []).length} udalosti</span>
-          <span><strong>Lide:</strong> ${(company.people || []).length}</span>
-          <span><strong>Watchlist:</strong> ${company.watchlisted ? 'ano' : 'ne'}</span>
+          <span><strong>Forma</strong> ${escapeHtml(company.legalForm || '-')}</span>
+          <span><strong>Vznik</strong> ${escapeHtml(formatRegistryDate(company.incorporationDate))}</span>
+          <span><strong>Kapitál</strong> ${escapeHtml(formatCapital(company))}</span>
+          <span><strong>Spis</strong> ${escapeHtml(company.registryFileNumber || '-')}</span>
+          <span><strong>Vazby</strong> ${(company.people || []).length} osob</span>
+          <span><strong>Historie</strong> ${(company.changes || []).length} změn</span>
+          <span class="badge ${company.watchlisted ? 'watchlisted' : ''}">${company.watchlisted ? 'WATCHLIST' : escapeHtml(company.dataSource || 'LOCAL')}</span>
         </div>
-        <details class="history">
-          <summary>Zobrazit napojene lidi</summary>
-          <div class="history-list">
-            ${renderPeople(company.people || [])}
-          </div>
-        </details>
-        <details class="history">
-          <summary>Zobrazit historii zmen</summary>
-          <div class="history-list">
-            ${renderHistory(company.changes || [])}
-          </div>
-        </details>
       </article>
-    `).join('');
+      ${expanded ? renderDetail(company) : ''}
+    </div>`;
   }
 
   function renderDetail(company) {
-    if (!company) {
-      dom.detailPanel.innerHTML = `
-        <h3>Detail firmy</h3>
-        <p>Vyber firmu ve vysledcich. Tady se ukaze sjednoceny zaznam, napojene osoby, historie zmen a stav watchlistu.</p>
-      `;
-      return;
-    }
-
-    dom.detailPanel.innerHTML = `
-      <h3>${ui.escapeHtml(company.name)}</h3>
-      <p>${ui.escapeHtml(company.address || 'Adresa neni uvedena')}</p>
-      <div class="detail-section">
-        <h4>Sjednoceny zaznam</h4>
-        ${renderDetailRow('ICO', company.registrationNumber)}
-        ${renderDetailRow('Stat', company.country || '-')}
-        ${renderDetailRow('Pravni forma', company.legalForm || '-')}
-        ${renderDetailRow('Zdroj', company.dataSource || 'LOCAL')}
-        ${renderDetailRow('Watchlist', company.watchlisted ? 'ano' : 'ne')}
+    return `<section class="inline-detail" aria-label="Detail firmy ${escapeHtml(company.name)}">
+      <div class="detail-heading"><div><h3>${escapeHtml(company.name)}</h3><p>${escapeHtml(company.address || 'Adresa není uvedena')}</p></div>
+        <div class="record-actions"><button class="secondary" type="button" data-edit-company-id="${company.id}">Upravit firmu</button>
+          <button class="danger" type="button" data-delete-company-id="${company.id}">Smazat firmu</button></div></div>
+      <div class="detail-section"><h4>Základní údaje</h4>
+        <div class="company-detail-grid">
+          ${detailRow('IČO', company.registrationNumber)}${detailRow('Stát', company.country || '-')}${detailRow('Právní forma', company.legalForm || '-')}${detailRow('Zdroj', company.dataSource || '-')}
+          ${detailRow('Spisová značka', company.registryFileNumber || '-')}${detailRow('Datum zápisu', formatRegistryDate(company.registryRegistrationDate))}
+          ${detailRow('Datum vzniku', formatRegistryDate(company.incorporationDate))}${detailRow('Základní kapitál', formatCapital(company))}
+        </div>
       </div>
-      <div class="detail-section">
-        <h4>Napojene osoby</h4>
-        ${renderPeople(company.people || [], true, company.id)}
+      <div class="detail-section"><div class="section-heading"><h4>Osoby a role</h4><span>${(company.people || []).length}</span></div>
+        <div class="relationship-list">${renderCompanyPeople(company.people || [], company.id)}</div>
         <form class="person-form" id="person-form" data-company-id="${company.id}">
-          <input name="fullName" autocomplete="off" placeholder="Jmeno osoby" aria-label="Jmeno osoby">
-          <input name="role" autocomplete="off" placeholder="Role ve firme" aria-label="Role ve firme">
-          <button type="submit">Priradit</button>
-          <button class="secondary" type="button" id="person-cancel-edit" hidden>Zrusit</button>
+          <input name="fullName" autocomplete="off" placeholder="Jméno osoby" aria-label="Jméno osoby" required>
+          <input name="role" autocomplete="off" placeholder="Role ve firmě" aria-label="Role ve firmě">
+          <button type="submit">Přiřadit</button><button class="secondary" type="button" id="person-cancel-edit" hidden>Zrušit</button>
         </form>
       </div>
-      <div class="detail-section">
-        <h4>Historie zmen</h4>
-        ${renderHistory(company.changes || [])}
-      </div>
-    `;
+      <details class="history"><summary>Historie změn (${(company.changes || []).length})</summary>
+        <div class="history-list">${renderHistory(company.changes || [])}</div></details>
+    </section>`;
   }
 
-  function renderDetailRow(label, value) {
-    return `
-      <div class="detail-row">
-        <strong>${ui.escapeHtml(label)}</strong>
-        <span>${ui.escapeHtml(value)}</span>
-      </div>
-    `;
-  }
-
-  function resetPersonForm() {
-    const form = document.getElementById('person-form');
-    if (!form) {
-      return;
-    }
-    delete form.dataset.editPersonId;
-    form.reset();
-    form.querySelector('input[name="fullName"]').readOnly = false;
-    form.querySelector('button[type="submit"]').textContent = 'Priradit';
-    document.getElementById('person-cancel-edit').hidden = true;
-  }
-
-  function renderPeople(people, editable = false, companyId = null) {
-    if (!people.length) {
-      return '<div class="history-item">U teto firmy zatim nejsou ulozene vazby na osoby.</div>';
-    }
-
+  function renderCompanyPeople(people, companyId) {
+    if (!people.length) return '<div class="history-item">U této firmy zatím nejsou uložené vazby na osoby.</div>';
     return people.map(person => `
-      <div class="history-item">
-        <strong>${ui.escapeHtml(person.fullName || 'Osoba')}</strong>
-        <span>${ui.escapeHtml(person.role || 'role neuvedena')}</span>
-        ${editable ? `
-          <div class="person-tools">
-            <button class="secondary" type="button" data-edit-person-id="${person.personId}" data-full-name="${ui.escapeHtml(person.fullName || '')}" data-role="${ui.escapeHtml(person.role || '')}">Upravit</button>
-            <button class="danger" type="button" data-delete-person-id="${person.personId}" data-company-id="${companyId}">Smazat</button>
-          </div>
-        ` : ''}
-      </div>
-    `).join('');
+      <div class="relationship-item">
+        <div><strong>${escapeHtml(person.fullName || 'Osoba')}</strong><span>${escapeHtml(person.role || 'role neuvedena')}</span></div>
+        <div class="relationship-actions">
+          <button class="secondary icon-action" type="button" data-edit-person-id="${person.personId}">Upravit roli</button>
+          <button class="secondary icon-action danger" type="button" data-delete-person-id="${person.personId}"
+            data-company-id="${companyId}">Odebrat</button>
+        </div>
+      </div>`).join('');
   }
 
   function renderHistory(changes) {
-    if (!changes.length) {
-      return '<div class="history-item">Historie zatim neobsahuje zadne udalosti.</div>';
-    }
-
-    return changes.map(change => `
-      <div class="history-item">
-        <strong>${ui.escapeHtml(change.type || 'Zmena')}</strong>
-        <span>${ui.escapeHtml(change.description || '')}</span>
-        <span>${ui.formatDate(change.createdAt)}</span>
-      </div>
-    `).join('');
+    if (!changes.length) return '<div class="history-item">Historie zatím neobsahuje žádné události.</div>';
+    return changes.map(change => `<div class="history-item"><strong>${escapeHtml(change.type || 'Změna')}</strong>
+      <span>${escapeHtml(change.description || '')}</span><span>${formatDate(change.createdAt)}</span></div>`).join('');
   }
 
-  return {
-    search,
-    renderCompanies
-  };
+  function detailRow(label, value) {
+    return `<div class="detail-row"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(value)}</span></div>`;
+  }
+
+  function formatRegistryDate(value) {
+    if (!value) return '-';
+    const parts = String(value).split('-').map(Number);
+    if (parts.length !== 3 || parts.some(part => !Number.isFinite(part))) return String(value);
+    return new Intl.DateTimeFormat('cs-CZ').format(new Date(parts[0], parts[1] - 1, parts[2]));
+  }
+
+  function formatCapital(company) {
+    if (company.shareCapital === null || company.shareCapital === undefined || company.shareCapital === '') return '-';
+    const amount = Number(company.shareCapital);
+    const currency = company.shareCapitalCurrency || 'CZK';
+    if (!Number.isFinite(amount)) return `${company.shareCapital} ${currency}`;
+    try {
+      return new Intl.NumberFormat('cs-CZ', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2
+      }).format(amount);
+    } catch (error) {
+      return `${new Intl.NumberFormat('cs-CZ').format(amount)} ${currency}`;
+    }
+  }
+
+  function resetPersonForm() {
+    const personForm = document.getElementById('person-form');
+    if (!personForm) return;
+    delete personForm.dataset.editPersonId;
+    personForm.reset();
+    personForm.querySelector('[name="fullName"]').readOnly = false;
+    personForm.querySelector('button[type="submit"]').textContent = 'Přiřadit';
+    byId('person-cancel-edit').hidden = true;
+  }
+
+  return { init, search, openByRegistration };
 }
