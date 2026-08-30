@@ -73,8 +73,12 @@ class HomePageTest {
         assertThat(response.getBody()).doesNotContain("seed-demo");
         assertThat(response.getBody()).contains("data-view-target=\"people\"");
         assertThat(response.getBody()).contains("data-view-target=\"notes\"");
+        assertThat(response.getBody()).contains("data-view-target=\"id-generator\"");
         assertThat(response.getBody()).contains("data-view=\"audit\"");
         assertThat(response.getBody()).contains("data-view=\"notes\"");
+        assertThat(response.getBody()).contains("data-view=\"id-generator\"");
+        assertThat(response.getBody()).contains("dki-id-generator-v1.0.0/DKI-ID-Generator-Setup.exe");
+        assertThat(response.getBody()).contains("9617146330E65857BA4641160E43F6318C53DC555B1176B5CC156FB17F7FA742");
         assertThat(response.getBody()).contains("audit-type-filter");
         assertThat(response.getBody()).contains("audit-query-filter");
         assertThat(response.getBody()).contains("export-audit");
@@ -93,6 +97,7 @@ class HomePageTest {
         assertThat(importScript.getBody()).contains("back-to-import-runs");
         assertThat(styles.getStatusCodeValue()).isEqualTo(200);
         assertThat(styles.getBody()).contains(".import-tabs");
+        assertThat(styles.getBody()).contains(".tool-package-table");
         assertThat(styles.getBody()).contains("size: A4 landscape");
         assertThat(appScript.getBody()).contains("initAudit");
     }

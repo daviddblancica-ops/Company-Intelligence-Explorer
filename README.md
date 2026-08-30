@@ -16,6 +16,7 @@ Firemní data bývají často roztříštěná, nejednotná a špatně dohledate
 - přihlášení a role administrátor, editor a uživatel pouze pro čtení
 - REST API pro založení, detail a hledání firmy
 - H2 databáze pro jednoduché lokální spuštění
+- doprovodný DKI ID Generator pro lokální tvorbu a šifrovaný archiv identifikátorů
 
 ## Spuštění
 
@@ -60,6 +61,20 @@ Tyto údaje se nesmí použít na veřejném serveru. Produkční profil vyžadu
 ```powershell
 .\mvnw.cmd test
 ```
+
+## DKI ID Generator
+
+Součástí projektu je odkaz na samostatný desktopový nástroj pro Windows x64. Generátor
+běží lokálně a jeho heslo, identifikátory ani obsah šifrovaného trezoru se automaticky
+neodesílají do CIE. Instalační soubory jsou publikované jako GitHub Release, nikoli
+uvnitř Git repozitáře.
+
+- běžná instalace: `DKI-ID-Generator-Setup.exe`
+- spravované nasazení: `DKI-ID-Generator-x64.msi`
+- instalační postup a SHA-256: `docs/dki-id-generator.md`
+
+Balíčky verze 1.0.0 zatím nejsou digitálně podepsané. Před instalací proto ověřte
+kontrolní součet uvedený v dokumentaci nebo v souboru `SHA256SUMS.txt` u vydání.
 
 ## Produkční profil a hosting
 

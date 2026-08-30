@@ -28,6 +28,8 @@
         <a href="#audit" data-view-target="audit" title="Audit log"><span class="nav-icon">A</span><span class="nav-label">Audit log</span></a>
         <a href="#tasks" data-view-target="tasks" title="TODO list"><span class="nav-icon">T</span><span class="nav-label">TODO list</span></a>
         <a href="#notes" data-view-target="notes" title="Technické poznámky"><span class="nav-icon">N</span><span class="nav-label">Poznámky</span></a>
+        <span class="nav-section">Nástroje</span>
+        <a href="#id-generator" data-view-target="id-generator" title="DKI ID Generator"><span class="nav-icon">G</span><span class="nav-label">ID Generator</span></a>
         <a href="/h2-console" title="H2 konzole" data-role-required="admin"><span class="nav-icon">D</span><span class="nav-label">H2 konzole</span></a>
       </nav>
     </aside>
@@ -77,6 +79,10 @@
             <a href="#tasks" data-view-target="tasks">
               <strong>TODO list</strong>
               <span>postup práce po bodech</span>
+            </a>
+            <a href="#id-generator" data-view-target="id-generator">
+              <strong>DKI ID Generator</strong>
+              <span>lokální tvorba a archiv identifikátorů</span>
             </a>
           </div>
           <div class="legend-panel">
@@ -414,6 +420,57 @@
           <div class="archive-box" id="task-archive-box" hidden>
             <h3>Archivované úkoly</h3>
             <div class="task-list" id="task-archive-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel view tool-panel" id="id-generator" data-view="id-generator">
+        <div class="panel-header">
+          <h2>DKI ID Generator</h2>
+          <p>Doprovodný Windows nástroj pro generování a šifrovaný lokální archiv identifikátorů.</p>
+        </div>
+        <div class="panel-body">
+          <div class="tool-layout">
+            <div class="tool-primary">
+              <span class="tool-kicker">Desktopový nástroj</span>
+              <h3>Instalace pro Windows x64</h3>
+              <p>Pro běžnou instalaci použij EXE. MSI je určené hlavně pro spravované nebo hromadné nasazení.</p>
+              <div class="tool-actions">
+                <a class="primary-link" href="https://github.com/daviddblancica-ops/Company-Intelligence-Explorer/releases/download/dki-id-generator-v1.0.0/DKI-ID-Generator-Setup.exe" target="_blank" rel="noopener noreferrer">Stáhnout instalátor EXE</a>
+                <a class="tool-secondary-link" href="https://github.com/daviddblancica-ops/Company-Intelligence-Explorer/releases/download/dki-id-generator-v1.0.0/DKI-ID-Generator-x64.msi" target="_blank" rel="noopener noreferrer">Stáhnout balíček MSI</a>
+              </div>
+              <a class="tool-release-link" href="https://github.com/daviddblancica-ops/Company-Intelligence-Explorer/releases/tag/dki-id-generator-v1.0.0" target="_blank" rel="noopener noreferrer">Otevřít přehled vydání 1.0.0</a>
+            </div>
+            <dl class="tool-facts">
+              <div><dt>Verze</dt><dd>1.0.0</dd></div>
+              <div><dt>Platforma</dt><dd>Windows x64</dd></div>
+              <div><dt>Provoz</dt><dd>lokálně, bez webového API</dd></div>
+              <div><dt>Úložiště</dt><dd>šifrovaný lokální trezor</dd></div>
+            </dl>
+          </div>
+
+          <div class="tool-notice" role="note">
+            <strong>Upozornění k instalaci</strong>
+            <span>Balíčky verze 1.0.0 zatím nejsou digitálně podepsané. Windows proto může zobrazit bezpečnostní varování. Stahuj je pouze z vydání tohoto projektu a ověř kontrolní součet.</span>
+          </div>
+
+          <div class="tool-section">
+            <h3>Zapojení do Company Intelligence Exploreru</h3>
+            <p>ID Generator je samostatná desktopová pomůcka. Vytvořené identifikátory, heslo ani obsah trezoru se automaticky neodesílají do CIE, databáze ani prohlížeče. Tím zůstává citlivý archiv oddělený od firemních dat.</p>
+          </div>
+
+          <div class="tool-section">
+            <h3>Kontrolní součty SHA-256</h3>
+            <div class="tool-table-wrap">
+              <table class="tool-package-table">
+                <thead><tr><th>Balíček</th><th>Velikost</th><th>SHA-256</th></tr></thead>
+                <tbody>
+                  <tr><td>DKI-ID-Generator-Setup.exe</td><td>47 805 747 B</td><td><code>9617146330E65857BA4641160E43F6318C53DC555B1176B5CC156FB17F7FA742</code></td></tr>
+                  <tr><td>DKI-ID-Generator-x64.msi</td><td>46 841 856 B</td><td><code>45B9C71439E9A89B35D2DB84291739B1A82F1F045E04D6ACB7C37032C2ADD3DB</code></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="tool-help">Podrobný instalační a ověřovací postup je v dokumentaci projektu.</p>
           </div>
         </div>
       </section>
